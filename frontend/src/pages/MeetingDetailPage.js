@@ -23,7 +23,7 @@ import Layout from '@/components/Layout';
 import { 
     ArrowLeft, Calendar, Clock, Video, MapPin, Users, User, FileText,
     CheckCircle2, XCircle, HelpCircle, Play, Upload, Trash2, Download,
-    Plus, ExternalLink, Loader2, AlertCircle, Clipboard, UserPlus
+    Plus, ExternalLink, Loader2, AlertCircle, Clipboard, UserPlus, Mail
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 
