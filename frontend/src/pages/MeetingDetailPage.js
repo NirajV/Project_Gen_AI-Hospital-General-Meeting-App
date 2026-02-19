@@ -43,6 +43,9 @@ export default function MeetingDetailPage() {
     const [fileType, setFileType] = useState('other');
     const [allUsers, setAllUsers] = useState([]);
     const [addingParticipant, setAddingParticipant] = useState(false);
+    const [inviteTab, setInviteTab] = useState('existing');
+    const [newInvite, setNewInvite] = useState({ email: '', name: '', specialty: '' });
+    const [inviting, setInviting] = useState(false);
     const [newDecision, setNewDecision] = useState({
         title: '', description: '', action_plan: '', follow_up_date: '', priority: 'medium'
     });
