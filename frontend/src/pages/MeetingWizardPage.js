@@ -145,6 +145,34 @@ export default function MeetingWizardPage() {
         setFormData({ ...formData, patient_ids: ids });
     };
 
+    const handleAddNewPatient = async () => {
+        if (!newPatient.first_name || !newPatient.last_name) return;
+        setAddingPatient(true);
+        try {
+            const response = await createPatient(newPatient);
+            const createdPatient = response.data;
+            // Add the new patient to the list and select them
+            setPatients(prev => [...prev, createdPatient]);
+            setFormData(prev => ({
+                ...prev,
+                patient_ids: [...prev.patient_ids, createdPatient.id]
+            }));
+            setNewPatient({ 
+                first_name: '', 
+                last_name: '', 
+                date_of_birth: '', 
+                gender: '',
+                primary_diagnosis: '', 
+                department_name: '' 
+            });
+            setPatientTab('existing');
+        } catch (error) {
+            console.error('Failed to create patient:', error);
+        } finally {
+            setAddingPatient(false);
+        }
+    };
+
     const addAgendaItem = () => {
         if (!newAgendaItem.title.trim()) return;
         setFormData({
