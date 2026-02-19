@@ -559,8 +559,8 @@ async def get_meeting_detail(meeting_id: str, current_user: dict):
     if not meeting:
         raise HTTPException(status_code=404, detail="Meeting not found")
     
-    # Get organizer
-    organizer = await db.users.find_one({"id": meeting['organizer_id']}, {"_id": 0})
+    # Get organizer (exclude password_hash)
+    organizer = await db.users.find_one({"id": meeting['organizer_id']}, {"_id": 0, "password_hash": 0})
     meeting['organizer'] = serialize_doc(organizer) if organizer else None
     
     # Get participants with user info
