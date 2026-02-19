@@ -128,6 +128,45 @@ export default function MeetingDetailPage() {
         }
     };
 
+    const openParticipantDialog = async () => {
+        try {
+            const res = await getUsers();
+            setAllUsers(res.data);
+            setParticipantDialog(true);
+        } catch (error) {
+            console.error('Failed to load users:', error);
+        }
+    };
+
+    const handleAddParticipant = async (userId) => {
+        setAddingParticipant(true);
+        try {
+            await addParticipant(id, { user_id: userId, role: 'attendee' });
+            loadMeeting();
+            // Refresh user list to update UI
+            const res = await getUsers();
+            setAllUsers(res.data);
+        } catch (error) {
+            console.error('Failed to add participant:', error);
+        } finally {
+            setAddingParticipant(false);
+        }
+    };
+
+    const handleRemoveParticipant = async (userId) => {
+        try {
+            await removeParticipant(id, userId);
+            loadMeeting();
+        } catch (error) {
+            console.error('Failed to remove participant:', error);
+        }
+    };
+
+    const getAvailableUsers = () => {
+        const participantIds = meeting?.participants?.map(p => p.user_id) || [];
+        return allUsers.filter(u => !participantIds.includes(u.id));
+    };
+
     const getStatusBadge = (status) => {
         const styles = {
             scheduled: 'bg-blue-100 text-blue-700',
