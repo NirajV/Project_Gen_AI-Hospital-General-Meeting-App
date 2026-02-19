@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { getMeeting, updateMeeting, deleteMeeting, uploadFile, deleteFile, createDecision, updateAgendaItem, getFileUrl } from '@/lib/api';
+import { getMeeting, updateMeeting, deleteMeeting, uploadFile, deleteFile, createDecision, updateAgendaItem, getFileUrl, getUsers, addParticipant, removeParticipant } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -23,7 +23,7 @@ import Layout from '@/components/Layout';
 import { 
     ArrowLeft, Calendar, Clock, Video, MapPin, Users, User, FileText,
     CheckCircle2, XCircle, HelpCircle, Play, Upload, Trash2, Download,
-    Plus, ExternalLink, Loader2, AlertCircle, Clipboard
+    Plus, ExternalLink, Loader2, AlertCircle, Clipboard, UserPlus
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 
@@ -37,9 +37,12 @@ export default function MeetingDetailPage() {
     const [uploadDialog, setUploadDialog] = useState(false);
     const [decisionDialog, setDecisionDialog] = useState(false);
     const [deleteDialog, setDeleteDialog] = useState(false);
+    const [participantDialog, setParticipantDialog] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
     const [fileType, setFileType] = useState('other');
+    const [allUsers, setAllUsers] = useState([]);
+    const [addingParticipant, setAddingParticipant] = useState(false);
     const [newDecision, setNewDecision] = useState({
         title: '', description: '', action_plan: '', follow_up_date: '', priority: 'medium'
     });
