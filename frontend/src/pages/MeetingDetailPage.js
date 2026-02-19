@@ -714,6 +714,70 @@ export default function MeetingDetailPage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            {/* Add Participant Dialog */}
+            <Dialog open={participantDialog} onOpenChange={setParticipantDialog}>
+                <DialogContent className="max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <UserPlus className="w-5 h-5 text-primary" /> Add Participants
+                        </DialogTitle>
+                        <DialogDescription>
+                            Select doctors to invite to this meeting
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="max-h-96 overflow-y-auto space-y-2">
+                        {getAvailableUsers().length === 0 ? (
+                            <div className="text-center py-8 text-muted-foreground">
+                                <Users className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                                <p>All available doctors are already participants</p>
+                            </div>
+                        ) : (
+                            getAvailableUsers().map((availableUser, idx) => (
+                                <div
+                                    key={availableUser.id}
+                                    className="flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:border-primary/30 hover:bg-slate-50 transition-all"
+                                    data-testid={`available-user-${idx}`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <Avatar className="w-10 h-10">
+                                            <AvatarImage src={availableUser.picture} />
+                                            <AvatarFallback className="bg-primary/10 text-primary">
+                                                {availableUser.name?.charAt(0)}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        <div>
+                                            <p className="font-medium">{availableUser.name}</p>
+                                            <p className="text-sm text-muted-foreground">
+                                                {availableUser.specialty || availableUser.email}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <Button
+                                        size="sm"
+                                        onClick={() => handleAddParticipant(availableUser.id)}
+                                        disabled={addingParticipant}
+                                        data-testid={`add-user-${idx}`}
+                                    >
+                                        {addingParticipant ? (
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                        ) : (
+                                            <>
+                                                <Plus className="w-4 h-4 mr-1" /> Add
+                                            </>
+                                        )}
+                                    </Button>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setParticipantDialog(false)}>
+                            Done
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </Layout>
     );
 }
