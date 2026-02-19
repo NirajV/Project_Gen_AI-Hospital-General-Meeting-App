@@ -1,0 +1,540 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { createMeeting, getUsers, getPatients } from '@/lib/api';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
+import Layout from '@/components/Layout';
+import { 
+    ArrowLeft, ArrowRight, Calendar, Users, User, FileText,
+    Video, MapPin, Loader2, Check, X, Plus, Trash2
+} from 'lucide-react';
+
+const STEPS = [
+    { id: 1, title: 'Meeting Info', icon: Calendar },
+    { id: 2, title: 'Participants', icon: Users },
+    { id: 3, title: 'Patients', icon: User },
+    { id: 4, title: 'Agenda', icon: FileText },
+];
+
+export default function MeetingWizardPage() {
+    const navigate = useNavigate();
+    const [currentStep, setCurrentStep] = useState(1);
+    const [loading, setLoading] = useState(false);
+    const [users, setUsers] = useState([]);
+    const [patients, setPatients] = useState([]);
+
+    const [formData, setFormData] = useState({
+        title: '',
+        description: '',
+        meeting_date: '',
+        start_time: '09:00',
+        end_time: '10:00',
+        meeting_type: 'video',
+        location: '',
+        video_link: '',
+        recurrence_type: 'one_time',
+        participant_ids: [],
+        patient_ids: [],
+        agenda_items: []
+    });
+
+    const [newAgendaItem, setNewAgendaItem] = useState({ title: '', description: '', estimated_duration_minutes: 15 });
+
+    useEffect(() => {
+        loadData();
+    }, []);
+
+    const loadData = async () => {
+        try {
+            const [usersRes, patientsRes] = await Promise.all([
+                getUsers(),
+                getPatients({})
+            ]);
+            setUsers(usersRes.data);
+            setPatients(patientsRes.data);
+        } catch (error) {
+            console.error('Failed to load data:', error);
+        }
+    };
+
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleSelectChange = (name, value) => {
+        setFormData({ ...formData, [name]: value });
+    };
+
+    const toggleParticipant = (userId) => {
+        const ids = formData.participant_ids.includes(userId)
+            ? formData.participant_ids.filter(id => id !== userId)
+            : [...formData.participant_ids, userId];
+        setFormData({ ...formData, participant_ids: ids });
+    };
+
+    const togglePatient = (patientId) => {
+        const ids = formData.patient_ids.includes(patientId)
+            ? formData.patient_ids.filter(id => id !== patientId)
+            : [...formData.patient_ids, patientId];
+        setFormData({ ...formData, patient_ids: ids });
+    };
+
+    const addAgendaItem = () => {
+        if (!newAgendaItem.title.trim()) return;
+        setFormData({
+            ...formData,
+            agenda_items: [...formData.agenda_items, { ...newAgendaItem, order_index: formData.agenda_items.length }]
+        });
+        setNewAgendaItem({ title: '', description: '', estimated_duration_minutes: 15 });
+    };
+
+    const removeAgendaItem = (index) => {
+        setFormData({
+            ...formData,
+            agenda_items: formData.agenda_items.filter((_, i) => i !== index)
+        });
+    };
+
+    const canProceed = () => {
+        switch (currentStep) {
+            case 1:
+                return formData.title && formData.meeting_date && formData.start_time && formData.end_time;
+            default:
+                return true;
+        }
+    };
+
+    const handleSubmit = async () => {
+        setLoading(true);
+        try {
+            const res = await createMeeting(formData);
+            navigate(`/meetings/${res.data.id}`);
+        } catch (error) {
+            console.error('Failed to create meeting:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const renderStep = () => {
+        switch (currentStep) {
+            case 1:
+                return (
+                    <div className="space-y-6" data-testid="step-1">
+                        <div className="space-y-2">
+                            <Label htmlFor="title">Meeting Title *</Label>
+                            <Input
+                                id="title"
+                                name="title"
+                                value={formData.title}
+                                onChange={handleChange}
+                                placeholder="e.g., Tumor Board - Lung Cases"
+                                className="h-12 bg-slate-50"
+                                data-testid="title-input"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="description">Description</Label>
+                            <Textarea
+                                id="description"
+                                name="description"
+                                value={formData.description}
+                                onChange={handleChange}
+                                placeholder="Brief description of the meeting purpose"
+                                className="bg-slate-50"
+                                data-testid="description-input"
+                            />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="meeting_date">Date *</Label>
+                                <Input
+                                    id="meeting_date"
+                                    name="meeting_date"
+                                    type="date"
+                                    value={formData.meeting_date}
+                                    onChange={handleChange}
+                                    className="h-12 bg-slate-50"
+                                    data-testid="date-input"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="start_time">Start Time *</Label>
+                                <Input
+                                    id="start_time"
+                                    name="start_time"
+                                    type="time"
+                                    value={formData.start_time}
+                                    onChange={handleChange}
+                                    className="h-12 bg-slate-50"
+                                    data-testid="start-time-input"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="end_time">End Time *</Label>
+                                <Input
+                                    id="end_time"
+                                    name="end_time"
+                                    type="time"
+                                    value={formData.end_time}
+                                    onChange={handleChange}
+                                    className="h-12 bg-slate-50"
+                                    data-testid="end-time-input"
+                                />
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label>Meeting Type</Label>
+                                <Select onValueChange={(v) => handleSelectChange('meeting_type', v)} value={formData.meeting_type}>
+                                    <SelectTrigger className="h-12 bg-slate-50" data-testid="type-select">
+                                        <SelectValue placeholder="Select type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="video"><div className="flex items-center gap-2"><Video className="w-4 h-4" /> Video Call</div></SelectItem>
+                                        <SelectItem value="in_person"><div className="flex items-center gap-2"><MapPin className="w-4 h-4" /> In-Person</div></SelectItem>
+                                        <SelectItem value="hybrid"><div className="flex items-center gap-2"><Users className="w-4 h-4" /> Hybrid</div></SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Recurrence</Label>
+                                <Select onValueChange={(v) => handleSelectChange('recurrence_type', v)} value={formData.recurrence_type}>
+                                    <SelectTrigger className="h-12 bg-slate-50" data-testid="recurrence-select">
+                                        <SelectValue placeholder="Select recurrence" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="one_time">One Time</SelectItem>
+                                        <SelectItem value="daily">Daily</SelectItem>
+                                        <SelectItem value="weekly">Weekly</SelectItem>
+                                        <SelectItem value="monthly">Monthly</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                        {(formData.meeting_type === 'video' || formData.meeting_type === 'hybrid') && (
+                            <div className="space-y-2">
+                                <Label htmlFor="video_link">Teams/Video Link</Label>
+                                <Input
+                                    id="video_link"
+                                    name="video_link"
+                                    value={formData.video_link}
+                                    onChange={handleChange}
+                                    placeholder="https://teams.microsoft.com/..."
+                                    className="h-12 bg-slate-50"
+                                    data-testid="video-link-input"
+                                />
+                            </div>
+                        )}
+                        {(formData.meeting_type === 'in_person' || formData.meeting_type === 'hybrid') && (
+                            <div className="space-y-2">
+                                <Label htmlFor="location">Location</Label>
+                                <Input
+                                    id="location"
+                                    name="location"
+                                    value={formData.location}
+                                    onChange={handleChange}
+                                    placeholder="e.g., Conference Room A, Building 2"
+                                    className="h-12 bg-slate-50"
+                                    data-testid="location-input"
+                                />
+                            </div>
+                        )}
+                    </div>
+                );
+
+            case 2:
+                return (
+                    <div className="space-y-6" data-testid="step-2">
+                        <p className="text-muted-foreground">Select doctors to invite to this meeting:</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-96 overflow-y-auto">
+                            {users.map((user, idx) => (
+                                <div
+                                    key={user.id}
+                                    className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
+                                        formData.participant_ids.includes(user.id)
+                                            ? 'border-primary bg-primary/5'
+                                            : 'border-slate-200 hover:border-slate-300'
+                                    }`}
+                                    onClick={() => toggleParticipant(user.id)}
+                                    data-testid={`participant-${idx}`}
+                                >
+                                    <Checkbox
+                                        checked={formData.participant_ids.includes(user.id)}
+                                        onCheckedChange={() => toggleParticipant(user.id)}
+                                    />
+                                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                        <User className="w-5 h-5 text-primary" />
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-foreground">{user.name}</p>
+                                        <p className="text-sm text-muted-foreground">{user.specialty || user.email}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        {formData.participant_ids.length > 0 && (
+                            <p className="text-sm text-muted-foreground">
+                                {formData.participant_ids.length} participant(s) selected
+                            </p>
+                        )}
+                    </div>
+                );
+
+            case 3:
+                return (
+                    <div className="space-y-6" data-testid="step-3">
+                        <p className="text-muted-foreground">Select patients to discuss in this meeting:</p>
+                        {patients.length === 0 ? (
+                            <div className="text-center py-8">
+                                <User className="w-12 h-12 mx-auto mb-3 text-muted-foreground opacity-50" />
+                                <p className="text-muted-foreground">No patients available</p>
+                                <Button variant="outline" className="mt-4" onClick={() => navigate('/patients/new')}>
+                                    Add a patient first
+                                </Button>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-96 overflow-y-auto">
+                                {patients.map((patient, idx) => (
+                                    <div
+                                        key={patient.id}
+                                        className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
+                                            formData.patient_ids.includes(patient.id)
+                                                ? 'border-primary bg-primary/5'
+                                                : 'border-slate-200 hover:border-slate-300'
+                                        }`}
+                                        onClick={() => togglePatient(patient.id)}
+                                        data-testid={`patient-select-${idx}`}
+                                    >
+                                        <Checkbox
+                                            checked={formData.patient_ids.includes(patient.id)}
+                                            onCheckedChange={() => togglePatient(patient.id)}
+                                        />
+                                        <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
+                                            <User className="w-5 h-5 text-accent" />
+                                        </div>
+                                        <div>
+                                            <p className="font-medium text-foreground">
+                                                {patient.first_name} {patient.last_name}
+                                            </p>
+                                            <p className="text-sm text-muted-foreground">
+                                                {patient.primary_diagnosis || patient.department_name || 'No diagnosis'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        {formData.patient_ids.length > 0 && (
+                            <p className="text-sm text-muted-foreground">
+                                {formData.patient_ids.length} patient(s) selected
+                            </p>
+                        )}
+                    </div>
+                );
+
+            case 4:
+                return (
+                    <div className="space-y-6" data-testid="step-4">
+                        <p className="text-muted-foreground">Add agenda items for the meeting:</p>
+                        
+                        {/* Add new agenda item */}
+                        <div className="p-4 rounded-lg border border-slate-200 bg-slate-50 space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="md:col-span-2 space-y-2">
+                                    <Label htmlFor="agenda_title">Agenda Item Title</Label>
+                                    <Input
+                                        id="agenda_title"
+                                        value={newAgendaItem.title}
+                                        onChange={(e) => setNewAgendaItem({ ...newAgendaItem, title: e.target.value })}
+                                        placeholder="e.g., Diagnosis Discussion"
+                                        className="h-11 bg-white"
+                                        data-testid="agenda-title-input"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="duration">Duration (min)</Label>
+                                    <Input
+                                        id="duration"
+                                        type="number"
+                                        value={newAgendaItem.estimated_duration_minutes}
+                                        onChange={(e) => setNewAgendaItem({ ...newAgendaItem, estimated_duration_minutes: parseInt(e.target.value) || 15 })}
+                                        className="h-11 bg-white"
+                                        data-testid="agenda-duration-input"
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="agenda_desc">Description (optional)</Label>
+                                <Textarea
+                                    id="agenda_desc"
+                                    value={newAgendaItem.description}
+                                    onChange={(e) => setNewAgendaItem({ ...newAgendaItem, description: e.target.value })}
+                                    placeholder="Brief description of this agenda item"
+                                    className="bg-white"
+                                    rows={2}
+                                    data-testid="agenda-desc-input"
+                                />
+                            </div>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={addAgendaItem}
+                                disabled={!newAgendaItem.title.trim()}
+                                data-testid="add-agenda-btn"
+                            >
+                                <Plus className="w-4 h-4 mr-2" /> Add Item
+                            </Button>
+                        </div>
+
+                        {/* Agenda items list */}
+                        {formData.agenda_items.length > 0 && (
+                            <div className="space-y-3">
+                                <h4 className="font-medium">Agenda Items ({formData.agenda_items.length})</h4>
+                                {formData.agenda_items.map((item, index) => (
+                                    <div
+                                        key={index}
+                                        className="flex items-center justify-between p-3 rounded-lg border border-slate-200 bg-white"
+                                        data-testid={`agenda-item-${index}`}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <Badge variant="outline" className="text-xs">{index + 1}</Badge>
+                                            <div>
+                                                <p className="font-medium">{item.title}</p>
+                                                {item.description && (
+                                                    <p className="text-sm text-muted-foreground">{item.description}</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Badge variant="secondary">{item.estimated_duration_minutes} min</Badge>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => removeAgendaItem(index)}
+                                                className="text-muted-foreground hover:text-destructive"
+                                                data-testid={`remove-agenda-${index}`}
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                );
+
+            default:
+                return null;
+        }
+    };
+
+    return (
+        <Layout>
+            <div className="max-w-3xl mx-auto" data-testid="meeting-wizard">
+                <Button
+                    variant="ghost"
+                    onClick={() => navigate('/meetings')}
+                    className="mb-6"
+                    data-testid="back-btn"
+                >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Back to Meetings
+                </Button>
+
+                {/* Progress Steps */}
+                <div className="mb-8">
+                    <div className="flex items-center justify-between">
+                        {STEPS.map((step, index) => {
+                            const Icon = step.icon;
+                            const isActive = currentStep === step.id;
+                            const isCompleted = currentStep > step.id;
+                            return (
+                                <React.Fragment key={step.id}>
+                                    <div className="flex flex-col items-center gap-2">
+                                        <div
+                                            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                                                isCompleted
+                                                    ? 'bg-accent text-accent-foreground'
+                                                    : isActive
+                                                    ? 'bg-primary text-primary-foreground'
+                                                    : 'bg-slate-100 text-muted-foreground'
+                                            }`}
+                                        >
+                                            {isCompleted ? <Check className="w-5 h-5" /> : <Icon className="w-5 h-5" />}
+                                        </div>
+                                        <span className={`text-xs font-medium ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
+                                            {step.title}
+                                        </span>
+                                    </div>
+                                    {index < STEPS.length - 1 && (
+                                        <div className={`flex-1 h-0.5 mx-2 ${currentStep > step.id ? 'bg-accent' : 'bg-slate-200'}`} />
+                                    )}
+                                </React.Fragment>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                <Card className="border-slate-200">
+                    <CardHeader>
+                        <CardTitle className="text-2xl font-display">
+                            Step {currentStep}: {STEPS[currentStep - 1].title}
+                        </CardTitle>
+                        <CardDescription>
+                            {currentStep === 1 && 'Enter basic meeting information'}
+                            {currentStep === 2 && 'Select doctors to participate'}
+                            {currentStep === 3 && 'Choose patients to discuss'}
+                            {currentStep === 4 && 'Define the meeting agenda'}
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        {renderStep()}
+
+                        <div className="flex justify-between mt-8 pt-6 border-t">
+                            <Button
+                                variant="outline"
+                                onClick={() => setCurrentStep(currentStep - 1)}
+                                disabled={currentStep === 1}
+                                data-testid="prev-btn"
+                            >
+                                <ArrowLeft className="w-4 h-4 mr-2" /> Previous
+                            </Button>
+                            {currentStep < 4 ? (
+                                <Button
+                                    onClick={() => setCurrentStep(currentStep + 1)}
+                                    disabled={!canProceed()}
+                                    className="bg-primary hover:bg-primary/90"
+                                    data-testid="next-btn"
+                                >
+                                    Next <ArrowRight className="w-4 h-4 ml-2" />
+                                </Button>
+                            ) : (
+                                <Button
+                                    onClick={handleSubmit}
+                                    disabled={loading || !canProceed()}
+                                    className="bg-accent hover:bg-accent/90"
+                                    data-testid="create-meeting-btn"
+                                >
+                                    {loading ? (
+                                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Creating...</>
+                                    ) : (
+                                        <><Check className="w-4 h-4 mr-2" /> Create Meeting</>
+                                    )}
+                                </Button>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        </Layout>
+    );
+}
