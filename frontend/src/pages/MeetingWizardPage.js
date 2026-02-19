@@ -29,8 +29,18 @@ export default function MeetingWizardPage() {
     const [users, setUsers] = useState([]);
     const [patients, setPatients] = useState([]);
     const [participantTab, setParticipantTab] = useState('existing');
+    const [patientTab, setPatientTab] = useState('existing');
     const [newInvite, setNewInvite] = useState({ email: '', name: '', specialty: '' });
     const [inviting, setInviting] = useState(false);
+    const [newPatient, setNewPatient] = useState({ 
+        first_name: '', 
+        last_name: '', 
+        date_of_birth: '', 
+        gender: '',
+        primary_diagnosis: '', 
+        department_name: '' 
+    });
+    const [addingPatient, setAddingPatient] = useState(false);
 
     const [formData, setFormData] = useState({
         title: '',
