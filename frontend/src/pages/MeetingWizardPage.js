@@ -81,6 +81,53 @@ export default function MeetingWizardPage() {
         setFormData({ ...formData, participant_ids: ids });
     };
 
+    const handleInviteByEmail = async () => {
+        if (!newInvite.email || !newInvite.name) return;
+        setInviting(true);
+        try {
+            const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: newInvite.email,
+                    name: newInvite.name,
+                    specialty: newInvite.specialty,
+                    password: 'TempPass123!'
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                // Add the new user to the list and select them
+                setUsers(prev => [...prev, data.user]);
+                setFormData(prev => ({
+                    ...prev,
+                    participant_ids: [...prev.participant_ids, data.user.id]
+                }));
+                setNewInvite({ email: '', name: '', specialty: '' });
+                setParticipantTab('existing');
+            } else {
+                const error = await response.json();
+                if (error.detail === 'Email already registered') {
+                    // User exists, find them in the list and select them
+                    const existingUser = users.find(u => u.email === newInvite.email);
+                    if (existingUser && !formData.participant_ids.includes(existingUser.id)) {
+                        setFormData(prev => ({
+                            ...prev,
+                            participant_ids: [...prev.participant_ids, existingUser.id]
+                        }));
+                    }
+                    setNewInvite({ email: '', name: '', specialty: '' });
+                    setParticipantTab('existing');
+                }
+            }
+        } catch (error) {
+            console.error('Failed to invite user:', error);
+        } finally {
+            setInviting(false);
+        }
+    };
+
     const togglePatient = (patientId) => {
         const ids = formData.patient_ids.includes(patientId)
             ? formData.patient_ids.filter(id => id !== patientId)
