@@ -165,6 +165,52 @@ export default function MeetingDetailPage() {
         }
     };
 
+    const handleInviteByEmail = async () => {
+        if (!newInvite.email || !newInvite.name) return;
+        setInviting(true);
+        try {
+            // First create the user account, then add as participant
+            const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: newInvite.email,
+                    name: newInvite.name,
+                    specialty: newInvite.specialty,
+                    password: 'TempPass123!' // Temporary password - they'll reset it
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                // Add the new user as participant
+                await addParticipant(id, { user_id: data.user.id, role: 'attendee' });
+                loadMeeting();
+                setNewInvite({ email: '', name: '', specialty: '' });
+                // Refresh user list
+                const res = await getUsers();
+                setAllUsers(res.data);
+            } else {
+                const error = await response.json();
+                if (error.detail === 'Email already registered') {
+                    // User exists, find them and add
+                    const usersRes = await getUsers();
+                    const existingUser = usersRes.data.find(u => u.email === newInvite.email);
+                    if (existingUser) {
+                        await addParticipant(id, { user_id: existingUser.id, role: 'attendee' });
+                        loadMeeting();
+                        setNewInvite({ email: '', name: '', specialty: '' });
+                        setAllUsers(usersRes.data);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Failed to invite user:', error);
+        } finally {
+            setInviting(false);
+        }
+    };
+
     const getAvailableUsers = () => {
         const participantIds = meeting?.participants?.map(p => p.user_id) || [];
         return allUsers.filter(u => !participantIds.includes(u.id));
