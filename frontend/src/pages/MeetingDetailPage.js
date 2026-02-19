@@ -340,9 +340,16 @@ export default function MeetingDetailPage() {
                             {/* Participants Sidebar */}
                             <Card className="border-slate-200">
                                 <CardHeader>
-                                    <CardTitle className="flex items-center gap-2">
-                                        <Users className="w-5 h-5" /> Participants
-                                    </CardTitle>
+                                    <div className="flex items-center justify-between">
+                                        <CardTitle className="flex items-center gap-2">
+                                            <Users className="w-5 h-5" /> Participants
+                                        </CardTitle>
+                                        {isOrganizer && meeting.status !== 'completed' && (
+                                            <Button variant="outline" size="sm" onClick={openParticipantDialog} data-testid="add-participant-btn">
+                                                <UserPlus className="w-4 h-4 mr-1" /> Add
+                                            </Button>
+                                        )}
+                                    </div>
                                 </CardHeader>
                                 <CardContent className="space-y-3">
                                     {/* Organizer */}
@@ -361,7 +368,7 @@ export default function MeetingDetailPage() {
                                         </div>
                                     </div>
                                     {meeting.participants?.filter(p => p.role !== 'organizer').map((participant, idx) => (
-                                        <div key={participant.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-slate-50" data-testid={`participant-${idx}`}>
+                                        <div key={participant.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 group" data-testid={`participant-${idx}`}>
                                             <div className="flex items-center gap-2">
                                                 <Avatar className="w-8 h-8">
                                                     <AvatarImage src={participant.picture} />
@@ -372,7 +379,20 @@ export default function MeetingDetailPage() {
                                                     <p className="text-xs text-muted-foreground">{participant.specialty || participant.email}</p>
                                                 </div>
                                             </div>
-                                            {getResponseBadge(participant.response_status)}
+                                            <div className="flex items-center gap-2">
+                                                {getResponseBadge(participant.response_status)}
+                                                {isOrganizer && meeting.status !== 'completed' && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="w-6 h-6 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
+                                                        onClick={() => handleRemoveParticipant(participant.user_id)}
+                                                        data-testid={`remove-participant-${idx}`}
+                                                    >
+                                                        <XCircle className="w-4 h-4" />
+                                                    </Button>
+                                                )}
+                                            </div>
                                         </div>
                                     ))}
                                 </CardContent>
