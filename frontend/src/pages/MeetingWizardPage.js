@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import Layout from '@/components/Layout';
 import { 
     ArrowLeft, ArrowRight, Calendar, Users, User, FileText,
-    Video, MapPin, Loader2, Check, X, Plus, Trash2
+    Video, MapPin, Loader2, Check, X, Plus, Trash2, Mail, UserPlus
 } from 'lucide-react';
 
 const STEPS = [
@@ -28,6 +28,9 @@ export default function MeetingWizardPage() {
     const [loading, setLoading] = useState(false);
     const [users, setUsers] = useState([]);
     const [patients, setPatients] = useState([]);
+    const [participantTab, setParticipantTab] = useState('existing');
+    const [newInvite, setNewInvite] = useState({ email: '', name: '', specialty: '' });
+    const [inviting, setInviting] = useState(false);
 
     const [formData, setFormData] = useState({
         title: '',
