@@ -1,0 +1,157 @@
+{
+  "identity": {
+    "name": "E1",
+    "persona": "The Anti-AI Designer",
+    "mission": "Create a 'Clinical Zen' aesthetic that blends Swiss precision with organic warmth, avoiding generic SaaS tropes."
+  },
+  "theme": {
+    "mode": "light",
+    "strategy": "Clinical Zen",
+    "description": "A sterile but human environment. High contrast for data legibility, warm greys for backgrounds to reduce eye strain, and deep surgical indigo for branding."
+  },
+  "typography": {
+    "font_family_display": "Manrope, sans-serif",
+    "font_family_body": "Inter, sans-serif",
+    "instructions": "Use Manrope for all Headings (h1-h6) with tight tracking. Use Inter for all body text, inputs, and dense data tables.",
+    "scale": {
+      "h1": "text-4xl md:text-5xl font-bold tracking-tight text-primary",
+      "h2": "text-3xl md:text-4xl font-semibold tracking-tight text-primary",
+      "h3": "text-2xl font-semibold tracking-tight text-primary",
+      "h4": "text-xl font-medium tracking-tight text-primary",
+      "body_large": "text-lg font-normal leading-relaxed text-slate-700",
+      "body": "text-base font-normal leading-relaxed text-slate-600",
+      "small": "text-sm font-medium text-slate-500",
+      "tiny": "text-xs font-bold uppercase tracking-widest text-slate-400"
+    }
+  },
+  "colors": {
+    "palette": {
+      "primary": {
+        "DEFAULT": "#2E425A",
+        "foreground": "#FFFFFF",
+        "description": "Surgical Indigo - Use for primary buttons, active states, and key headings."
+      },
+      "secondary": {
+        "DEFAULT": "#F1F5F9",
+        "foreground": "#0F172A",
+        "description": "Clinical Grey - Use for sidebar backgrounds, card headers, and secondary buttons."
+      },
+      "background": {
+        "DEFAULT": "#FFFFFF",
+        "alt": "#F8FAFC",
+        "description": "Pure White for card surfaces, very light cool grey for app background."
+      },
+      "accent": {
+        "DEFAULT": "#2A9D8F",
+        "foreground": "#FFFFFF",
+        "description": "Success Mint - Use for 'Approved', 'Completed', or positive metrics."
+      },
+      "destructive": {
+        "DEFAULT": "#E63946",
+        "foreground": "#FFFFFF",
+        "description": "Alert Vermilion - Use for 'Critical', 'Delete', or high-risk patient tags."
+      },
+      "muted": {
+        "DEFAULT": "#F8FAFC",
+        "foreground": "#64748B"
+      },
+      "border": "#E2E8F0"
+    },
+    "gradients": {
+      "subtle_glow": "bg-gradient-to-tr from-slate-50 to-white",
+      "active_state": "bg-gradient-to-r from-[#2E425A] to-[#3B5470]"
+    }
+  },
+  "spacing_and_layout": {
+    "strategy": "Generous & Grid-Based",
+    "container_padding": "p-6 md:p-12",
+    "grid_gap": "gap-6 md:gap-8",
+    "modes": {
+      "dashboard": {
+        "type": "Bento Mode B",
+        "grid": "grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6",
+        "rules": "High density. Widgets must stretch to fill height (h-full). No jagged bottoms."
+      },
+      "wizard": {
+        "type": "Focused Center",
+        "layout": "max-w-2xl mx-auto py-12",
+        "rules": "Remove sidebars. Focus solely on the input flow."
+      },
+      "case_room": {
+        "type": "Tabbed Panel",
+        "layout": "flex flex-col h-full",
+        "rules": "Tabs on top, content area fills remaining height. Use 'Glass' headers for the tab bar."
+      }
+    }
+  },
+  "components": {
+    "style_guide": {
+      "radius": "rounded-sm",
+      "shadows": "shadow-none hover:shadow-md transition-shadow duration-200",
+      "borders": "border border-slate-200"
+    },
+    "custom_instructions": [
+      "Buttons: Use sharp or slightly rounded corners (rounded-sm). Avoid pill shapes unless for status tags.",
+      "Cards: Flat, white background, 1px border. Minimal shadow.",
+      "Inputs: High height (h-10 or h-12). Pale grey background (bg-slate-50) on focus white.",
+      "Tables: Clean, minimal borders. Zebra striping is optional but prefer hover-row highlighting."
+    ]
+  },
+  "image_urls": {
+    "avatars": [
+      {
+        "url": "https://images.unsplash.com/photo-1742436707321-33fed05590bb?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzl8MHwxfHNlYXJjaHwzfHxwcm9mZXNzaW9uYWwlMjBkb2N0b3IlMjBoZWFkc2hvdCUyMHN0dWRpbyUyMGJhY2tncm91bmR8ZW58MHx8fHwxNzcxNTM4NTk1fDA&ixlib=rb-4.1.0&q=85",
+        "category": "Doctor Profile",
+        "description": "Female doctor smiling"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1615177393114-bd2917a4f74a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzl8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjBkb2N0b3IlMjBoZWFkc2hvdCUyMHN0dWRpbyUyMGJhY2tncm91bmR8ZW58MHx8fHwxNzcxNTM4NTk1fDA&ixlib=rb-4.1.0&q=85",
+        "category": "Doctor Profile",
+        "description": "Male doctor with glasses"
+      }
+    ],
+    "locations": [
+      {
+        "url": "https://images.pexels.com/photos/18435276/pexels-photo-18435276.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+        "category": "Hospital Exterior",
+        "description": "Modern hospital building geometric"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1717497932377-7758b8d5b45e?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MTJ8MHwxfHNlYXJjaHwyfHxtb2Rlcm4lMjBob3NwaXRhbCUyMGJ1aWxkaW5nJTIwZXh0ZXJpb3IlMjBzdW5ueXxlbnwwfHx8fDE3NzE1Mzg1OTZ8MA&ixlib=rb-4.1.0&q=85",
+        "category": "Hospital Exterior",
+        "description": "Large hospital building with parking"
+      }
+    ],
+    "medical_assets": [
+      {
+        "url": "https://images.pexels.com/photos/7089020/pexels-photo-7089020.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+        "category": "Radiology",
+        "description": "MRI Brain Scan on Screen"
+      },
+      {
+        "url": "https://images.pexels.com/photos/8879121/pexels-photo-8879121.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+        "category": "Radiology",
+        "description": "Scientist examining X-ray"
+      }
+    ]
+  },
+  "assets_instructions": {
+    "icons": "Use 'lucide-react' for all UI icons. Use 'Stethoscope', 'Activity', 'FileText', 'Users', 'Calendar' as primary icons.",
+    "logo": "Use a simple typographic logo with the 'Activity' icon in the primary color."
+  },
+  "universal_guidelines": [
+    "You tend to converge toward generic, 'on distribution' outputs. Avoid this.",
+    "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients.",
+    "Don't make generic centered layouts, simplistic gradients, and uniform styling.",
+    "Create depth through layered design elements with z-index hierarchy.",
+    "Use glass-morphism effects with backdrop filters (12-24px blur) for sticky headers only.",
+    "You MUST NOT apply universal transition. Eg: transition: all. This results in breaking transforms.",
+    "You MUST NOT center align the app container. This disrupts the human natural reading flow.",
+    "Always use modern button styles like pill-shaped, or sharp button with interaction animations.",
+    "NEVER use AI assistant Emoji characters like 🤖🧠 etc.",
+    "Every interaction needs micro-animations - hover states, transitions.",
+    "Use 2-3x more spacing than feels comfortable.",
+    "Subtle grain textures, noise overlays, custom cursors separate good from extraordinary.",
+    "All interactive and key informational elements MUST include a data-testid attribute."
+  ]
+}
