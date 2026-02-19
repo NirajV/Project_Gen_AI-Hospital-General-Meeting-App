@@ -302,37 +302,142 @@ export default function MeetingWizardPage() {
             case 2:
                 return (
                     <div className="space-y-6" data-testid="step-2">
-                        <p className="text-muted-foreground">Select doctors to invite to this meeting:</p>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-96 overflow-y-auto">
-                            {users.map((user, idx) => (
-                                <div
-                                    key={user.id}
-                                    className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
-                                        formData.participant_ids.includes(user.id)
-                                            ? 'border-primary bg-primary/5'
-                                            : 'border-slate-200 hover:border-slate-300'
-                                    }`}
-                                    onClick={() => toggleParticipant(user.id)}
-                                    data-testid={`participant-${idx}`}
-                                >
-                                    <Checkbox
-                                        checked={formData.participant_ids.includes(user.id)}
-                                        onCheckedChange={() => toggleParticipant(user.id)}
-                                    />
-                                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                                        <User className="w-5 h-5 text-primary" />
-                                    </div>
-                                    <div>
-                                        <p className="font-medium text-foreground">{user.name}</p>
-                                        <p className="text-sm text-muted-foreground">{user.specialty || user.email}</p>
-                                    </div>
-                                </div>
-                            ))}
+                        {/* Tab buttons */}
+                        <div className="flex gap-2 border-b pb-3">
+                            <Button
+                                variant={participantTab === 'existing' ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => setParticipantTab('existing')}
+                                data-testid="wizard-tab-existing"
+                            >
+                                <Users className="w-4 h-4 mr-2" /> Existing Doctors
+                            </Button>
+                            <Button
+                                variant={participantTab === 'invite' ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => setParticipantTab('invite')}
+                                data-testid="wizard-tab-invite"
+                            >
+                                <Mail className="w-4 h-4 mr-2" /> Invite by Email
+                            </Button>
                         </div>
+
+                        {participantTab === 'existing' ? (
+                            <>
+                                <p className="text-muted-foreground">Select doctors to invite to this meeting:</p>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-72 overflow-y-auto">
+                                    {users.map((user, idx) => (
+                                        <div
+                                            key={user.id}
+                                            className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
+                                                formData.participant_ids.includes(user.id)
+                                                    ? 'border-primary bg-primary/5'
+                                                    : 'border-slate-200 hover:border-slate-300'
+                                            }`}
+                                            onClick={() => toggleParticipant(user.id)}
+                                            data-testid={`participant-${idx}`}
+                                        >
+                                            <Checkbox
+                                                checked={formData.participant_ids.includes(user.id)}
+                                                onCheckedChange={() => toggleParticipant(user.id)}
+                                            />
+                                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                                <User className="w-5 h-5 text-primary" />
+                                            </div>
+                                            <div>
+                                                <p className="font-medium text-foreground">{user.name}</p>
+                                                <p className="text-sm text-muted-foreground">{user.specialty || user.email}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                {users.length === 0 && (
+                                    <div className="text-center py-8 text-muted-foreground">
+                                        <Users className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                                        <p>No doctors available yet</p>
+                                        <Button 
+                                            variant="link" 
+                                            className="mt-2"
+                                            onClick={() => setParticipantTab('invite')}
+                                        >
+                                            Invite someone by email
+                                        </Button>
+                                    </div>
+                                )}
+                            </>
+                        ) : (
+                            <div className="max-w-md space-y-4">
+                                <p className="text-muted-foreground">Invite a new doctor to join this meeting:</p>
+                                <div className="space-y-2">
+                                    <Label htmlFor="wizard-invite-email">Email Address *</Label>
+                                    <Input
+                                        id="wizard-invite-email"
+                                        type="email"
+                                        placeholder="doctor@hospital.com"
+                                        value={newInvite.email}
+                                        onChange={(e) => setNewInvite({ ...newInvite, email: e.target.value })}
+                                        className="h-11 bg-slate-50"
+                                        data-testid="wizard-invite-email"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="wizard-invite-name">Full Name *</Label>
+                                    <Input
+                                        id="wizard-invite-name"
+                                        placeholder="Dr. John Smith"
+                                        value={newInvite.name}
+                                        onChange={(e) => setNewInvite({ ...newInvite, name: e.target.value })}
+                                        className="h-11 bg-slate-50"
+                                        data-testid="wizard-invite-name"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="wizard-invite-specialty">Specialty (Optional)</Label>
+                                    <Input
+                                        id="wizard-invite-specialty"
+                                        placeholder="e.g., Oncology, Cardiology"
+                                        value={newInvite.specialty}
+                                        onChange={(e) => setNewInvite({ ...newInvite, specialty: e.target.value })}
+                                        className="h-11 bg-slate-50"
+                                        data-testid="wizard-invite-specialty"
+                                    />
+                                </div>
+                                <Button
+                                    className="w-full"
+                                    onClick={handleInviteByEmail}
+                                    disabled={inviting || !newInvite.email || !newInvite.name}
+                                    data-testid="wizard-send-invite"
+                                >
+                                    {inviting ? (
+                                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Adding...</>
+                                    ) : (
+                                        <><UserPlus className="w-4 h-4 mr-2" /> Add & Invite</>
+                                    )}
+                                </Button>
+                                <p className="text-xs text-muted-foreground text-center">
+                                    An account will be created and they'll be added as a participant.
+                                </p>
+                            </div>
+                        )}
+
                         {formData.participant_ids.length > 0 && (
-                            <p className="text-sm text-muted-foreground">
-                                {formData.participant_ids.length} participant(s) selected
-                            </p>
+                            <div className="pt-4 border-t">
+                                <p className="text-sm font-medium mb-2">Selected Participants ({formData.participant_ids.length})</p>
+                                <div className="flex flex-wrap gap-2">
+                                    {formData.participant_ids.map(id => {
+                                        const participant = users.find(u => u.id === id);
+                                        return participant ? (
+                                            <Badge key={id} variant="secondary" className="flex items-center gap-1 py-1 px-2">
+                                                {participant.name}
+                                                <X 
+                                                    className="w-3 h-3 ml-1 cursor-pointer hover:text-destructive" 
+                                                    onClick={() => toggleParticipant(id)}
+                                                />
+                                            </Badge>
+                                        ) : null;
+                                    })}
+                                </div>
+                            </div>
                         )}
                     </div>
                 );
