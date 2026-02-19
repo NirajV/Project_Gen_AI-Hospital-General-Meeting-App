@@ -483,51 +483,185 @@ export default function MeetingWizardPage() {
             case 3:
                 return (
                     <div className="space-y-6" data-testid="step-3">
-                        <p className="text-muted-foreground">Select patients to discuss in this meeting:</p>
-                        {patients.length === 0 ? (
-                            <div className="text-center py-8">
-                                <User className="w-12 h-12 mx-auto mb-3 text-muted-foreground opacity-50" />
-                                <p className="text-muted-foreground">No patients available</p>
-                                <Button variant="outline" className="mt-4" onClick={() => navigate('/patients/new')}>
-                                    Add a patient first
+                        {/* Tab buttons */}
+                        <div className="flex gap-2 border-b pb-3">
+                            <Button
+                                variant={patientTab === 'existing' ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => setPatientTab('existing')}
+                                data-testid="wizard-patient-tab-existing"
+                            >
+                                <Users className="w-4 h-4 mr-2" /> Existing Patients
+                            </Button>
+                            <Button
+                                variant={patientTab === 'new' ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => setPatientTab('new')}
+                                data-testid="wizard-patient-tab-new"
+                            >
+                                <UserPlus className="w-4 h-4 mr-2" /> Add New Patient
+                            </Button>
+                        </div>
+
+                        {patientTab === 'existing' ? (
+                            <>
+                                <p className="text-muted-foreground">Select patients to discuss in this meeting:</p>
+                                {patients.length === 0 ? (
+                                    <div className="text-center py-8">
+                                        <User className="w-12 h-12 mx-auto mb-3 text-muted-foreground opacity-50" />
+                                        <p className="text-muted-foreground">No patients available</p>
+                                        <Button 
+                                            variant="link" 
+                                            className="mt-2"
+                                            onClick={() => setPatientTab('new')}
+                                        >
+                                            Add a new patient
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-72 overflow-y-auto">
+                                        {patients.map((patient, idx) => (
+                                            <div
+                                                key={patient.id}
+                                                className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
+                                                    formData.patient_ids.includes(patient.id)
+                                                        ? 'border-primary bg-primary/5'
+                                                        : 'border-slate-200 hover:border-slate-300'
+                                                }`}
+                                                onClick={() => togglePatient(patient.id)}
+                                                data-testid={`patient-select-${idx}`}
+                                            >
+                                                <Checkbox
+                                                    checked={formData.patient_ids.includes(patient.id)}
+                                                    onCheckedChange={() => togglePatient(patient.id)}
+                                                />
+                                                <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
+                                                    <User className="w-5 h-5 text-accent" />
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium text-foreground">
+                                                        {patient.first_name} {patient.last_name}
+                                                    </p>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        {patient.primary_diagnosis || patient.department_name || 'No diagnosis'}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </>
+                        ) : (
+                            <div className="max-w-md space-y-4">
+                                <p className="text-muted-foreground">Add a new patient to discuss in this meeting:</p>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="patient-first-name">First Name *</Label>
+                                        <Input
+                                            id="patient-first-name"
+                                            placeholder="John"
+                                            value={newPatient.first_name}
+                                            onChange={(e) => setNewPatient({ ...newPatient, first_name: e.target.value })}
+                                            className="h-11 bg-slate-50"
+                                            data-testid="wizard-patient-first-name"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="patient-last-name">Last Name *</Label>
+                                        <Input
+                                            id="patient-last-name"
+                                            placeholder="Doe"
+                                            value={newPatient.last_name}
+                                            onChange={(e) => setNewPatient({ ...newPatient, last_name: e.target.value })}
+                                            className="h-11 bg-slate-50"
+                                            data-testid="wizard-patient-last-name"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="patient-dob">Date of Birth</Label>
+                                        <Input
+                                            id="patient-dob"
+                                            type="date"
+                                            value={newPatient.date_of_birth}
+                                            onChange={(e) => setNewPatient({ ...newPatient, date_of_birth: e.target.value })}
+                                            className="h-11 bg-slate-50"
+                                            data-testid="wizard-patient-dob"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="patient-gender">Gender</Label>
+                                        <Select 
+                                            onValueChange={(v) => setNewPatient({ ...newPatient, gender: v })} 
+                                            value={newPatient.gender}
+                                        >
+                                            <SelectTrigger className="h-11 bg-slate-50" data-testid="wizard-patient-gender">
+                                                <SelectValue placeholder="Select" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="male">Male</SelectItem>
+                                                <SelectItem value="female">Female</SelectItem>
+                                                <SelectItem value="other">Other</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="patient-diagnosis">Primary Diagnosis</Label>
+                                    <Input
+                                        id="patient-diagnosis"
+                                        placeholder="e.g., Lung Cancer Stage II"
+                                        value={newPatient.primary_diagnosis}
+                                        onChange={(e) => setNewPatient({ ...newPatient, primary_diagnosis: e.target.value })}
+                                        className="h-11 bg-slate-50"
+                                        data-testid="wizard-patient-diagnosis"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="patient-department">Department</Label>
+                                    <Input
+                                        id="patient-department"
+                                        placeholder="e.g., Oncology"
+                                        value={newPatient.department_name}
+                                        onChange={(e) => setNewPatient({ ...newPatient, department_name: e.target.value })}
+                                        className="h-11 bg-slate-50"
+                                        data-testid="wizard-patient-department"
+                                    />
+                                </div>
+                                <Button
+                                    className="w-full"
+                                    onClick={handleAddNewPatient}
+                                    disabled={addingPatient || !newPatient.first_name || !newPatient.last_name}
+                                    data-testid="wizard-add-patient"
+                                >
+                                    {addingPatient ? (
+                                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Adding...</>
+                                    ) : (
+                                        <><UserPlus className="w-4 h-4 mr-2" /> Add Patient</>
+                                    )}
                                 </Button>
                             </div>
-                        ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-96 overflow-y-auto">
-                                {patients.map((patient, idx) => (
-                                    <div
-                                        key={patient.id}
-                                        className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
-                                            formData.patient_ids.includes(patient.id)
-                                                ? 'border-primary bg-primary/5'
-                                                : 'border-slate-200 hover:border-slate-300'
-                                        }`}
-                                        onClick={() => togglePatient(patient.id)}
-                                        data-testid={`patient-select-${idx}`}
-                                    >
-                                        <Checkbox
-                                            checked={formData.patient_ids.includes(patient.id)}
-                                            onCheckedChange={() => togglePatient(patient.id)}
-                                        />
-                                        <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
-                                            <User className="w-5 h-5 text-accent" />
-                                        </div>
-                                        <div>
-                                            <p className="font-medium text-foreground">
-                                                {patient.first_name} {patient.last_name}
-                                            </p>
-                                            <p className="text-sm text-muted-foreground">
-                                                {patient.primary_diagnosis || patient.department_name || 'No diagnosis'}
-                                            </p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
                         )}
+
                         {formData.patient_ids.length > 0 && (
-                            <p className="text-sm text-muted-foreground">
-                                {formData.patient_ids.length} patient(s) selected
-                            </p>
+                            <div className="pt-4 border-t">
+                                <p className="text-sm font-medium mb-2">Selected Patients ({formData.patient_ids.length})</p>
+                                <div className="flex flex-wrap gap-2">
+                                    {formData.patient_ids.map(id => {
+                                        const patient = patients.find(p => p.id === id);
+                                        return patient ? (
+                                            <Badge key={id} variant="secondary" className="flex items-center gap-1 py-1 px-2">
+                                                {patient.first_name} {patient.last_name}
+                                                <X 
+                                                    className="w-3 h-3 ml-1 cursor-pointer hover:text-destructive" 
+                                                    onClick={() => togglePatient(id)}
+                                                />
+                                            </Badge>
+                                        ) : null;
+                                    })}
+                                </div>
+                            </div>
                         )}
                     </div>
                 );
