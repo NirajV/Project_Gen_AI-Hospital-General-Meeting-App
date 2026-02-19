@@ -1,17 +1,16 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, UploadFile, File, Form, Query, Request, Response
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, UploadFile, File, Form, Request, Response
 from fastapi.security import HTTPBearer
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
+from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 from pathlib import Path
-from pydantic import BaseModel, Field, ConfigDict, EmailStr
+from pydantic import BaseModel, Field, EmailStr
 from typing import List, Optional
 import uuid
 from datetime import datetime, timezone, timedelta, date, time
-import hashlib
 import secrets
-import aiomysql
 import aiofiles
 import jwt
 import bcrypt
@@ -20,24 +19,16 @@ import httpx
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# MySQL Configuration
-MYSQL_CONFIG = {
-    'host': os.environ.get('MYSQL_HOST', '127.0.0.1'),
-    'port': int(os.environ.get('MYSQL_PORT', 3306)),
-    'user': os.environ.get('MYSQL_USER', 'root'),
-    'password': os.environ.get('MYSQL_PASSWORD', '12345678'),
-    'db': os.environ.get('MYSQL_DATABASE', 'Hospital_General_Meeting_Scheduler_DB'),
-    'autocommit': True,
-}
+# MongoDB Configuration
+mongo_url = os.environ['MONGO_URL']
+client = AsyncIOMotorClient(mongo_url)
+db = client[os.environ['DB_NAME']]
 
 JWT_SECRET = os.environ.get('JWT_SECRET', 'hospital_meeting_scheduler_secret_key_2025')
 JWT_ALGORITHM = os.environ.get('JWT_ALGORITHM', 'HS256')
 JWT_EXPIRATION_HOURS = int(os.environ.get('JWT_EXPIRATION_HOURS', 24))
 UPLOAD_DIR = Path(os.environ.get('UPLOAD_DIR', '/app/uploads'))
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-
-# Database pool
-pool = None
 
 app = FastAPI(title="Hospital Meeting Scheduler API")
 api_router = APIRouter(prefix="/api")
@@ -64,7 +55,7 @@ class UserResponse(UserBase):
     id: str
     picture: Optional[str] = None
     is_active: bool = True
-    created_at: Optional[datetime] = None
+    created_at: Optional[str] = None
 
 class UserLogin(BaseModel):
     email: EmailStr
@@ -79,7 +70,7 @@ class PatientBase(BaseModel):
     patient_id_number: Optional[str] = None
     first_name: str
     last_name: str
-    date_of_birth: Optional[date] = None
+    date_of_birth: Optional[str] = None
     gender: Optional[str] = None
     email: Optional[str] = None
     phone: Optional[str] = None
@@ -94,39 +85,23 @@ class PatientBase(BaseModel):
 class PatientCreate(PatientBase):
     pass
 
-class PatientResponse(PatientBase):
-    id: str
-    is_active: bool = True
-    created_by: Optional[str] = None
-    created_at: Optional[datetime] = None
-
 class MeetingBase(BaseModel):
     title: str
     description: Optional[str] = None
-    meeting_date: date
-    start_time: time
-    end_time: time
+    meeting_date: str
+    start_time: str
+    end_time: str
     duration_minutes: Optional[int] = None
     meeting_type: Optional[str] = "video"
     location: Optional[str] = None
     video_link: Optional[str] = None
     recurrence_type: Optional[str] = "one_time"
-    recurrence_end_date: Optional[date] = None
+    recurrence_end_date: Optional[str] = None
 
 class MeetingCreate(MeetingBase):
     participant_ids: Optional[List[str]] = []
     patient_ids: Optional[List[str]] = []
     agenda_items: Optional[List[dict]] = []
-
-class MeetingResponse(MeetingBase):
-    id: str
-    status: str = "scheduled"
-    organizer_id: str
-    created_at: Optional[datetime] = None
-    organizer: Optional[UserResponse] = None
-    participants: Optional[List[dict]] = []
-    patients: Optional[List[dict]] = []
-    agenda: Optional[List[dict]] = []
 
 class ParticipantInvite(BaseModel):
     user_id: str
@@ -141,21 +116,12 @@ class MeetingPatientCreate(BaseModel):
     reason_for_discussion: Optional[str] = None
     status: Optional[str] = "new_case"
 
-class AgendaItemBase(BaseModel):
+class AgendaItemCreate(BaseModel):
     title: str
     description: Optional[str] = None
     order_index: Optional[int] = 0
     estimated_duration_minutes: Optional[int] = None
     assigned_to: Optional[str] = None
-
-class AgendaItemCreate(AgendaItemBase):
-    pass
-
-class AgendaItemResponse(AgendaItemBase):
-    id: str
-    meeting_id: str
-    is_completed: bool = False
-    notes: Optional[str] = None
 
 class DecisionLogCreate(BaseModel):
     meeting_patient_id: Optional[str] = None
@@ -166,67 +132,20 @@ class DecisionLogCreate(BaseModel):
     final_assessment: Optional[str] = None
     action_plan: Optional[str] = None
     responsible_doctor_id: Optional[str] = None
-    follow_up_date: Optional[date] = None
+    follow_up_date: Optional[str] = None
     priority: Optional[str] = "medium"
 
-class DecisionLogResponse(DecisionLogCreate):
-    id: str
-    meeting_id: str
-    status: str = "pending"
-    created_by: Optional[str] = None
-    created_at: Optional[datetime] = None
+# ============== Helpers ==============
 
-class FileAttachmentResponse(BaseModel):
-    id: str
-    file_name: str
-    original_name: str
-    file_type: str
-    mime_type: Optional[str] = None
-    file_size: Optional[int] = None
-    uploaded_by: Optional[str] = None
-    created_at: Optional[datetime] = None
-
-# ============== Database Helpers ==============
-
-async def get_db_pool():
-    global pool
-    if pool is None:
-        try:
-            pool = await aiomysql.create_pool(**MYSQL_CONFIG)
-            logger.info("MySQL connection pool created")
-        except Exception as e:
-            logger.error(f"Failed to create MySQL pool: {e}")
-            raise HTTPException(status_code=500, detail="Database connection failed")
-    return pool
-
-async def execute_query(query: str, params: tuple = None, fetch_one: bool = False, fetch_all: bool = False):
-    db_pool = await get_db_pool()
-    async with db_pool.acquire() as conn:
-        async with conn.cursor(aiomysql.DictCursor) as cur:
-            await cur.execute(query, params)
-            if fetch_one:
-                return await cur.fetchone()
-            if fetch_all:
-                return await cur.fetchall()
-            return cur.lastrowid
-
-def serialize_row(row: dict) -> dict:
-    """Convert MySQL row to JSON-serializable dict"""
-    if row is None:
+def serialize_doc(doc: dict) -> dict:
+    """Remove MongoDB _id and convert dates to strings"""
+    if doc is None:
         return None
-    result = {}
-    for key, value in row.items():
-        if isinstance(value, (datetime, date)):
+    result = {k: v for k, v in doc.items() if k != '_id'}
+    for key, value in result.items():
+        if isinstance(value, datetime):
             result[key] = value.isoformat()
-        elif isinstance(value, time):
-            result[key] = value.strftime("%H:%M:%S")
-        elif isinstance(value, timedelta):
-            result[key] = str(value)
-        else:
-            result[key] = value
     return result
-
-# ============== Authentication ==============
 
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
@@ -250,14 +169,14 @@ async def get_current_user(request: Request, credentials = Depends(security)) ->
     # Check cookies first
     session_token = request.cookies.get("session_token")
     if session_token:
-        session = await execute_query(
-            "SELECT * FROM user_sessions WHERE session_token = %s AND expires_at > NOW()",
-            (session_token,), fetch_one=True
+        session = await db.user_sessions.find_one(
+            {"session_token": session_token, "expires_at": {"$gt": datetime.now(timezone.utc).isoformat()}},
+            {"_id": 0}
         )
         if session:
-            user = await execute_query("SELECT * FROM users WHERE id = %s", (session['user_id'],), fetch_one=True)
+            user = await db.users.find_one({"id": session['user_id']}, {"_id": 0})
             if user:
-                return serialize_row(user)
+                return serialize_doc(user)
     
     # Check Authorization header
     if credentials:
@@ -270,9 +189,9 @@ async def get_current_user(request: Request, credentials = Depends(security)) ->
     if token:
         try:
             payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-            user = await execute_query("SELECT * FROM users WHERE id = %s", (payload['sub'],), fetch_one=True)
+            user = await db.users.find_one({"id": payload['sub']}, {"_id": 0})
             if user:
-                return serialize_row(user)
+                return serialize_doc(user)
         except jwt.ExpiredSignatureError:
             raise HTTPException(status_code=401, detail="Token expired")
         except jwt.InvalidTokenError:
@@ -280,41 +199,40 @@ async def get_current_user(request: Request, credentials = Depends(security)) ->
     
     raise HTTPException(status_code=401, detail="Not authenticated")
 
-async def get_optional_user(request: Request, credentials = Depends(security)) -> Optional[dict]:
-    """Get current user if authenticated, otherwise None"""
-    try:
-        return await get_current_user(request, credentials)
-    except HTTPException:
-        return None
-
 # ============== Auth Routes ==============
 
 @api_router.post("/auth/register", response_model=TokenResponse)
 async def register(user: UserCreate):
-    existing = await execute_query("SELECT id FROM users WHERE email = %s", (user.email,), fetch_one=True)
+    existing = await db.users.find_one({"email": user.email})
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
     
     user_id = str(uuid.uuid4())
     password_hash = hash_password(user.password) if user.password else None
     
-    await execute_query(
-        """INSERT INTO users (id, email, name, password_hash, specialty, organization, phone, role)
-           VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
-        (user_id, user.email, user.name, password_hash, user.specialty, user.organization, user.phone, user.role)
-    )
+    user_doc = {
+        "id": user_id,
+        "email": user.email,
+        "name": user.name,
+        "password_hash": password_hash,
+        "specialty": user.specialty,
+        "organization": user.organization,
+        "phone": user.phone,
+        "role": user.role or "doctor",
+        "picture": None,
+        "is_active": True,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.users.insert_one(user_doc)
     
-    user_data = await execute_query("SELECT * FROM users WHERE id = %s", (user_id,), fetch_one=True)
+    user_data = await db.users.find_one({"id": user_id}, {"_id": 0})
     token = create_jwt_token(user_id, user.email)
     
-    return TokenResponse(
-        access_token=token,
-        user=UserResponse(**serialize_row(user_data))
-    )
+    return TokenResponse(access_token=token, user=UserResponse(**serialize_doc(user_data)))
 
 @api_router.post("/auth/login", response_model=TokenResponse)
 async def login(credentials: UserLogin):
-    user = await execute_query("SELECT * FROM users WHERE email = %s", (credentials.email,), fetch_one=True)
+    user = await db.users.find_one({"email": credentials.email}, {"_id": 0})
     if not user or not user.get('password_hash'):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
@@ -322,11 +240,7 @@ async def login(credentials: UserLogin):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     token = create_jwt_token(user['id'], user['email'])
-    
-    return TokenResponse(
-        access_token=token,
-        user=UserResponse(**serialize_row(user))
-    )
+    return TokenResponse(access_token=token, user=UserResponse(**serialize_doc(user)))
 
 # REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
 @api_router.post("/auth/session")
@@ -339,8 +253,8 @@ async def process_session(request: Request, response: Response):
         raise HTTPException(status_code=400, detail="session_id required")
     
     # Call Emergent Auth to get user data
-    async with httpx.AsyncClient() as client:
-        auth_response = await client.get(
+    async with httpx.AsyncClient() as http_client:
+        auth_response = await http_client.get(
             "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
             headers={"X-Session-ID": session_id}
         )
@@ -350,34 +264,40 @@ async def process_session(request: Request, response: Response):
         auth_data = auth_response.json()
     
     # Find or create user
-    user = await execute_query("SELECT * FROM users WHERE email = %s", (auth_data['email'],), fetch_one=True)
+    user = await db.users.find_one({"email": auth_data['email']}, {"_id": 0})
     
     if not user:
         user_id = str(uuid.uuid4())
-        await execute_query(
-            """INSERT INTO users (id, email, name, picture, role)
-               VALUES (%s, %s, %s, %s, %s)""",
-            (user_id, auth_data['email'], auth_data['name'], auth_data.get('picture'), 'doctor')
-        )
-        user = await execute_query("SELECT * FROM users WHERE id = %s", (user_id,), fetch_one=True)
+        user_doc = {
+            "id": user_id,
+            "email": auth_data['email'],
+            "name": auth_data['name'],
+            "picture": auth_data.get('picture'),
+            "role": "doctor",
+            "is_active": True,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.users.insert_one(user_doc)
+        user = await db.users.find_one({"id": user_id}, {"_id": 0})
     else:
         # Update picture if changed
-        await execute_query(
-            "UPDATE users SET picture = %s, name = %s WHERE id = %s",
-            (auth_data.get('picture'), auth_data['name'], user['id'])
+        await db.users.update_one(
+            {"id": user['id']},
+            {"$set": {"picture": auth_data.get('picture'), "name": auth_data['name']}}
         )
-        user = await execute_query("SELECT * FROM users WHERE id = %s", (user['id'],), fetch_one=True)
+        user = await db.users.find_one({"id": user['id']}, {"_id": 0})
     
     # Create session
     session_token = secrets.token_urlsafe(32)
-    session_id_db = str(uuid.uuid4())
     expires_at = datetime.now(timezone.utc) + timedelta(days=7)
     
-    await execute_query(
-        """INSERT INTO user_sessions (id, user_id, session_token, expires_at)
-           VALUES (%s, %s, %s, %s)""",
-        (session_id_db, user['id'], session_token, expires_at)
-    )
+    await db.user_sessions.insert_one({
+        "id": str(uuid.uuid4()),
+        "user_id": user['id'],
+        "session_token": session_token,
+        "expires_at": expires_at.isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
     
     # Set cookie
     response.set_cookie(
@@ -390,7 +310,7 @@ async def process_session(request: Request, response: Response):
         max_age=7 * 24 * 60 * 60
     )
     
-    return {"user": serialize_row(user), "session_token": session_token}
+    return {"user": serialize_doc(user), "session_token": session_token}
 
 @api_router.get("/auth/me")
 async def get_me(current_user: dict = Depends(get_current_user)):
@@ -400,23 +320,23 @@ async def get_me(current_user: dict = Depends(get_current_user)):
 async def logout(request: Request, response: Response):
     session_token = request.cookies.get("session_token")
     if session_token:
-        await execute_query("DELETE FROM user_sessions WHERE session_token = %s", (session_token,))
+        await db.user_sessions.delete_one({"session_token": session_token})
     response.delete_cookie(key="session_token", path="/")
     return {"message": "Logged out"}
 
 # ============== Users Routes ==============
 
-@api_router.get("/users", response_model=List[dict])
+@api_router.get("/users")
 async def list_users(current_user: dict = Depends(get_current_user)):
-    users = await execute_query("SELECT * FROM users WHERE is_active = TRUE ORDER BY name", fetch_all=True)
-    return [serialize_row(u) for u in users]
+    users = await db.users.find({"is_active": True}, {"_id": 0}).sort("name", 1).to_list(1000)
+    return [serialize_doc(u) for u in users]
 
 @api_router.get("/users/{user_id}")
 async def get_user(user_id: str, current_user: dict = Depends(get_current_user)):
-    user = await execute_query("SELECT * FROM users WHERE id = %s", (user_id,), fetch_one=True)
+    user = await db.users.find_one({"id": user_id}, {"_id": 0})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    return serialize_row(user)
+    return serialize_doc(user)
 
 @api_router.put("/users/{user_id}")
 async def update_user(user_id: str, updates: dict, current_user: dict = Depends(get_current_user)):
@@ -424,83 +344,66 @@ async def update_user(user_id: str, updates: dict, current_user: dict = Depends(
         raise HTTPException(status_code=403, detail="Can only update own profile")
     
     allowed_fields = ['name', 'specialty', 'organization', 'phone']
-    set_clause = ", ".join([f"{k} = %s" for k in updates.keys() if k in allowed_fields])
-    values = [v for k, v in updates.items() if k in allowed_fields]
+    update_data = {k: v for k, v in updates.items() if k in allowed_fields}
     
-    if set_clause:
-        values.append(user_id)
-        await execute_query(f"UPDATE users SET {set_clause} WHERE id = %s", tuple(values))
+    if update_data:
+        await db.users.update_one({"id": user_id}, {"$set": update_data})
     
-    user = await execute_query("SELECT * FROM users WHERE id = %s", (user_id,), fetch_one=True)
-    return serialize_row(user)
+    user = await db.users.find_one({"id": user_id}, {"_id": 0})
+    return serialize_doc(user)
 
 # ============== Patients Routes ==============
 
-@api_router.get("/patients", response_model=List[dict])
-async def list_patients(
-    search: Optional[str] = None,
-    department: Optional[str] = None,
-    current_user: dict = Depends(get_current_user)
-):
-    query = "SELECT * FROM patients WHERE is_active = TRUE"
-    params = []
+@api_router.get("/patients")
+async def list_patients(search: Optional[str] = None, department: Optional[str] = None, current_user: dict = Depends(get_current_user)):
+    query = {"is_active": True}
     
     if search:
-        query += " AND (first_name LIKE %s OR last_name LIKE %s OR patient_id_number LIKE %s)"
-        search_pattern = f"%{search}%"
-        params.extend([search_pattern, search_pattern, search_pattern])
+        query["$or"] = [
+            {"first_name": {"$regex": search, "$options": "i"}},
+            {"last_name": {"$regex": search, "$options": "i"}},
+            {"patient_id_number": {"$regex": search, "$options": "i"}}
+        ]
     
     if department:
-        query += " AND department_name = %s"
-        params.append(department)
+        query["department_name"] = department
     
-    query += " ORDER BY last_name, first_name"
-    patients = await execute_query(query, tuple(params) if params else None, fetch_all=True)
-    return [serialize_row(p) for p in patients]
+    patients = await db.patients.find(query, {"_id": 0}).sort([("last_name", 1), ("first_name", 1)]).to_list(1000)
+    return [serialize_doc(p) for p in patients]
 
 @api_router.post("/patients")
 async def create_patient(patient: PatientCreate, current_user: dict = Depends(get_current_user)):
     patient_id = str(uuid.uuid4())
     
-    await execute_query(
-        """INSERT INTO patients (id, patient_id_number, first_name, last_name, date_of_birth, gender,
-           email, phone, address, primary_diagnosis, allergies, current_medications,
-           department_name, department_provider_name, notes, created_by)
-           VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
-        (patient_id, patient.patient_id_number, patient.first_name, patient.last_name,
-         patient.date_of_birth, patient.gender, patient.email, patient.phone, patient.address,
-         patient.primary_diagnosis, patient.allergies, patient.current_medications,
-         patient.department_name, patient.department_provider_name, patient.notes, current_user['id'])
-    )
+    patient_doc = {
+        "id": patient_id,
+        **patient.model_dump(),
+        "is_active": True,
+        "created_by": current_user['id'],
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.patients.insert_one(patient_doc)
     
-    patient_data = await execute_query("SELECT * FROM patients WHERE id = %s", (patient_id,), fetch_one=True)
-    return serialize_row(patient_data)
+    patient_data = await db.patients.find_one({"id": patient_id}, {"_id": 0})
+    return serialize_doc(patient_data)
 
 @api_router.get("/patients/{patient_id}")
 async def get_patient(patient_id: str, current_user: dict = Depends(get_current_user)):
-    patient = await execute_query("SELECT * FROM patients WHERE id = %s", (patient_id,), fetch_one=True)
+    patient = await db.patients.find_one({"id": patient_id}, {"_id": 0})
     if not patient:
         raise HTTPException(status_code=404, detail="Patient not found")
     
     # Get patient's meetings
-    meetings = await execute_query(
-        """SELECT m.*, mp.clinical_question, mp.status as case_status
-           FROM meetings m
-           JOIN meeting_patients mp ON m.id = mp.meeting_id
-           WHERE mp.patient_id = %s
-           ORDER BY m.meeting_date DESC""",
-        (patient_id,), fetch_all=True
-    )
+    meeting_patients = await db.meeting_patients.find({"patient_id": patient_id}, {"_id": 0}).to_list(100)
+    meeting_ids = [mp['meeting_id'] for mp in meeting_patients]
+    meetings = await db.meetings.find({"id": {"$in": meeting_ids}}, {"_id": 0}).sort("meeting_date", -1).to_list(100)
     
     # Get patient's files
-    files = await execute_query(
-        "SELECT * FROM file_attachments WHERE patient_id = %s ORDER BY created_at DESC",
-        (patient_id,), fetch_all=True
-    )
+    files = await db.file_attachments.find({"patient_id": patient_id}, {"_id": 0}).sort("created_at", -1).to_list(100)
     
-    result = serialize_row(patient)
-    result['meetings'] = [serialize_row(m) for m in meetings]
-    result['files'] = [serialize_row(f) for f in files]
+    result = serialize_doc(patient)
+    result['meetings'] = [serialize_doc(m) for m in meetings]
+    result['files'] = [serialize_doc(f) for f in files]
     
     return result
 
@@ -510,216 +413,209 @@ async def update_patient(patient_id: str, updates: dict, current_user: dict = De
                       'address', 'primary_diagnosis', 'allergies', 'current_medications',
                       'department_name', 'department_provider_name', 'notes']
     
-    set_clause = ", ".join([f"{k} = %s" for k in updates.keys() if k in allowed_fields])
-    values = [v for k, v in updates.items() if k in allowed_fields]
+    update_data = {k: v for k, v in updates.items() if k in allowed_fields}
     
-    if set_clause:
-        values.append(patient_id)
-        await execute_query(f"UPDATE patients SET {set_clause} WHERE id = %s", tuple(values))
+    if update_data:
+        await db.patients.update_one({"id": patient_id}, {"$set": update_data})
     
-    patient = await execute_query("SELECT * FROM patients WHERE id = %s", (patient_id,), fetch_one=True)
-    return serialize_row(patient)
+    patient = await db.patients.find_one({"id": patient_id}, {"_id": 0})
+    return serialize_doc(patient)
 
 @api_router.delete("/patients/{patient_id}")
 async def delete_patient(patient_id: str, current_user: dict = Depends(get_current_user)):
-    await execute_query("UPDATE patients SET is_active = FALSE WHERE id = %s", (patient_id,))
+    await db.patients.update_one({"id": patient_id}, {"$set": {"is_active": False}})
     return {"message": "Patient deleted"}
 
 # ============== Meetings Routes ==============
 
 @api_router.get("/meetings")
-async def list_meetings(
-    filter_type: Optional[str] = None,  # upcoming, past, my_invites
-    status: Optional[str] = None,
-    current_user: dict = Depends(get_current_user)
-):
-    today = date.today()
+async def list_meetings(filter_type: Optional[str] = None, status: Optional[str] = None, current_user: dict = Depends(get_current_user)):
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     
-    if filter_type == "my_invites":
-        query = """
-            SELECT m.*, u.name as organizer_name, u.specialty as organizer_specialty,
-                   mp.response_status
-            FROM meetings m
-            JOIN users u ON m.organizer_id = u.id
-            JOIN meeting_participants mp ON m.id = mp.meeting_id AND mp.user_id = %s
-            WHERE m.status != 'cancelled'
-            ORDER BY m.meeting_date DESC, m.start_time DESC
-        """
-        meetings = await execute_query(query, (current_user['id'],), fetch_all=True)
-    else:
-        base_query = """
-            SELECT m.*, u.name as organizer_name, u.specialty as organizer_specialty
-            FROM meetings m
-            JOIN users u ON m.organizer_id = u.id
-            WHERE (m.organizer_id = %s OR m.id IN (
-                SELECT meeting_id FROM meeting_participants WHERE user_id = %s
-            ))
-        """
-        params = [current_user['id'], current_user['id']]
-        
-        if filter_type == "upcoming":
-            base_query += " AND m.meeting_date >= %s AND m.status IN ('scheduled', 'in_progress')"
-            params.append(today)
-        elif filter_type == "past":
-            base_query += " AND (m.meeting_date < %s OR m.status = 'completed')"
-            params.append(today)
-        
-        if status:
-            base_query += " AND m.status = %s"
-            params.append(status)
-        
-        base_query += " ORDER BY m.meeting_date DESC, m.start_time DESC"
-        meetings = await execute_query(base_query, tuple(params), fetch_all=True)
+    # Base query - meetings where user is organizer or participant
+    participant_meetings = await db.meeting_participants.find({"user_id": current_user['id']}, {"_id": 0}).to_list(1000)
+    participant_meeting_ids = [pm['meeting_id'] for pm in participant_meetings]
     
-    # Enrich with participant and patient counts
+    query = {"$or": [
+        {"organizer_id": current_user['id']},
+        {"id": {"$in": participant_meeting_ids}}
+    ]}
+    
+    if filter_type == "upcoming":
+        query["meeting_date"] = {"$gte": today}
+        query["status"] = {"$in": ["scheduled", "in_progress"]}
+    elif filter_type == "past":
+        query["$or"] = [{"meeting_date": {"$lt": today}}, {"status": "completed"}]
+    elif filter_type == "my_invites":
+        query = {"id": {"$in": participant_meeting_ids}}
+    
+    if status:
+        query["status"] = status
+    
+    meetings = await db.meetings.find(query, {"_id": 0}).sort([("meeting_date", -1), ("start_time", -1)]).to_list(1000)
+    
+    # Enrich with organizer info and counts
     for meeting in meetings:
-        participant_count = await execute_query(
-            "SELECT COUNT(*) as count FROM meeting_participants WHERE meeting_id = %s",
-            (meeting['id'],), fetch_one=True
-        )
-        patient_count = await execute_query(
-            "SELECT COUNT(*) as count FROM meeting_patients WHERE meeting_id = %s",
-            (meeting['id'],), fetch_one=True
-        )
-        meeting['participant_count'] = participant_count['count'] if participant_count else 0
-        meeting['patient_count'] = patient_count['count'] if patient_count else 0
+        organizer = await db.users.find_one({"id": meeting['organizer_id']}, {"_id": 0, "name": 1, "specialty": 1})
+        meeting['organizer_name'] = organizer['name'] if organizer else None
+        meeting['organizer_specialty'] = organizer.get('specialty') if organizer else None
+        
+        participant_count = await db.meeting_participants.count_documents({"meeting_id": meeting['id']})
+        patient_count = await db.meeting_patients.count_documents({"meeting_id": meeting['id']})
+        meeting['participant_count'] = participant_count
+        meeting['patient_count'] = patient_count
+        
+        # Get response status for my_invites
+        if filter_type == "my_invites":
+            participant = next((pm for pm in participant_meetings if pm['meeting_id'] == meeting['id']), None)
+            meeting['response_status'] = participant.get('response_status') if participant else None
     
-    return [serialize_row(m) for m in meetings]
+    return [serialize_doc(m) for m in meetings]
 
 @api_router.post("/meetings")
 async def create_meeting(meeting: MeetingCreate, current_user: dict = Depends(get_current_user)):
     meeting_id = str(uuid.uuid4())
     
     # Calculate duration
-    start_dt = datetime.combine(date.today(), meeting.start_time)
-    end_dt = datetime.combine(date.today(), meeting.end_time)
-    duration = int((end_dt - start_dt).total_seconds() / 60)
+    try:
+        start_parts = meeting.start_time.split(':')
+        end_parts = meeting.end_time.split(':')
+        start_minutes = int(start_parts[0]) * 60 + int(start_parts[1])
+        end_minutes = int(end_parts[0]) * 60 + int(end_parts[1])
+        duration = end_minutes - start_minutes
+    except:
+        duration = 60
     
-    await execute_query(
-        """INSERT INTO meetings (id, title, description, meeting_date, start_time, end_time,
-           duration_minutes, meeting_type, location, video_link, recurrence_type,
-           recurrence_end_date, organizer_id)
-           VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
-        (meeting_id, meeting.title, meeting.description, meeting.meeting_date,
-         meeting.start_time, meeting.end_time, duration, meeting.meeting_type,
-         meeting.location, meeting.video_link, meeting.recurrence_type,
-         meeting.recurrence_end_date, current_user['id'])
-    )
+    meeting_doc = {
+        "id": meeting_id,
+        "title": meeting.title,
+        "description": meeting.description,
+        "meeting_date": meeting.meeting_date,
+        "start_time": meeting.start_time,
+        "end_time": meeting.end_time,
+        "duration_minutes": duration,
+        "meeting_type": meeting.meeting_type,
+        "location": meeting.location,
+        "video_link": meeting.video_link,
+        "recurrence_type": meeting.recurrence_type,
+        "recurrence_end_date": meeting.recurrence_end_date,
+        "status": "scheduled",
+        "organizer_id": current_user['id'],
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.meetings.insert_one(meeting_doc)
     
     # Add organizer as participant
-    await execute_query(
-        """INSERT INTO meeting_participants (id, meeting_id, user_id, role, response_status)
-           VALUES (%s, %s, %s, 'organizer', 'accepted')""",
-        (str(uuid.uuid4()), meeting_id, current_user['id'])
-    )
+    await db.meeting_participants.insert_one({
+        "id": str(uuid.uuid4()),
+        "meeting_id": meeting_id,
+        "user_id": current_user['id'],
+        "role": "organizer",
+        "response_status": "accepted",
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
     
     # Add participants
     for participant_id in meeting.participant_ids or []:
         if participant_id != current_user['id']:
-            await execute_query(
-                """INSERT INTO meeting_participants (id, meeting_id, user_id, role, response_status)
-                   VALUES (%s, %s, %s, 'attendee', 'pending')""",
-                (str(uuid.uuid4()), meeting_id, participant_id)
-            )
+            await db.meeting_participants.insert_one({
+                "id": str(uuid.uuid4()),
+                "meeting_id": meeting_id,
+                "user_id": participant_id,
+                "role": "attendee",
+                "response_status": "pending",
+                "created_at": datetime.now(timezone.utc).isoformat()
+            })
     
     # Add patients
     for patient_id in meeting.patient_ids or []:
-        await execute_query(
-            """INSERT INTO meeting_patients (id, meeting_id, patient_id, added_by)
-               VALUES (%s, %s, %s, %s)""",
-            (str(uuid.uuid4()), meeting_id, patient_id, current_user['id'])
-        )
+        await db.meeting_patients.insert_one({
+            "id": str(uuid.uuid4()),
+            "meeting_id": meeting_id,
+            "patient_id": patient_id,
+            "status": "new_case",
+            "added_by": current_user['id'],
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
     
     # Add agenda items
     for idx, item in enumerate(meeting.agenda_items or []):
-        await execute_query(
-            """INSERT INTO agenda_items (id, meeting_id, title, description, order_index,
-               estimated_duration_minutes, assigned_to)
-               VALUES (%s, %s, %s, %s, %s, %s, %s)""",
-            (str(uuid.uuid4()), meeting_id, item.get('title'), item.get('description'),
-             idx, item.get('estimated_duration_minutes'), item.get('assigned_to'))
-        )
+        await db.agenda_items.insert_one({
+            "id": str(uuid.uuid4()),
+            "meeting_id": meeting_id,
+            "title": item.get('title'),
+            "description": item.get('description'),
+            "order_index": idx,
+            "estimated_duration_minutes": item.get('estimated_duration_minutes', 15),
+            "assigned_to": item.get('assigned_to'),
+            "is_completed": False,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
     
-    return await get_meeting(meeting_id, current_user)
+    return await get_meeting_detail(meeting_id, current_user)
 
-@api_router.get("/meetings/{meeting_id}")
-async def get_meeting(meeting_id: str, current_user: dict = Depends(get_current_user)):
-    meeting = await execute_query(
-        """SELECT m.*, u.name as organizer_name, u.email as organizer_email,
-           u.specialty as organizer_specialty, u.picture as organizer_picture
-           FROM meetings m
-           JOIN users u ON m.organizer_id = u.id
-           WHERE m.id = %s""",
-        (meeting_id,), fetch_one=True
-    )
-    
+async def get_meeting_detail(meeting_id: str, current_user: dict):
+    meeting = await db.meetings.find_one({"id": meeting_id}, {"_id": 0})
     if not meeting:
         raise HTTPException(status_code=404, detail="Meeting not found")
     
-    # Get participants
-    participants = await execute_query(
-        """SELECT mp.*, u.name, u.email, u.specialty, u.picture
-           FROM meeting_participants mp
-           JOIN users u ON mp.user_id = u.id
-           WHERE mp.meeting_id = %s""",
-        (meeting_id,), fetch_all=True
-    )
+    # Get organizer
+    organizer = await db.users.find_one({"id": meeting['organizer_id']}, {"_id": 0})
+    meeting['organizer'] = serialize_doc(organizer) if organizer else None
     
-    # Get patients
-    patients = await execute_query(
-        """SELECT mp.*, p.first_name, p.last_name, p.patient_id_number,
-           p.primary_diagnosis, p.department_name, p.date_of_birth, p.gender
-           FROM meeting_patients mp
-           JOIN patients p ON mp.patient_id = p.id
-           WHERE mp.meeting_id = %s""",
-        (meeting_id,), fetch_all=True
-    )
+    # Get participants with user info
+    participants = await db.meeting_participants.find({"meeting_id": meeting_id}, {"_id": 0}).to_list(100)
+    for p in participants:
+        user = await db.users.find_one({"id": p['user_id']}, {"_id": 0, "name": 1, "email": 1, "specialty": 1, "picture": 1})
+        if user:
+            p.update(user)
+    meeting['participants'] = [serialize_doc(p) for p in participants]
+    
+    # Get patients with patient info
+    meeting_patients = await db.meeting_patients.find({"meeting_id": meeting_id}, {"_id": 0}).to_list(100)
+    for mp in meeting_patients:
+        patient = await db.patients.find_one({"id": mp['patient_id']}, {"_id": 0})
+        if patient:
+            mp.update({
+                "first_name": patient.get('first_name'),
+                "last_name": patient.get('last_name'),
+                "patient_id_number": patient.get('patient_id_number'),
+                "primary_diagnosis": patient.get('primary_diagnosis'),
+                "department_name": patient.get('department_name'),
+                "date_of_birth": patient.get('date_of_birth'),
+                "gender": patient.get('gender')
+            })
+    meeting['patients'] = [serialize_doc(mp) for mp in meeting_patients]
     
     # Get agenda items
-    agenda = await execute_query(
-        """SELECT a.*, u.name as assigned_to_name
-           FROM agenda_items a
-           LEFT JOIN users u ON a.assigned_to = u.id
-           WHERE a.meeting_id = %s
-           ORDER BY a.order_index""",
-        (meeting_id,), fetch_all=True
-    )
+    agenda = await db.agenda_items.find({"meeting_id": meeting_id}, {"_id": 0}).sort("order_index", 1).to_list(100)
+    for a in agenda:
+        if a.get('assigned_to'):
+            assigned_user = await db.users.find_one({"id": a['assigned_to']}, {"_id": 0, "name": 1})
+            a['assigned_to_name'] = assigned_user.get('name') if assigned_user else None
+    meeting['agenda'] = [serialize_doc(a) for a in agenda]
     
     # Get files
-    files = await execute_query(
-        """SELECT f.*, u.name as uploader_name
-           FROM file_attachments f
-           LEFT JOIN users u ON f.uploaded_by = u.id
-           WHERE f.meeting_id = %s
-           ORDER BY f.created_at DESC""",
-        (meeting_id,), fetch_all=True
-    )
+    files = await db.file_attachments.find({"meeting_id": meeting_id}, {"_id": 0}).sort("created_at", -1).to_list(100)
+    for f in files:
+        if f.get('uploaded_by'):
+            uploader = await db.users.find_one({"id": f['uploaded_by']}, {"_id": 0, "name": 1})
+            f['uploader_name'] = uploader.get('name') if uploader else None
+    meeting['files'] = [serialize_doc(f) for f in files]
     
     # Get decisions
-    decisions = await execute_query(
-        "SELECT * FROM decision_logs WHERE meeting_id = %s ORDER BY created_at DESC",
-        (meeting_id,), fetch_all=True
-    )
+    decisions = await db.decision_logs.find({"meeting_id": meeting_id}, {"_id": 0}).sort("created_at", -1).to_list(100)
+    meeting['decisions'] = [serialize_doc(d) for d in decisions]
     
-    result = serialize_row(meeting)
-    result['organizer'] = {
-        'id': meeting['organizer_id'],
-        'name': meeting['organizer_name'],
-        'email': meeting['organizer_email'],
-        'specialty': meeting['organizer_specialty'],
-        'picture': meeting['organizer_picture']
-    }
-    result['participants'] = [serialize_row(p) for p in participants]
-    result['patients'] = [serialize_row(p) for p in patients]
-    result['agenda'] = [serialize_row(a) for a in agenda]
-    result['files'] = [serialize_row(f) for f in files]
-    result['decisions'] = [serialize_row(d) for d in decisions]
-    
-    return result
+    return serialize_doc(meeting)
+
+@api_router.get("/meetings/{meeting_id}")
+async def get_meeting(meeting_id: str, current_user: dict = Depends(get_current_user)):
+    return await get_meeting_detail(meeting_id, current_user)
 
 @api_router.put("/meetings/{meeting_id}")
 async def update_meeting(meeting_id: str, updates: dict, current_user: dict = Depends(get_current_user)):
-    meeting = await execute_query("SELECT * FROM meetings WHERE id = %s", (meeting_id,), fetch_one=True)
+    meeting = await db.meetings.find_one({"id": meeting_id}, {"_id": 0})
     if not meeting:
         raise HTTPException(status_code=404, detail="Meeting not found")
     
@@ -728,201 +624,164 @@ async def update_meeting(meeting_id: str, updates: dict, current_user: dict = De
     
     allowed_fields = ['title', 'description', 'meeting_date', 'start_time', 'end_time',
                       'meeting_type', 'location', 'video_link', 'status', 'recurrence_type']
+    update_data = {k: v for k, v in updates.items() if k in allowed_fields}
     
-    set_clause = ", ".join([f"{k} = %s" for k in updates.keys() if k in allowed_fields])
-    values = [v for k, v in updates.items() if k in allowed_fields]
+    if update_data:
+        await db.meetings.update_one({"id": meeting_id}, {"$set": update_data})
     
-    if set_clause:
-        values.append(meeting_id)
-        await execute_query(f"UPDATE meetings SET {set_clause} WHERE id = %s", tuple(values))
-    
-    return await get_meeting(meeting_id, current_user)
+    return await get_meeting_detail(meeting_id, current_user)
 
 @api_router.delete("/meetings/{meeting_id}")
 async def delete_meeting(meeting_id: str, current_user: dict = Depends(get_current_user)):
-    meeting = await execute_query("SELECT * FROM meetings WHERE id = %s", (meeting_id,), fetch_one=True)
+    meeting = await db.meetings.find_one({"id": meeting_id}, {"_id": 0})
     if not meeting:
         raise HTTPException(status_code=404, detail="Meeting not found")
     
     if meeting['organizer_id'] != current_user['id']:
         raise HTTPException(status_code=403, detail="Only organizer can delete meeting")
     
-    await execute_query("UPDATE meetings SET status = 'cancelled' WHERE id = %s", (meeting_id,))
+    await db.meetings.update_one({"id": meeting_id}, {"$set": {"status": "cancelled"}})
     return {"message": "Meeting cancelled"}
 
 # ============== Meeting Participants Routes ==============
 
 @api_router.post("/meetings/{meeting_id}/participants")
 async def add_participant(meeting_id: str, invite: ParticipantInvite, current_user: dict = Depends(get_current_user)):
-    meeting = await execute_query("SELECT * FROM meetings WHERE id = %s", (meeting_id,), fetch_one=True)
-    if not meeting:
-        raise HTTPException(status_code=404, detail="Meeting not found")
-    
-    existing = await execute_query(
-        "SELECT * FROM meeting_participants WHERE meeting_id = %s AND user_id = %s",
-        (meeting_id, invite.user_id), fetch_one=True
-    )
+    existing = await db.meeting_participants.find_one({"meeting_id": meeting_id, "user_id": invite.user_id})
     if existing:
         raise HTTPException(status_code=400, detail="User already a participant")
     
-    await execute_query(
-        """INSERT INTO meeting_participants (id, meeting_id, user_id, role, response_status)
-           VALUES (%s, %s, %s, %s, 'pending')""",
-        (str(uuid.uuid4()), meeting_id, invite.user_id, invite.role)
-    )
+    await db.meeting_participants.insert_one({
+        "id": str(uuid.uuid4()),
+        "meeting_id": meeting_id,
+        "user_id": invite.user_id,
+        "role": invite.role,
+        "response_status": "pending",
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
     
     return {"message": "Participant added"}
 
 @api_router.put("/meetings/{meeting_id}/respond")
-async def respond_to_invite(
-    meeting_id: str,
-    response: ParticipantResponse,
-    current_user: dict = Depends(get_current_user)
-):
+async def respond_to_invite(meeting_id: str, response: ParticipantResponse, current_user: dict = Depends(get_current_user)):
     if response.response_status not in ['accepted', 'declined', 'tentative']:
         raise HTTPException(status_code=400, detail="Invalid response status")
     
-    result = await execute_query(
-        """UPDATE meeting_participants 
-           SET response_status = %s, response_date = NOW()
-           WHERE meeting_id = %s AND user_id = %s""",
-        (response.response_status, meeting_id, current_user['id'])
+    await db.meeting_participants.update_one(
+        {"meeting_id": meeting_id, "user_id": current_user['id']},
+        {"$set": {"response_status": response.response_status, "response_date": datetime.now(timezone.utc).isoformat()}}
     )
     
     return {"message": f"Response recorded: {response.response_status}"}
 
 @api_router.delete("/meetings/{meeting_id}/participants/{user_id}")
 async def remove_participant(meeting_id: str, user_id: str, current_user: dict = Depends(get_current_user)):
-    meeting = await execute_query("SELECT * FROM meetings WHERE id = %s", (meeting_id,), fetch_one=True)
+    meeting = await db.meetings.find_one({"id": meeting_id}, {"_id": 0})
     if not meeting or meeting['organizer_id'] != current_user['id']:
         raise HTTPException(status_code=403, detail="Only organizer can remove participants")
     
-    await execute_query(
-        "DELETE FROM meeting_participants WHERE meeting_id = %s AND user_id = %s",
-        (meeting_id, user_id)
-    )
-    
+    await db.meeting_participants.delete_one({"meeting_id": meeting_id, "user_id": user_id})
     return {"message": "Participant removed"}
 
 # ============== Meeting Patients Routes ==============
 
 @api_router.post("/meetings/{meeting_id}/patients")
-async def add_patient_to_meeting(
-    meeting_id: str,
-    patient_data: MeetingPatientCreate,
-    current_user: dict = Depends(get_current_user)
-):
-    existing = await execute_query(
-        "SELECT * FROM meeting_patients WHERE meeting_id = %s AND patient_id = %s",
-        (meeting_id, patient_data.patient_id), fetch_one=True
-    )
+async def add_patient_to_meeting(meeting_id: str, patient_data: MeetingPatientCreate, current_user: dict = Depends(get_current_user)):
+    existing = await db.meeting_patients.find_one({"meeting_id": meeting_id, "patient_id": patient_data.patient_id})
     if existing:
         raise HTTPException(status_code=400, detail="Patient already in meeting")
     
     mp_id = str(uuid.uuid4())
-    await execute_query(
-        """INSERT INTO meeting_patients (id, meeting_id, patient_id, clinical_question,
-           reason_for_discussion, status, added_by)
-           VALUES (%s, %s, %s, %s, %s, %s, %s)""",
-        (mp_id, meeting_id, patient_data.patient_id, patient_data.clinical_question,
-         patient_data.reason_for_discussion, patient_data.status, current_user['id'])
-    )
+    await db.meeting_patients.insert_one({
+        "id": mp_id,
+        "meeting_id": meeting_id,
+        "patient_id": patient_data.patient_id,
+        "clinical_question": patient_data.clinical_question,
+        "reason_for_discussion": patient_data.reason_for_discussion,
+        "status": patient_data.status,
+        "added_by": current_user['id'],
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
     
     return {"id": mp_id, "message": "Patient added to meeting"}
 
 @api_router.delete("/meetings/{meeting_id}/patients/{patient_id}")
 async def remove_patient_from_meeting(meeting_id: str, patient_id: str, current_user: dict = Depends(get_current_user)):
-    await execute_query(
-        "DELETE FROM meeting_patients WHERE meeting_id = %s AND patient_id = %s",
-        (meeting_id, patient_id)
-    )
+    await db.meeting_patients.delete_one({"meeting_id": meeting_id, "patient_id": patient_id})
     return {"message": "Patient removed from meeting"}
 
 # ============== Agenda Routes ==============
 
 @api_router.post("/meetings/{meeting_id}/agenda")
-async def add_agenda_item(
-    meeting_id: str,
-    item: AgendaItemCreate,
-    current_user: dict = Depends(get_current_user)
-):
+async def add_agenda_item(meeting_id: str, item: AgendaItemCreate, current_user: dict = Depends(get_current_user)):
     item_id = str(uuid.uuid4())
-    await execute_query(
-        """INSERT INTO agenda_items (id, meeting_id, title, description, order_index,
-           estimated_duration_minutes, assigned_to)
-           VALUES (%s, %s, %s, %s, %s, %s, %s)""",
-        (item_id, meeting_id, item.title, item.description, item.order_index,
-         item.estimated_duration_minutes, item.assigned_to)
-    )
+    await db.agenda_items.insert_one({
+        "id": item_id,
+        "meeting_id": meeting_id,
+        "title": item.title,
+        "description": item.description,
+        "order_index": item.order_index,
+        "estimated_duration_minutes": item.estimated_duration_minutes,
+        "assigned_to": item.assigned_to,
+        "is_completed": False,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
     
     return {"id": item_id, "message": "Agenda item added"}
 
 @api_router.put("/meetings/{meeting_id}/agenda/{item_id}")
-async def update_agenda_item(
-    meeting_id: str,
-    item_id: str,
-    updates: dict,
-    current_user: dict = Depends(get_current_user)
-):
+async def update_agenda_item(meeting_id: str, item_id: str, updates: dict, current_user: dict = Depends(get_current_user)):
     allowed_fields = ['title', 'description', 'order_index', 'estimated_duration_minutes',
                       'assigned_to', 'is_completed', 'notes']
+    update_data = {k: v for k, v in updates.items() if k in allowed_fields}
     
-    set_clause = ", ".join([f"{k} = %s" for k in updates.keys() if k in allowed_fields])
-    values = [v for k, v in updates.items() if k in allowed_fields]
+    if update_data:
+        await db.agenda_items.update_one({"id": item_id}, {"$set": update_data})
     
-    if set_clause:
-        values.append(item_id)
-        await execute_query(f"UPDATE agenda_items SET {set_clause} WHERE id = %s", tuple(values))
-    
-    item = await execute_query("SELECT * FROM agenda_items WHERE id = %s", (item_id,), fetch_one=True)
-    return serialize_row(item)
+    item = await db.agenda_items.find_one({"id": item_id}, {"_id": 0})
+    return serialize_doc(item)
 
 @api_router.delete("/meetings/{meeting_id}/agenda/{item_id}")
 async def delete_agenda_item(meeting_id: str, item_id: str, current_user: dict = Depends(get_current_user)):
-    await execute_query("DELETE FROM agenda_items WHERE id = %s AND meeting_id = %s", (item_id, meeting_id))
+    await db.agenda_items.delete_one({"id": item_id, "meeting_id": meeting_id})
     return {"message": "Agenda item deleted"}
 
 # ============== Decision Logs Routes ==============
 
 @api_router.post("/meetings/{meeting_id}/decisions")
-async def create_decision(
-    meeting_id: str,
-    decision: DecisionLogCreate,
-    current_user: dict = Depends(get_current_user)
-):
+async def create_decision(meeting_id: str, decision: DecisionLogCreate, current_user: dict = Depends(get_current_user)):
     decision_id = str(uuid.uuid4())
-    await execute_query(
-        """INSERT INTO decision_logs (id, meeting_id, meeting_patient_id, agenda_item_id,
-           decision_type, title, description, final_assessment, action_plan,
-           responsible_doctor_id, follow_up_date, priority, created_by)
-           VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
-        (decision_id, meeting_id, decision.meeting_patient_id, decision.agenda_item_id,
-         decision.decision_type, decision.title, decision.description, decision.final_assessment,
-         decision.action_plan, decision.responsible_doctor_id, decision.follow_up_date,
-         decision.priority, current_user['id'])
-    )
+    await db.decision_logs.insert_one({
+        "id": decision_id,
+        "meeting_id": meeting_id,
+        "meeting_patient_id": decision.meeting_patient_id,
+        "agenda_item_id": decision.agenda_item_id,
+        "decision_type": decision.decision_type,
+        "title": decision.title,
+        "description": decision.description,
+        "final_assessment": decision.final_assessment,
+        "action_plan": decision.action_plan,
+        "responsible_doctor_id": decision.responsible_doctor_id,
+        "follow_up_date": decision.follow_up_date,
+        "priority": decision.priority,
+        "status": "pending",
+        "created_by": current_user['id'],
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
     
     return {"id": decision_id, "message": "Decision logged"}
 
 @api_router.put("/meetings/{meeting_id}/decisions/{decision_id}")
-async def update_decision(
-    meeting_id: str,
-    decision_id: str,
-    updates: dict,
-    current_user: dict = Depends(get_current_user)
-):
+async def update_decision(meeting_id: str, decision_id: str, updates: dict, current_user: dict = Depends(get_current_user)):
     allowed_fields = ['decision_type', 'title', 'description', 'final_assessment',
                       'action_plan', 'responsible_doctor_id', 'follow_up_date', 'priority', 'status']
+    update_data = {k: v for k, v in updates.items() if k in allowed_fields}
     
-    set_clause = ", ".join([f"{k} = %s" for k in updates.keys() if k in allowed_fields])
-    values = [v for k, v in updates.items() if k in allowed_fields]
+    if update_data:
+        await db.decision_logs.update_one({"id": decision_id}, {"$set": update_data})
     
-    if set_clause:
-        values.append(decision_id)
-        await execute_query(f"UPDATE decision_logs SET {set_clause} WHERE id = %s", tuple(values))
-    
-    decision = await execute_query("SELECT * FROM decision_logs WHERE id = %s", (decision_id,), fetch_one=True)
-    return serialize_row(decision)
+    decision = await db.decision_logs.find_one({"id": decision_id}, {"_id": 0})
+    return serialize_doc(decision)
 
 # ============== File Upload Routes ==============
 
@@ -949,15 +808,21 @@ async def upload_file(
         await f.write(content)
     
     file_id = str(uuid.uuid4())
-    await execute_query(
-        """INSERT INTO file_attachments (id, meeting_id, patient_id, meeting_patient_id,
-           file_name, original_name, file_path, file_type, mime_type, file_size,
-           department_document_type, uploaded_by)
-           VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
-        (file_id, meeting_id, patient_id, meeting_patient_id, file_name, file.filename,
-         str(full_path), file_type, file.content_type, len(content),
-         department_document_type, current_user['id'])
-    )
+    await db.file_attachments.insert_one({
+        "id": file_id,
+        "meeting_id": meeting_id,
+        "patient_id": patient_id,
+        "meeting_patient_id": meeting_patient_id,
+        "file_name": file_name,
+        "original_name": file.filename,
+        "file_path": str(full_path),
+        "file_type": file_type,
+        "mime_type": file.content_type,
+        "file_size": len(content),
+        "department_document_type": department_document_type,
+        "uploaded_by": current_user['id'],
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
     
     return {"id": file_id, "file_name": file_name, "message": "File uploaded"}
 
@@ -965,9 +830,7 @@ async def upload_file(
 async def get_file(file_id: str, current_user: dict = Depends(get_current_user)):
     from fastapi.responses import FileResponse
     
-    file_record = await execute_query(
-        "SELECT * FROM file_attachments WHERE id = %s", (file_id,), fetch_one=True
-    )
+    file_record = await db.file_attachments.find_one({"id": file_id}, {"_id": 0})
     if not file_record:
         raise HTTPException(status_code=404, detail="File not found")
     
@@ -979,9 +842,7 @@ async def get_file(file_id: str, current_user: dict = Depends(get_current_user))
 
 @api_router.delete("/files/{file_id}")
 async def delete_file(file_id: str, current_user: dict = Depends(get_current_user)):
-    file_record = await execute_query(
-        "SELECT * FROM file_attachments WHERE id = %s", (file_id,), fetch_one=True
-    )
+    file_record = await db.file_attachments.find_one({"id": file_id}, {"_id": 0})
     if not file_record:
         raise HTTPException(status_code=404, detail="File not found")
     
@@ -991,47 +852,47 @@ async def delete_file(file_id: str, current_user: dict = Depends(get_current_use
     except:
         pass
     
-    await execute_query("DELETE FROM file_attachments WHERE id = %s", (file_id,))
+    await db.file_attachments.delete_one({"id": file_id})
     return {"message": "File deleted"}
 
 # ============== Dashboard Stats ==============
 
 @api_router.get("/dashboard/stats")
 async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
-    today = date.today()
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    week_end = (datetime.now(timezone.utc) + timedelta(days=7)).strftime("%Y-%m-%d")
+    
+    # Get meeting IDs where user is participant
+    participant_meetings = await db.meeting_participants.find({"user_id": current_user['id']}, {"_id": 0, "meeting_id": 1}).to_list(1000)
+    participant_meeting_ids = [pm['meeting_id'] for pm in participant_meetings]
     
     # Upcoming meetings count
-    upcoming = await execute_query(
-        """SELECT COUNT(*) as count FROM meetings 
-           WHERE (organizer_id = %s OR id IN (SELECT meeting_id FROM meeting_participants WHERE user_id = %s))
-           AND meeting_date >= %s AND status IN ('scheduled', 'in_progress')""",
-        (current_user['id'], current_user['id'], today), fetch_one=True
-    )
+    upcoming = await db.meetings.count_documents({
+        "$or": [{"organizer_id": current_user['id']}, {"id": {"$in": participant_meeting_ids}}],
+        "meeting_date": {"$gte": today},
+        "status": {"$in": ["scheduled", "in_progress"]}
+    })
     
     # Pending invites
-    pending = await execute_query(
-        """SELECT COUNT(*) as count FROM meeting_participants
-           WHERE user_id = %s AND response_status = 'pending'""",
-        (current_user['id'],), fetch_one=True
-    )
+    pending = await db.meeting_participants.count_documents({
+        "user_id": current_user['id'],
+        "response_status": "pending"
+    })
     
     # Total patients
-    patients = await execute_query("SELECT COUNT(*) as count FROM patients WHERE is_active = TRUE", fetch_one=True)
+    patients = await db.patients.count_documents({"is_active": True})
     
     # Meetings this week
-    week_end = today + timedelta(days=7)
-    this_week = await execute_query(
-        """SELECT COUNT(*) as count FROM meetings 
-           WHERE (organizer_id = %s OR id IN (SELECT meeting_id FROM meeting_participants WHERE user_id = %s))
-           AND meeting_date BETWEEN %s AND %s""",
-        (current_user['id'], current_user['id'], today, week_end), fetch_one=True
-    )
+    this_week = await db.meetings.count_documents({
+        "$or": [{"organizer_id": current_user['id']}, {"id": {"$in": participant_meeting_ids}}],
+        "meeting_date": {"$gte": today, "$lte": week_end}
+    })
     
     return {
-        "upcoming_meetings": upcoming['count'] if upcoming else 0,
-        "pending_invites": pending['count'] if pending else 0,
-        "total_patients": patients['count'] if patients else 0,
-        "meetings_this_week": this_week['count'] if this_week else 0
+        "upcoming_meetings": upcoming,
+        "pending_invites": pending,
+        "total_patients": patients,
+        "meetings_this_week": this_week
     }
 
 # ============== Health Check ==============
@@ -1043,7 +904,7 @@ async def root():
 @api_router.get("/health")
 async def health_check():
     try:
-        await get_db_pool()
+        await db.command('ping')
         return {"status": "healthy", "database": "connected"}
     except:
         return {"status": "unhealthy", "database": "disconnected"}
@@ -1062,16 +923,16 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup():
     logger.info("Starting Hospital Meeting Scheduler API")
-    try:
-        await get_db_pool()
-        logger.info("Database connection established")
-    except Exception as e:
-        logger.error(f"Database connection failed: {e}")
+    # Create indexes
+    await db.users.create_index("email", unique=True)
+    await db.users.create_index("id", unique=True)
+    await db.patients.create_index("id", unique=True)
+    await db.meetings.create_index("id", unique=True)
+    await db.meeting_participants.create_index([("meeting_id", 1), ("user_id", 1)])
+    await db.meeting_patients.create_index([("meeting_id", 1), ("patient_id", 1)])
+    logger.info("Database indexes created")
 
 @app.on_event("shutdown")
 async def shutdown():
-    global pool
-    if pool:
-        pool.close()
-        await pool.wait_closed()
-        logger.info("Database connection closed")
+    client.close()
+    logger.info("Database connection closed")
