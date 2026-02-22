@@ -571,10 +571,31 @@ export default function MeetingDetailPage() {
                                     <div className="text-center py-8">
                                         <Clipboard className="w-12 h-12 mx-auto mb-3 text-muted-foreground opacity-50" />
                                         <p className="text-muted-foreground">No agenda items</p>
+                                        {isOrganizer && meeting.status !== 'completed' && (
+                                            <Button 
+                                                onClick={() => setAgendaDialog(true)}
+                                                variant="outline"
+                                                className="mt-4"
+                                            >
+                                                <Plus className="w-4 h-4 mr-2" /> Add First Agenda Item
+                                            </Button>
+                                        )}
                                     </div>
                                 ) : (
-                                    <div className="space-y-3">
-                                        {meeting.agenda?.map((item, idx) => (
+                                    <>
+                                        {isOrganizer && meeting.status !== 'completed' && (
+                                            <div className="flex justify-end mb-4">
+                                                <Button 
+                                                    onClick={() => setAgendaDialog(true)}
+                                                    size="sm"
+                                                    className="bg-primary hover:bg-primary/90"
+                                                >
+                                                    <Plus className="w-4 h-4 mr-2" /> Add Agenda Item
+                                                </Button>
+                                            </div>
+                                        )}
+                                        <div className="space-y-3">
+                                            {meeting.agenda?.map((item, idx) => (
                                             <div key={item.id} className={`flex items-center justify-between p-4 rounded-lg border ${
                                                 item.is_completed ? 'bg-green-50 border-green-200' : 'border-slate-200'
                                             }`} data-testid={`agenda-item-${idx}`}>
