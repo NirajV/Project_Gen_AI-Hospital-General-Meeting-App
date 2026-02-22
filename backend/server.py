@@ -122,6 +122,7 @@ class AgendaItemCreate(BaseModel):
     order_index: Optional[int] = 0
     estimated_duration_minutes: Optional[int] = None
     assigned_to: Optional[str] = None
+    patient_id: Optional[str] = None
 
 class DecisionLogCreate(BaseModel):
     meeting_patient_id: Optional[str] = None
