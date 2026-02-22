@@ -173,6 +173,37 @@ export default function MeetingDetailPage() {
         }
     };
 
+    const handleRemovePatient = async (patientId) => {
+        if (!window.confirm('Remove this patient from the meeting?')) return;
+        try {
+            await removePatientFromMeeting(id, patientId);
+            loadMeeting();
+        } catch (error) {
+            console.error('Failed to remove patient:', error);
+        }
+    };
+
+    const handleDeleteAgenda = async (itemId) => {
+        if (!window.confirm('Delete this agenda item?')) return;
+        try {
+            await deleteAgendaItem(id, itemId);
+            loadMeeting();
+        } catch (error) {
+            console.error('Failed to delete agenda item:', error);
+        }
+    };
+
+    const handleDeleteDecision = async (decisionId) => {
+        if (!window.confirm('Delete this decision? This action cannot be undone.')) return;
+        try {
+            await deleteDecision(id, decisionId);
+            loadMeeting();
+        } catch (error) {
+            console.error('Failed to delete decision:', error);
+        }
+    };
+
+
     const handleAgendaToggle = async (itemId, isCompleted) => {
         try {
             await updateAgendaItem(id, itemId, { is_completed: !isCompleted });
