@@ -55,7 +55,7 @@ export default function MeetingDetailPage() {
     const [selectedPatients, setSelectedPatients] = useState([]);
     const [addingPatients, setAddingPatients] = useState(false);
     const [newAgenda, setNewAgenda] = useState({
-        title: '', description: '', estimated_duration_minutes: 30
+        title: '', description: '', estimated_duration_minutes: 30, patient_id: null
     });
     const [addingAgenda, setAddingAgenda] = useState(false);
 
