@@ -131,6 +131,47 @@ export default function MeetingDetailPage() {
         }
     };
 
+    const loadAllPatients = async () => {
+        try {
+            const res = await getPatients();
+            setAllPatients(res.data);
+        } catch (error) {
+            console.error('Failed to load patients:', error);
+        }
+    };
+
+    const handleAddPatients = async () => {
+        if (selectedPatients.length === 0) return;
+        setAddingPatients(true);
+        try {
+            for (const patientId of selectedPatients) {
+                await addPatientToMeeting(id, { patient_id: patientId });
+            }
+            loadMeeting();
+            setPatientDialog(false);
+            setSelectedPatients([]);
+        } catch (error) {
+            console.error('Failed to add patients:', error);
+        } finally {
+            setAddingPatients(false);
+        }
+    };
+
+    const handleAddAgenda = async () => {
+        if (!newAgenda.title) return;
+        setAddingAgenda(true);
+        try {
+            await addAgendaItem(id, newAgenda);
+            loadMeeting();
+            setAgendaDialog(false);
+            setNewAgenda({ title: '', description: '', estimated_duration_minutes: 30 });
+        } catch (error) {
+            console.error('Failed to add agenda item:', error);
+        } finally {
+            setAddingAgenda(false);
+        }
+    };
+
     const handleAgendaToggle = async (itemId, isCompleted) => {
         try {
             await updateAgendaItem(id, itemId, { is_completed: !isCompleted });
