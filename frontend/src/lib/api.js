@@ -67,6 +67,7 @@ export const deleteAgendaItem = (meetingId, itemId) => api.delete(`/meetings/${m
 // Decisions
 export const createDecision = (meetingId, data) => api.post(`/meetings/${meetingId}/decisions`, data);
 export const updateDecision = (meetingId, decisionId, data) => api.put(`/meetings/${meetingId}/decisions/${decisionId}`, data);
+export const deleteDecision = (meetingId, decisionId) => api.delete(`/meetings/${meetingId}/decisions/${decisionId}`);
 
 // Files
 export const uploadFile = (meetingId, formData) => api.post(`/meetings/${meetingId}/files`, formData, {
