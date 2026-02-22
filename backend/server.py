@@ -777,6 +777,11 @@ async def create_decision(meeting_id: str, decision: DecisionLogCreate, current_
     
     return {"id": decision_id, "message": "Decision logged"}
 
+@api_router.delete("/meetings/{meeting_id}/decisions/{decision_id}")
+async def delete_decision(meeting_id: str, decision_id: str, current_user: dict = Depends(get_current_user)):
+    await db.decision_logs.delete_one({"id": decision_id, "meeting_id": meeting_id})
+    return {"message": "Decision deleted"}
+
 @api_router.put("/meetings/{meeting_id}/decisions/{decision_id}")
 async def update_decision(meeting_id: str, decision_id: str, updates: dict, current_user: dict = Depends(get_current_user)):
     allowed_fields = ['decision_type', 'title', 'description', 'final_assessment',
