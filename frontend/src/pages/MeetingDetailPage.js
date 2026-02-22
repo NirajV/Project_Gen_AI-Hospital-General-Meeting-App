@@ -1004,6 +1004,145 @@ export default function MeetingDetailPage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            {/* Add Patient Dialog */}
+            <Dialog open={patientDialog} onOpenChange={setPatientDialog}>
+                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <User className="w-5 h-5 text-primary" /> Add Patients to Meeting
+                        </DialogTitle>
+                        <DialogDescription>
+                            Select patients to add to this meeting
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-2 max-h-96 overflow-y-auto">
+                        {allPatients.length === 0 ? (
+                            <div className="text-center py-8 text-muted-foreground">
+                                <User className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                                <p>No patients available</p>
+                                <Link to="/patients/new">
+                                    <Button variant="link" className="mt-2">
+                                        Create a new patient first
+                                    </Button>
+                                </Link>
+                            </div>
+                        ) : (
+                            allPatients
+                                .filter(p => !meeting?.patients?.some(mp => mp.patient_id === p.id))
+                                .map((patient) => (
+                                    <div
+                                        key={patient.id}
+                                        className="flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:border-primary/30 hover:bg-slate-50"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <Checkbox
+                                                checked={selectedPatients.includes(patient.id)}
+                                                onCheckedChange={(checked) => {
+                                                    if (checked) {
+                                                        setSelectedPatients([...selectedPatients, patient.id]);
+                                                    } else {
+                                                        setSelectedPatients(selectedPatients.filter(id => id !== patient.id));
+                                                    }
+                                                }}
+                                            />
+                                            <div>
+                                                <p className="font-medium">{patient.first_name} {patient.last_name}</p>
+                                                <p className="text-sm text-muted-foreground">
+                                                    {patient.primary_diagnosis || patient.patient_id_number}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                        )}
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => {
+                            setPatientDialog(false);
+                            setSelectedPatients([]);
+                        }}>
+                            Cancel
+                        </Button>
+                        <Button 
+                            onClick={handleAddPatients}
+                            disabled={selectedPatients.length === 0 || addingPatients}
+                        >
+                            {addingPatients ? (
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            ) : (
+                                <Plus className="w-4 h-4 mr-2" />
+                            )}
+                            Add {selectedPatients.length > 0 ? `(${selectedPatients.length})` : ''} Patient{selectedPatients.length !== 1 ? 's' : ''}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Add Agenda Item Dialog */}
+            <Dialog open={agendaDialog} onOpenChange={setAgendaDialog}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Clipboard className="w-5 h-5 text-primary" /> Add Agenda Item
+                        </DialogTitle>
+                        <DialogDescription>
+                            Add a new item to the meeting agenda
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="agenda-title">Title *</Label>
+                            <Input
+                                id="agenda-title"
+                                value={newAgenda.title}
+                                onChange={(e) => setNewAgenda({ ...newAgenda, title: e.target.value })}
+                                placeholder="e.g., Patient case review"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="agenda-desc">Description</Label>
+                            <Textarea
+                                id="agenda-desc"
+                                value={newAgenda.description}
+                                onChange={(e) => setNewAgenda({ ...newAgenda, description: e.target.value })}
+                                placeholder="Brief description"
+                                rows={3}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="agenda-duration">Estimated Duration (minutes)</Label>
+                            <Input
+                                id="agenda-duration"
+                                type="number"
+                                value={newAgenda.estimated_duration_minutes}
+                                onChange={(e) => setNewAgenda({ ...newAgenda, estimated_duration_minutes: parseInt(e.target.value) || 0 })}
+                                min="5"
+                                step="5"
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => {
+                            setAgendaDialog(false);
+                            setNewAgenda({ title: '', description: '', estimated_duration_minutes: 30 });
+                        }}>
+                            Cancel
+                        </Button>
+                        <Button 
+                            onClick={handleAddAgenda}
+                            disabled={!newAgenda.title || addingAgenda}
+                        >
+                            {addingAgenda ? (
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            ) : (
+                                <Plus className="w-4 h-4 mr-2" />
+                            )}
+                            Add Agenda Item
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </Layout>
     );
 }
