@@ -644,13 +644,13 @@ export default function MeetingDetailPage() {
                                             <div key={item.id} className={`flex items-center justify-between p-4 rounded-lg border ${
                                                 item.is_completed ? 'bg-green-50 border-green-200' : 'border-slate-200'
                                             }`} data-testid={`agenda-item-${idx}`}>
-                                                <div className="flex items-center gap-4">
+                                                <div className="flex items-center gap-4 flex-1">
                                                     <Checkbox
                                                         checked={item.is_completed}
                                                         onCheckedChange={() => handleAgendaToggle(item.id, item.is_completed)}
                                                         disabled={meeting.status === 'completed'}
                                                     />
-                                                    <div>
+                                                    <div className="flex-1">
                                                         <p className={`font-medium ${item.is_completed ? 'line-through text-muted-foreground' : ''}`}>
                                                             {item.title}
                                                         </p>
@@ -663,7 +663,20 @@ export default function MeetingDetailPage() {
                                                         {item.assigned_to_name && <p className="text-xs text-muted-foreground mt-1">Assigned to: {item.assigned_to_name}</p>}
                                                     </div>
                                                 </div>
-                                                <Badge variant="outline">{item.estimated_duration_minutes} min</Badge>
+                                                <div className="flex items-center gap-2">
+                                                    <Badge variant="outline">{item.estimated_duration_minutes} min</Badge>
+                                                    {isOrganizer && meeting.status !== 'completed' && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() => handleDeleteAgenda(item.id)}
+                                                            className="text-muted-foreground hover:text-destructive"
+                                                            title="Delete agenda item"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </Button>
+                                                    )}
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
