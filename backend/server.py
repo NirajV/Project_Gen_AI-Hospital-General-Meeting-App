@@ -594,6 +594,10 @@ async def get_meeting_detail(meeting_id: str, current_user: dict):
         if a.get('assigned_to'):
             assigned_user = await db.users.find_one({"id": a['assigned_to']}, {"_id": 0, "name": 1})
             a['assigned_to_name'] = assigned_user.get('name') if assigned_user else None
+        if a.get('patient_id'):
+            patient = await db.patients.find_one({"id": a['patient_id']}, {"_id": 0, "first_name": 1, "last_name": 1})
+            if patient:
+                a['patient_name'] = f"{patient.get('first_name', '')} {patient.get('last_name', '')}".strip()
     meeting['agenda'] = [serialize_doc(a) for a in agenda]
     
     # Get files
