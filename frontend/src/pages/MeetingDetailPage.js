@@ -752,13 +752,16 @@ export default function MeetingDetailPage() {
                                     <Card key={decision.id} className="border-slate-200" data-testid={`decision-${idx}`}>
                                         <CardContent className="pt-6">
                                             <div className="flex items-start justify-between">
-                                                <div>
+                                                <div className="flex-1">
                                                     <div className="flex items-center gap-2">
                                                         <h3 className="font-medium">{decision.title}</h3>
                                                         <Badge variant="outline" className={`text-xs ${
                                                             decision.priority === 'high' || decision.priority === 'urgent' ? 'border-red-300 text-red-700' :
                                                             decision.priority === 'medium' ? 'border-orange-300 text-orange-700' : ''
                                                         }`}>{decision.priority}</Badge>
+                                                        <Badge className={decision.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}>
+                                                            {decision.status}
+                                                        </Badge>
                                                     </div>
                                                     {decision.description && <p className="text-sm text-muted-foreground mt-1">{decision.description}</p>}
                                                     {decision.action_plan && (
@@ -771,9 +774,17 @@ export default function MeetingDetailPage() {
                                                         <p className="text-xs text-muted-foreground mt-2">Follow-up: {format(parseISO(decision.follow_up_date), 'MMM d, yyyy')}</p>
                                                     )}
                                                 </div>
-                                                <Badge className={decision.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}>
-                                                    {decision.status}
-                                                </Badge>
+                                                {isOrganizer && meeting.status !== 'completed' && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() => handleDeleteDecision(decision.id)}
+                                                        className="text-muted-foreground hover:text-destructive ml-2"
+                                                        title="Delete decision"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </Button>
+                                                )}
                                             </div>
                                         </CardContent>
                                     </Card>
