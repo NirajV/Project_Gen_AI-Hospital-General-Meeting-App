@@ -1071,6 +1071,11 @@ export default function MeetingDetailPage() {
                                 ))
                         )}
                     </div>
+                    {allPatients.filter(p => !meeting?.patients?.some(mp => mp.patient_id === p.id)).length > 0 && selectedPatients.length === 0 && (
+                        <div className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                            💡 Click on a patient row or checkbox to select patients to add
+                        </div>
+                    )}
                     <DialogFooter>
                         <Button variant="outline" onClick={() => {
                             setPatientDialog(false);
@@ -1081,13 +1086,14 @@ export default function MeetingDetailPage() {
                         <Button 
                             onClick={handleAddPatients}
                             disabled={selectedPatients.length === 0 || addingPatients}
+                            className={selectedPatients.length > 0 ? "bg-primary hover:bg-primary/90" : ""}
                         >
                             {addingPatients ? (
                                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                             ) : (
                                 <Plus className="w-4 h-4 mr-2" />
                             )}
-                            Add {selectedPatients.length > 0 ? `(${selectedPatients.length})` : ''} Patient{selectedPatients.length !== 1 ? 's' : ''}
+                            {selectedPatients.length > 0 ? `Add (${selectedPatients.length}) Patient${selectedPatients.length !== 1 ? 's' : ''}` : 'Select patients to add'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
