@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { getMeeting, updateMeeting, deleteMeeting, uploadFile, deleteFile, createDecision, updateAgendaItem, getFileUrl, getUsers, addParticipant, removeParticipant } from '@/lib/api';
+import { getMeeting, updateMeeting, deleteMeeting, uploadFile, deleteFile, createDecision, updateAgendaItem, getFileUrl, getUsers, addParticipant, removeParticipant, addPatientToMeeting, addAgendaItem, getPatients } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -49,6 +49,15 @@ export default function MeetingDetailPage() {
     const [newDecision, setNewDecision] = useState({
         title: '', description: '', action_plan: '', follow_up_date: '', priority: 'medium'
     });
+    const [patientDialog, setPatientDialog] = useState(false);
+    const [agendaDialog, setAgendaDialog] = useState(false);
+    const [allPatients, setAllPatients] = useState([]);
+    const [selectedPatients, setSelectedPatients] = useState([]);
+    const [addingPatients, setAddingPatients] = useState(false);
+    const [newAgenda, setNewAgenda] = useState({
+        title: '', description: '', estimated_duration_minutes: 30
+    });
+    const [addingAgenda, setAddingAgenda] = useState(false);
 
     useEffect(() => {
         loadMeeting();
