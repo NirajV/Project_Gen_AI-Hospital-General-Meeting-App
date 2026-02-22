@@ -501,12 +501,31 @@ export default function MeetingDetailPage() {
 
                     {/* Patients Tab */}
                     <TabsContent value="patients" className="mt-6">
+                        <div className="flex justify-end mb-4">
+                            {isOrganizer && meeting.status !== 'completed' && (
+                                <Button 
+                                    onClick={() => { loadAllPatients(); setPatientDialog(true); }}
+                                    className="bg-primary hover:bg-primary/90"
+                                >
+                                    <Plus className="w-4 h-4 mr-2" /> Add Patient
+                                </Button>
+                            )}
+                        </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {meeting.patients?.length === 0 ? (
                                 <Card className="border-slate-200 col-span-2">
                                     <CardContent className="py-12 text-center">
                                         <User className="w-12 h-12 mx-auto mb-3 text-muted-foreground opacity-50" />
                                         <p className="text-muted-foreground">No patients added to this meeting</p>
+                                        {isOrganizer && meeting.status !== 'completed' && (
+                                            <Button 
+                                                onClick={() => { loadAllPatients(); setPatientDialog(true); }}
+                                                variant="outline"
+                                                className="mt-4"
+                                            >
+                                                <Plus className="w-4 h-4 mr-2" /> Add First Patient
+                                            </Button>
+                                        )}
                                     </CardContent>
                                 </Card>
                             ) : (
