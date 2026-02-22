@@ -1039,7 +1039,15 @@ export default function MeetingDetailPage() {
                                 .map((patient) => (
                                     <div
                                         key={patient.id}
-                                        className="flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:border-primary/30 hover:bg-slate-50"
+                                        className="flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:border-primary/30 hover:bg-slate-50 cursor-pointer"
+                                        onClick={() => {
+                                            const isSelected = selectedPatients.includes(patient.id);
+                                            if (isSelected) {
+                                                setSelectedPatients(selectedPatients.filter(id => id !== patient.id));
+                                            } else {
+                                                setSelectedPatients([...selectedPatients, patient.id]);
+                                            }
+                                        }}
                                     >
                                         <div className="flex items-center gap-3">
                                             <Checkbox
