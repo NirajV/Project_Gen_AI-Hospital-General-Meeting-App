@@ -609,6 +609,11 @@ export default function MeetingDetailPage() {
                                                         <p className={`font-medium ${item.is_completed ? 'line-through text-muted-foreground' : ''}`}>
                                                             {item.title}
                                                         </p>
+                                                        {item.patient_name && (
+                                                            <p className="text-xs text-primary mt-1">
+                                                                👤 Patient: {item.patient_name}
+                                                            </p>
+                                                        )}
                                                         {item.description && <p className="text-sm text-muted-foreground">{item.description}</p>}
                                                         {item.assigned_to_name && <p className="text-xs text-muted-foreground mt-1">Assigned to: {item.assigned_to_name}</p>}
                                                     </div>
