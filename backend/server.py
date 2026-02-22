@@ -724,6 +724,7 @@ async def add_agenda_item(meeting_id: str, item: AgendaItemCreate, current_user:
         "order_index": item.order_index,
         "estimated_duration_minutes": item.estimated_duration_minutes,
         "assigned_to": item.assigned_to,
+        "patient_id": item.patient_id,
         "is_completed": False,
         "created_at": datetime.now(timezone.utc).isoformat()
     })
@@ -733,7 +734,7 @@ async def add_agenda_item(meeting_id: str, item: AgendaItemCreate, current_user:
 @api_router.put("/meetings/{meeting_id}/agenda/{item_id}")
 async def update_agenda_item(meeting_id: str, item_id: str, updates: dict, current_user: dict = Depends(get_current_user)):
     allowed_fields = ['title', 'description', 'order_index', 'estimated_duration_minutes',
-                      'assigned_to', 'is_completed', 'notes']
+                      'assigned_to', 'patient_id', 'is_completed', 'notes']
     update_data = {k: v for k, v in updates.items() if k in allowed_fields}
     
     if update_data:
