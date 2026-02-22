@@ -565,13 +565,26 @@ export default function MeetingDetailPage() {
                                     <Card key={mp.id} className="border-slate-200" data-testid={`meeting-patient-${idx}`}>
                                         <CardContent className="pt-6">
                                             <div className="flex items-start gap-4">
-                                                <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center">
+                                                <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-between">
                                                     <User className="w-6 h-6 text-accent" />
                                                 </div>
                                                 <div className="flex-1">
-                                                    <div className="flex items-center gap-2">
-                                                        <h3 className="font-medium">{mp.first_name} {mp.last_name}</h3>
-                                                        <Badge variant="outline" className="text-xs capitalize">{mp.status?.replace('_', ' ')}</Badge>
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center gap-2">
+                                                            <h3 className="font-medium">{mp.first_name} {mp.last_name}</h3>
+                                                            <Badge variant="outline" className="text-xs capitalize">{mp.status?.replace('_', ' ')}</Badge>
+                                                        </div>
+                                                        {isOrganizer && meeting.status !== 'completed' && (
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                onClick={() => handleRemovePatient(mp.patient_id)}
+                                                                className="text-muted-foreground hover:text-destructive"
+                                                                title="Remove patient"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </Button>
+                                                        )}
                                                     </div>
                                                     {mp.patient_id_number && <p className="text-xs text-muted-foreground">ID: {mp.patient_id_number}</p>}
                                                     {mp.primary_diagnosis && <p className="text-sm mt-2">{mp.primary_diagnosis}</p>}
