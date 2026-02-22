@@ -1106,6 +1106,25 @@ export default function MeetingDetailPage() {
                             />
                         </div>
                         <div className="space-y-2">
+                            <Label htmlFor="agenda-patient">Patient (optional)</Label>
+                            <Select 
+                                value={newAgenda.patient_id || "none"} 
+                                onValueChange={(v) => setNewAgenda({ ...newAgenda, patient_id: v === "none" ? null : v })}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a patient" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="none">General (no specific patient)</SelectItem>
+                                    {meeting?.patients?.map((mp) => (
+                                        <SelectItem key={mp.patient_id} value={mp.patient_id}>
+                                            {mp.first_name} {mp.last_name} - {mp.primary_diagnosis || 'N/A'}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
                             <Label htmlFor="agenda-desc">Description</Label>
                             <Textarea
                                 id="agenda-desc"
@@ -1130,7 +1149,7 @@ export default function MeetingDetailPage() {
                     <DialogFooter>
                         <Button variant="outline" onClick={() => {
                             setAgendaDialog(false);
-                            setNewAgenda({ title: '', description: '', estimated_duration_minutes: 30 });
+                            setNewAgenda({ title: '', description: '', estimated_duration_minutes: 30, patient_id: null });
                         }}>
                             Cancel
                         </Button>
