@@ -57,7 +57,7 @@ export default function MeetingWizardPage() {
         agenda_items: []
     });
 
-    const [newAgendaItem, setNewAgendaItem] = useState({ title: '', description: '', estimated_duration_minutes: 15 });
+    const [newAgendaItem, setNewAgendaItem] = useState({ title: '', description: '', estimated_duration_minutes: 15, patient_id: null });
 
     useEffect(() => {
         loadData();
@@ -675,7 +675,7 @@ export default function MeetingWizardPage() {
                         <div className="p-4 rounded-lg border border-slate-200 bg-slate-50 space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div className="md:col-span-2 space-y-2">
-                                    <Label htmlFor="agenda_title">Agenda Item Title</Label>
+                                    <Label htmlFor="agenda_title">Agenda Item Title *</Label>
                                     <Input
                                         id="agenda_title"
                                         value={newAgendaItem.title}
@@ -696,6 +696,33 @@ export default function MeetingWizardPage() {
                                         data-testid="agenda-duration-input"
                                     />
                                 </div>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="agenda_patient">Patient (optional)</Label>
+                                <Select 
+                                    value={newAgendaItem.patient_id || "none"} 
+                                    onValueChange={(v) => setNewAgendaItem({ ...newAgendaItem, patient_id: v === "none" ? null : v })}
+                                >
+                                    <SelectTrigger className="h-11 bg-white" data-testid="agenda-patient-select">
+                                        <SelectValue placeholder="Select a patient" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">No specific patient</SelectItem>
+                                        {patients.filter(p => formData.patient_ids.includes(p.id)).map((patient) => (
+                                            <SelectItem key={patient.id} value={patient.id}>
+                                                {patient.first_name} {patient.last_name} {patient.primary_diagnosis ? `- ${patient.primary_diagnosis}` : ''}
+                                            </SelectItem>
+                                        ))}
+                                        {formData.patient_ids.length === 0 && (
+                                            <SelectItem value="no-patients" disabled>
+                                                No patients selected yet (go to Step 3)
+                                            </SelectItem>
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                                {formData.patient_ids.length === 0 && (
+                                    <p className="text-xs text-amber-600">💡 Tip: Select patients in Step 3 first to link them to agenda items</p>
+                                )}
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="agenda_desc">Description (optional)</Label>
