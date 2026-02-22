@@ -761,6 +761,11 @@ export default function MeetingWizardPage() {
                                             <Badge variant="outline" className="text-xs">{index + 1}</Badge>
                                             <div>
                                                 <p className="font-medium">{item.title}</p>
+                                                {item.patient_id && (
+                                                    <p className="text-xs text-primary">
+                                                        👤 {patients.find(p => p.id === item.patient_id)?.first_name} {patients.find(p => p.id === item.patient_id)?.last_name}
+                                                    </p>
+                                                )}
                                                 {item.description && (
                                                     <p className="text-sm text-muted-foreground">{item.description}</p>
                                                 )}
