@@ -97,6 +97,9 @@ class MeetingBase(BaseModel):
     video_link: Optional[str] = None
     recurrence_type: Optional[str] = "one_time"
     recurrence_end_date: Optional[str] = None
+    recurrence_pattern: Optional[str] = None
+    recurrence_week_of_month: Optional[str] = None
+    recurrence_day_of_week: Optional[str] = None
 
 class MeetingCreate(MeetingBase):
     participant_ids: Optional[List[str]] = []
