@@ -52,6 +52,8 @@ export default function MeetingWizardPage() {
         location: '',
         video_link: '',
         recurrence_type: 'one_time',
+        recurrence_week_of_month: null,
+        recurrence_day_of_week: null,
         participant_ids: [],
         patient_ids: [],
         agenda_items: []
