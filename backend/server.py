@@ -507,6 +507,7 @@ async def create_meeting(meeting: MeetingCreate, current_user: dict = Depends(ge
         "recurrence_pattern": meeting.recurrence_pattern,
         "recurrence_week_of_month": meeting.recurrence_week_of_month,
         "recurrence_day_of_week": meeting.recurrence_day_of_week,
+        "recurrence_day_of_month": meeting.recurrence_day_of_month,
         "status": "scheduled",
         "organizer_id": current_user['id'],
         "created_at": datetime.now(timezone.utc).isoformat()
