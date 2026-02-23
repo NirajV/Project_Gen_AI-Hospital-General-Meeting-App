@@ -203,12 +203,37 @@ export default function MeetingWizardPage() {
     };
 
     const handleSubmit = async () => {
+        // Validate recurring meetings
+        if (formData.recurrence_type !== 'one_time') {
+            if (!formData.recurrence_end_date) {
+                alert('Please select an end date for recurring meetings');
+                return;
+            }
+            if (formData.recurrence_end_date <= formData.meeting_date) {
+                alert('Recurrence end date must be after the meeting start date');
+                return;
+            }
+            if (formData.recurrence_type === 'weekly' && !formData.recurrence_day_of_week) {
+                alert('Please select a day of the week for weekly recurrence');
+                return;
+            }
+            if (formData.recurrence_type === 'monthly' && !formData.recurrence_day_of_month) {
+                alert('Please select a day of the month for monthly recurrence');
+                return;
+            }
+            if (formData.recurrence_type === 'monthly_on' && (!formData.recurrence_week_of_month || !formData.recurrence_day_of_week)) {
+                alert('Please select both week and day for advanced monthly recurrence');
+                return;
+            }
+        }
+        
         setLoading(true);
         try {
             const res = await createMeeting(formData);
             navigate(`/meetings/${res.data.id}`);
         } catch (error) {
             console.error('Failed to create meeting:', error);
+            alert('Failed to create meeting. Please try again.');
         } finally {
             setLoading(false);
         }
