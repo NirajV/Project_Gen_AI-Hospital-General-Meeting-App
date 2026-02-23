@@ -353,6 +353,62 @@ export default function MeetingWizardPage() {
                                 </div>
                             </div>
                         )}
+                        {formData.recurrence_type === 'weekly' && (
+                            <div className="space-y-2">
+                                <Label>Day of Week *</Label>
+                                <Select 
+                                    onValueChange={(v) => handleSelectChange('recurrence_day_of_week', v)} 
+                                    value={formData.recurrence_day_of_week || ''}
+                                >
+                                    <SelectTrigger className="h-12 bg-slate-50" data-testid="weekly-day-select">
+                                        <SelectValue placeholder="Select day" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="monday">Monday</SelectItem>
+                                        <SelectItem value="tuesday">Tuesday</SelectItem>
+                                        <SelectItem value="wednesday">Wednesday</SelectItem>
+                                        <SelectItem value="thursday">Thursday</SelectItem>
+                                        <SelectItem value="friday">Friday</SelectItem>
+                                        <SelectItem value="saturday">Saturday</SelectItem>
+                                        <SelectItem value="sunday">Sunday</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )}
+                        {formData.recurrence_type === 'monthly' && (
+                            <div className="space-y-2">
+                                <Label>Day of Month *</Label>
+                                <Select 
+                                    onValueChange={(v) => handleSelectChange('recurrence_day_of_month', parseInt(v))} 
+                                    value={formData.recurrence_day_of_month?.toString() || ''}
+                                >
+                                    <SelectTrigger className="h-12 bg-slate-50" data-testid="monthly-day-select">
+                                        <SelectValue placeholder="Select day (1-31)" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
+                                            <SelectItem key={day} value={day.toString()}>{day}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )}
+                        {formData.recurrence_type !== 'one_time' && (
+                            <div className="space-y-2">
+                                <Label htmlFor="recurrence_end_date">Recurrence End Date *</Label>
+                                <Input
+                                    id="recurrence_end_date"
+                                    name="recurrence_end_date"
+                                    type="date"
+                                    value={formData.recurrence_end_date}
+                                    onChange={handleChange}
+                                    min={formData.meeting_date}
+                                    className="h-12 bg-slate-50"
+                                    data-testid="recurrence-end-date-input"
+                                />
+                                <p className="text-xs text-slate-500">When should the recurring meetings stop?</p>
+                            </div>
+                        )}
                         {(formData.meeting_type === 'video' || formData.meeting_type === 'hybrid') && (
                             <div className="space-y-2">
                                 <Label htmlFor="video_link">Teams/Video Link</Label>
