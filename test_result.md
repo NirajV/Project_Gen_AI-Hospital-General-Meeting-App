@@ -102,10 +102,10 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Hospital General Meeting App with advanced meeting recurrence feature allowing users to schedule meetings with patterns like 'First Monday of every month'"
+user_problem_statement: "Hospital General Meeting App with enhanced recurrence features: Weekly recurrence with day selection, Monthly recurrence with day (1-31) selection, and required recurrence end date for all recurring meetings"
 
 backend:
-  - task: "Advanced Recurrence - Backend Support"
+  - task: "Enhanced Recurrence - Backend Support"
     implemented: true
     working: "NA"
     file: "/app/backend/server.py"
@@ -115,10 +115,10 @@ backend:
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "Backend already supports recurrence_week_of_month and recurrence_day_of_week fields in MeetingBase model (lines 101-102) and saves them in POST /api/meetings endpoint (lines 507-508). Need to test if API correctly accepts and stores these fields."
+        comment: "Added recurrence_day_of_month field to MeetingBase model (line 103). Updated POST /api/meetings to save recurrence_day_of_month along with existing fields (line 510). Backend now supports: weekly with day_of_week, monthly with day_of_month, monthly_on with week_of_month + day_of_week, and recurrence_end_date for all recurring types."
 
 frontend:
-  - task: "Advanced Recurrence - Frontend UI Implementation"
+  - task: "Enhanced Recurrence - Frontend UI Implementation"
     implemented: true
     working: "NA"
     file: "/app/frontend/src/pages/MeetingWizardPage.js"
@@ -128,22 +128,23 @@ frontend:
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "Added 'Monthly on...' option to recurrence dropdown. When selected, shows two new Select controls for week_of_month (first/second/third/fourth/last) and day_of_week (monday-sunday). Updated formData state to include recurrence_week_of_month and recurrence_day_of_week fields. Frontend compiled successfully with no errors."
+        comment: "Changed 'Meeting Date' to 'Meeting Start Date'. Added recurrence_end_date, recurrence_day_of_month to formData. Implemented conditional UI: Weekly shows day_of_week selector, Monthly shows day_of_month selector (1-31), All recurring types show required recurrence_end_date field. Added comprehensive validation in handleSubmit to ensure end date is provided and is after start date, and required fields for each recurrence type are selected."
 
 metadata:
   created_by: "main_agent"
-  version: "1.0"
-  test_sequence: 1
+  version: "2.0"
+  test_sequence: 2
   run_ui: true
 
 test_plan:
   current_focus:
-    - "Advanced Recurrence - Backend Support"
-    - "Advanced Recurrence - Frontend UI Implementation"
+    - "Enhanced Recurrence - Backend Support"
+    - "Enhanced Recurrence - Frontend UI Implementation"
+    - "Validation logic for recurring meetings"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
   - agent: "main"
-    message: "Completed frontend implementation for advanced recurrence feature. Added 'Monthly on...' option with conditional week and day selectors. Backend already supports these fields. Need comprehensive testing of both backend API and frontend UI flow. Test credentials: organizer@hospital.com / password123"
+    message: "Completed enhanced recurrence implementation. Users can now: 1) Select day of week for weekly recurrence, 2) Select day (1-31) for monthly recurrence, 3) Must provide end date for all recurring meetings with validation. Need comprehensive testing of all recurrence patterns and validation logic. Test credentials: organizer@hospital.com / password123"
