@@ -503,6 +503,9 @@ async def create_meeting(meeting: MeetingCreate, current_user: dict = Depends(ge
         "video_link": meeting.video_link,
         "recurrence_type": meeting.recurrence_type,
         "recurrence_end_date": meeting.recurrence_end_date,
+        "recurrence_pattern": meeting.recurrence_pattern,
+        "recurrence_week_of_month": meeting.recurrence_week_of_month,
+        "recurrence_day_of_week": meeting.recurrence_day_of_week,
         "status": "scheduled",
         "organizer_id": current_user['id'],
         "created_at": datetime.now(timezone.utc).isoformat()
