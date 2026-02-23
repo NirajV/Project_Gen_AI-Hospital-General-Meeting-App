@@ -101,3 +101,49 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: "Hospital General Meeting App with advanced meeting recurrence feature allowing users to schedule meetings with patterns like 'First Monday of every month'"
+
+backend:
+  - task: "Advanced Recurrence - Backend Support"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Backend already supports recurrence_week_of_month and recurrence_day_of_week fields in MeetingBase model (lines 101-102) and saves them in POST /api/meetings endpoint (lines 507-508). Need to test if API correctly accepts and stores these fields."
+
+frontend:
+  - task: "Advanced Recurrence - Frontend UI Implementation"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/MeetingWizardPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added 'Monthly on...' option to recurrence dropdown. When selected, shows two new Select controls for week_of_month (first/second/third/fourth/last) and day_of_week (monday-sunday). Updated formData state to include recurrence_week_of_month and recurrence_day_of_week fields. Frontend compiled successfully with no errors."
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: true
+
+test_plan:
+  current_focus:
+    - "Advanced Recurrence - Backend Support"
+    - "Advanced Recurrence - Frontend UI Implementation"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: "Completed frontend implementation for advanced recurrence feature. Added 'Monthly on...' option with conditional week and day selectors. Backend already supports these fields. Need comprehensive testing of both backend API and frontend UI flow. Test credentials: organizer@hospital.com / password123"
