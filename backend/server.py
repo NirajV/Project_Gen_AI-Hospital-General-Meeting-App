@@ -100,6 +100,7 @@ class MeetingBase(BaseModel):
     recurrence_pattern: Optional[str] = None
     recurrence_week_of_month: Optional[str] = None
     recurrence_day_of_week: Optional[str] = None
+    recurrence_day_of_month: Optional[int] = None
 
 class MeetingCreate(MeetingBase):
     participant_ids: Optional[List[str]] = []
