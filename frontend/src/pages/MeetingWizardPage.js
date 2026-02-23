@@ -304,10 +304,53 @@ export default function MeetingWizardPage() {
                                         <SelectItem value="daily">Daily</SelectItem>
                                         <SelectItem value="weekly">Weekly</SelectItem>
                                         <SelectItem value="monthly">Monthly</SelectItem>
+                                        <SelectItem value="monthly_on">Monthly on...</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
                         </div>
+                        {formData.recurrence_type === 'monthly_on' && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label>Week of Month</Label>
+                                    <Select 
+                                        onValueChange={(v) => handleSelectChange('recurrence_week_of_month', v)} 
+                                        value={formData.recurrence_week_of_month || undefined}
+                                    >
+                                        <SelectTrigger className="h-12 bg-slate-50" data-testid="week-select">
+                                            <SelectValue placeholder="Select week" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="first">First</SelectItem>
+                                            <SelectItem value="second">Second</SelectItem>
+                                            <SelectItem value="third">Third</SelectItem>
+                                            <SelectItem value="fourth">Fourth</SelectItem>
+                                            <SelectItem value="last">Last</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Day of Week</Label>
+                                    <Select 
+                                        onValueChange={(v) => handleSelectChange('recurrence_day_of_week', v)} 
+                                        value={formData.recurrence_day_of_week || undefined}
+                                    >
+                                        <SelectTrigger className="h-12 bg-slate-50" data-testid="day-select">
+                                            <SelectValue placeholder="Select day" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="monday">Monday</SelectItem>
+                                            <SelectItem value="tuesday">Tuesday</SelectItem>
+                                            <SelectItem value="wednesday">Wednesday</SelectItem>
+                                            <SelectItem value="thursday">Thursday</SelectItem>
+                                            <SelectItem value="friday">Friday</SelectItem>
+                                            <SelectItem value="saturday">Saturday</SelectItem>
+                                            <SelectItem value="sunday">Sunday</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                        )}
                         {(formData.meeting_type === 'video' || formData.meeting_type === 'hybrid') && (
                             <div className="space-y-2">
                                 <Label htmlFor="video_link">Teams/Video Link</Label>
