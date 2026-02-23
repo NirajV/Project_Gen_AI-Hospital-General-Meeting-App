@@ -315,7 +315,7 @@ export default function MeetingWizardPage() {
                                     <Label>Week of Month</Label>
                                     <Select 
                                         onValueChange={(v) => handleSelectChange('recurrence_week_of_month', v)} 
-                                        value={formData.recurrence_week_of_month || undefined}
+                                        value={formData.recurrence_week_of_month || ''}
                                     >
                                         <SelectTrigger className="h-12 bg-slate-50" data-testid="week-select">
                                             <SelectValue placeholder="Select week" />
@@ -333,7 +333,7 @@ export default function MeetingWizardPage() {
                                     <Label>Day of Week</Label>
                                     <Select 
                                         onValueChange={(v) => handleSelectChange('recurrence_day_of_week', v)} 
-                                        value={formData.recurrence_day_of_week || undefined}
+                                        value={formData.recurrence_day_of_week || ''}
                                     >
                                         <SelectTrigger className="h-12 bg-slate-50" data-testid="day-select">
                                             <SelectValue placeholder="Select day" />
