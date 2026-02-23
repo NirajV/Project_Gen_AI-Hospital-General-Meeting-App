@@ -245,7 +245,7 @@ export default function MeetingWizardPage() {
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="meeting_date">Date *</Label>
+                                <Label htmlFor="meeting_date">Meeting Start Date *</Label>
                                 <Input
                                     id="meeting_date"
                                     name="meeting_date"
