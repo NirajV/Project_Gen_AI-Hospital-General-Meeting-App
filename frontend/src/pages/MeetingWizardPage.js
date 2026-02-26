@@ -507,16 +507,19 @@ export default function MeetingWizardPage() {
                         )}
                         {(formData.meeting_type === 'in_person' || formData.meeting_type === 'hybrid') && (
                             <div className="space-y-2">
-                                <Label htmlFor="location">Location</Label>
+                                <Label htmlFor="location">Location & Room Details *</Label>
                                 <Input
                                     id="location"
                                     name="location"
                                     value={formData.location}
                                     onChange={handleChange}
-                                    placeholder="e.g., Conference Room A, Building 2"
+                                    placeholder="e.g., Conference Room A, 3rd Floor, Building 2"
                                     className="h-12 bg-slate-50"
                                     data-testid="location-input"
                                 />
+                                <p className="text-xs text-slate-500">
+                                    Include building name, floor, and room number for easy location
+                                </p>
                             </div>
                         )}
                     </div>
