@@ -1010,12 +1010,12 @@ export default function MeetingDetailPage() {
                     <div className="space-y-4">
                         <div className="space-y-2">
                             <Label>Patient (Optional)</Label>
-                            <Select value={filePatientId} onValueChange={setFilePatientId}>
+                            <Select value={filePatientId || 'none'} onValueChange={(v) => setFilePatientId(v === 'none' ? '' : v)}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Link to a patient (optional)" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="">None - General file</SelectItem>
+                                    <SelectItem value="none">None - General file</SelectItem>
                                     {meeting?.patients?.map((patient) => (
                                         <SelectItem key={patient.patient_id} value={patient.patient_id}>
                                             {patient.first_name} {patient.last_name}
