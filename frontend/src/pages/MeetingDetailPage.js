@@ -168,17 +168,68 @@ export default function MeetingDetailPage() {
     };
 
     const handleAddAgenda = async () => {
-        if (!newAgenda.title) return;
+        // Validation
+        if (!newAgenda.patient_id) {
+            alert('Please select a patient');
+            return;
+        }
+        if (!newAgenda.mrn.trim()) {
+            alert('Please enter MRN');
+            return;
+        }
+        if (!newAgenda.requested_provider.trim()) {
+            alert('Please enter Requested Provider');
+            return;
+        }
+        if (!newAgenda.diagnosis.trim()) {
+            alert('Please enter Diagnosis');
+            return;
+        }
+        if (!newAgenda.reason_for_discussion.trim()) {
+            alert('Please enter Reason for Discussion');
+            return;
+        }
+        
         setAddingAgenda(true);
         try {
             await addAgendaItem(id, newAgenda);
             loadMeeting();
             setAgendaDialog(false);
-            setNewAgenda({ title: '', description: '', estimated_duration_minutes: 30 });
+            setNewAgenda({
+                patient_id: '',
+                mrn: '',
+                requested_provider: '',
+                diagnosis: '',
+                reason_for_discussion: '',
+                pathology_required: false,
+                radiology_required: false,
+                treatment_plan: ''
+            });
         } catch (error) {
             console.error('Failed to add agenda item:', error);
+            alert(error.response?.data?.detail || 'Failed to add agenda item');
         } finally {
             setAddingAgenda(false);
+        }
+    };
+
+    const handleAgendaPatientSelect = (patientId) => {
+        const selectedPatient = allPatients.find(p => p.id === patientId);
+        setNewAgenda({
+            ...newAgenda,
+            patient_id: patientId,
+            mrn: selectedPatient?.patient_id_number || ''
+        });
+    };
+
+    const handleUpdateTreatmentPlan = async (itemId) => {
+        try {
+            await updateTreatmentPlan(id, itemId, treatmentPlanText[itemId]);
+            await loadMeeting();
+            setEditingTreatmentPlan({ ...editingTreatmentPlan, [itemId]: false });
+        } catch (error) {
+            console.error('Failed to update treatment plan:', error);
+            alert('Failed to update treatment plan');
         }
     };
 
