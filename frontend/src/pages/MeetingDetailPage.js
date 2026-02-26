@@ -367,26 +367,6 @@ export default function MeetingDetailPage() {
             setInviting(false);
         }
     };
-            } else {
-                const error = await response.json();
-                if (error.detail === 'Email already registered') {
-                    // User exists, find them and add
-                    const usersRes = await getUsers();
-                    const existingUser = usersRes.data.find(u => u.email === newInvite.email);
-                    if (existingUser) {
-                        await addParticipant(id, { user_id: existingUser.id, role: 'attendee' });
-                        loadMeeting();
-                        setNewInvite({ email: '', name: '', specialty: '' });
-                        setAllUsers(usersRes.data);
-                    }
-                }
-            }
-        } catch (error) {
-            console.error('Failed to invite user:', error);
-        } finally {
-            setInviting(false);
-        }
-    };
 
     const getAvailableUsers = () => {
         const participantIds = meeting?.participants?.map(p => p.user_id) || [];
