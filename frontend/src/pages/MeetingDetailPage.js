@@ -1064,6 +1064,27 @@ export default function MeetingDetailPage() {
                     </DialogHeader>
                     <div className="space-y-4">
                         <div className="space-y-2">
+                            <Label>Patient (Optional)</Label>
+                            <Select 
+                                value={newDecision.meeting_patient_id || ''} 
+                                onValueChange={(v) => setNewDecision({ ...newDecision, meeting_patient_id: v, patient_id: v })}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Link to a patient (optional)" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="">None - General decision</SelectItem>
+                                    {meeting?.patients?.map((patient) => (
+                                        <SelectItem key={patient.patient_id} value={patient.patient_id}>
+                                            {patient.first_name} {patient.last_name}
+                                            {patient.patient_id_number ? ` (MRN: ${patient.patient_id_number})` : ''}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <p className="text-xs text-slate-500">Link this decision to a specific patient for better organization</p>
+                        </div>
+                        <div className="space-y-2">
                             <Label>Title *</Label>
                             <Input
                                 value={newDecision.title}
