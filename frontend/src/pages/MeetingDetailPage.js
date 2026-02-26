@@ -319,7 +319,11 @@ export default function MeetingDetailPage() {
     };
 
     const handleInviteByEmail = async () => {
-        if (!newInvite.email || !newInvite.name) return;
+        if (!newInvite.email || !newInvite.name) {
+            alert('Please enter both email and name');
+            return;
+        }
+        
         setInviting(true);
         try {
             // First create the user account, then add as participant
@@ -328,9 +332,10 @@ export default function MeetingDetailPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     email: newInvite.email,
-                    name: newInvite.name,
+                    full_name: newInvite.name,
                     specialty: newInvite.specialty,
-                    password: 'TempPass123!' // Temporary password - they'll reset it
+                    password: 'TempPass123!', // Temporary password
+                    role: 'doctor'
                 })
             });
             
@@ -338,11 +343,28 @@ export default function MeetingDetailPage() {
                 const data = await response.json();
                 // Add the new user as participant
                 await addParticipant(id, { user_id: data.user.id, role: 'attendee' });
-                loadMeeting();
+                await loadMeeting();
                 setNewInvite({ email: '', name: '', specialty: '' });
+                setInviteTab('existing');
                 // Refresh user list
                 const res = await getUsers();
                 setAllUsers(res.data);
+                alert(`✅ Successfully invited ${newInvite.name}!\nThey can login with: ${newInvite.email}\nTemporary password: TempPass123!`);
+            } else {
+                const error = await response.json();
+                throw new Error(error.detail || 'Failed to create user account');
+            }
+        } catch (error) {
+            console.error('Failed to invite by email:', error);
+            if (error.message.includes('already exists')) {
+                alert('This email is already registered. Please use "Existing Doctors" tab to add them.');
+            } else {
+                alert('Failed to send invite: ' + error.message);
+            }
+        } finally {
+            setInviting(false);
+        }
+    };
             } else {
                 const error = await response.json();
                 if (error.detail === 'Email already registered') {
