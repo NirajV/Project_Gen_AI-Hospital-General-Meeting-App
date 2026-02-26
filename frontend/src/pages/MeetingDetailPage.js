@@ -42,6 +42,7 @@ export default function MeetingDetailPage() {
     const [uploading, setUploading] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
     const [fileType, setFileType] = useState('other');
+    const [filePatientId, setFilePatientId] = useState('');
     const [allUsers, setAllUsers] = useState([]);
     const [addingParticipant, setAddingParticipant] = useState(false);
     const [inviteTab, setInviteTab] = useState('existing');
