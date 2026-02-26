@@ -472,6 +472,10 @@ async def list_meetings(filter_type: Optional[str] = None, status: Optional[str]
         meeting['participant_count'] = participant_count
         meeting['patient_count'] = patient_count
         
+        # Add participants array with response_status for dashboard
+        participants = await db.meeting_participants.find({"meeting_id": meeting['id']}, {"_id": 0, "user_id": 1, "response_status": 1, "responded_at": 1}).to_list(100)
+        meeting['participants'] = participants
+        
         # Get response status for my_invites
         if filter_type == "my_invites":
             participant = next((pm for pm in participant_meetings if pm['meeting_id'] == meeting['id']), None)
