@@ -505,7 +505,7 @@ export default function MeetingWizardPage() {
                         )}
                         {(formData.meeting_type === 'video' || formData.meeting_type === 'hybrid') && (
                             <div className="space-y-2">
-                                <Label htmlFor="video_link">Video Meeting Link *</Label>
+                                <Label htmlFor="video_link">Meeting Link *</Label>
                                 <Input
                                     id="video_link"
                                     name="video_link"
