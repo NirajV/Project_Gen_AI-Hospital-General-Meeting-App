@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { getDashboardStats, getMeetings } from '@/lib/api';
+import { getDashboardStats, getMeetings, updateParticipantResponse } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Layout from '@/components/Layout';
 import { 
     Calendar, Users, UserPlus, Clock, Plus, Video, MapPin,
-    ArrowRight, CheckCircle2, XCircle, HelpCircle
+    ArrowRight, CheckCircle2, XCircle, HelpCircle, Check, X, Minus
 } from 'lucide-react';
 import { format, parseISO, isToday, isTomorrow, isThisWeek } from 'date-fns';
 
