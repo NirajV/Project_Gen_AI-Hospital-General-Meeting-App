@@ -483,7 +483,8 @@ export default function MeetingWizardPage() {
                                     type="date"
                                     value={formData.recurrence_end_date}
                                     onChange={handleChange}
-                                    min={formData.meeting_date}
+                                    min={formData.meeting_date || new Date().toISOString().split('T')[0]}
+                                    max={new Date(new Date().setFullYear(new Date().getFullYear() + 2)).toISOString().split('T')[0]}
                                     className="h-12 bg-slate-50"
                                     data-testid="recurrence-end-date-input"
                                 />
