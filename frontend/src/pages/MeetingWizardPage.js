@@ -250,7 +250,19 @@ export default function MeetingWizardPage() {
     const canProceed = () => {
         switch (currentStep) {
             case 1:
-                return formData.title && formData.meeting_date && formData.start_time && formData.end_time;
+                // Basic validation
+                if (!formData.title || !formData.meeting_date || !formData.start_time || !formData.end_time) {
+                    return false;
+                }
+                // Validate video link for video/hybrid meetings
+                if ((formData.meeting_type === 'video' || formData.meeting_type === 'hybrid') && !formData.video_link) {
+                    return false;
+                }
+                // Validate location for in-person/hybrid meetings
+                if ((formData.meeting_type === 'in_person' || formData.meeting_type === 'hybrid') && !formData.location) {
+                    return false;
+                }
+                return true;
             default:
                 return true;
         }
