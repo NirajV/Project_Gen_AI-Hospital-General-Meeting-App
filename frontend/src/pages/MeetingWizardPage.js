@@ -332,6 +332,8 @@ export default function MeetingWizardPage() {
                                     value={formData.meeting_date}
                                     onChange={handleChange}
                                     className="h-12 bg-slate-50"
+                                    min={new Date().toISOString().split('T')[0]}
+                                    max={new Date(new Date().setFullYear(new Date().getFullYear() + 2)).toISOString().split('T')[0]}
                                     data-testid="date-input"
                                 />
                             </div>
