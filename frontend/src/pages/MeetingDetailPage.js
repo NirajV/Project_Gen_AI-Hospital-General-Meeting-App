@@ -1066,14 +1066,17 @@ export default function MeetingDetailPage() {
                         <div className="space-y-2">
                             <Label>Patient (Optional)</Label>
                             <Select 
-                                value={newDecision.meeting_patient_id || ''} 
-                                onValueChange={(v) => setNewDecision({ ...newDecision, meeting_patient_id: v, patient_id: v })}
+                                value={newDecision.meeting_patient_id || 'none'} 
+                                onValueChange={(v) => {
+                                    const patientId = v === 'none' ? '' : v;
+                                    setNewDecision({ ...newDecision, meeting_patient_id: patientId, patient_id: patientId });
+                                }}
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Link to a patient (optional)" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="">None - General decision</SelectItem>
+                                    <SelectItem value="none">None - General decision</SelectItem>
                                     {meeting?.patients?.map((patient) => (
                                         <SelectItem key={patient.patient_id} value={patient.patient_id}>
                                             {patient.first_name} {patient.last_name}
