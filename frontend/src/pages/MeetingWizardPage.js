@@ -186,13 +186,58 @@ export default function MeetingWizardPage() {
         }
     };
 
+    const handleAgendaPatientSelect = (patientId) => {
+        const selectedPatient = patients.find(p => p.id === patientId);
+        setNewAgendaItem({
+            ...newAgendaItem,
+            patient_id: patientId,
+            mrn: selectedPatient?.patient_id_number || ''
+        });
+    };
+
     const addAgendaItem = () => {
-        if (!newAgendaItem.title.trim()) return;
+        // Validation
+        if (!newAgendaItem.patient_id) {
+            alert('Please select a patient');
+            return;
+        }
+        if (!newAgendaItem.mrn.trim()) {
+            alert('Please enter MRN');
+            return;
+        }
+        if (!newAgendaItem.requested_provider.trim()) {
+            alert('Please enter Requested Provider');
+            return;
+        }
+        if (!newAgendaItem.diagnosis.trim()) {
+            alert('Please enter Diagnosis');
+            return;
+        }
+        if (!newAgendaItem.reason_for_discussion.trim()) {
+            alert('Please enter Reason for Discussion');
+            return;
+        }
+        
+        // Check for duplicate patient
+        if (formData.agenda_items.some(item => item.patient_id === newAgendaItem.patient_id)) {
+            alert('This patient already has an agenda item in this meeting');
+            return;
+        }
+        
         setFormData({
             ...formData,
             agenda_items: [...formData.agenda_items, { ...newAgendaItem, order_index: formData.agenda_items.length }]
         });
-        setNewAgendaItem({ title: '', description: '', estimated_duration_minutes: 15 });
+        setNewAgendaItem({ 
+            patient_id: '', 
+            mrn: '', 
+            requested_provider: '', 
+            diagnosis: '', 
+            reason_for_discussion: '', 
+            pathology_required: false, 
+            radiology_required: false, 
+            treatment_plan: '' 
+        });
     };
 
     const removeAgendaItem = (index) => {
