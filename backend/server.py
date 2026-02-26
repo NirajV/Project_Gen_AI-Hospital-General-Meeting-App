@@ -768,12 +768,30 @@ async def add_agenda_item(meeting_id: str, item: AgendaItemCreate, current_user:
 
 @api_router.put("/meetings/{meeting_id}/agenda/{item_id}")
 async def update_agenda_item(meeting_id: str, item_id: str, updates: dict, current_user: dict = Depends(get_current_user)):
-    allowed_fields = ['title', 'description', 'order_index', 'estimated_duration_minutes',
-                      'assigned_to', 'patient_id', 'is_completed', 'notes']
+    allowed_fields = ['mrn', 'requested_provider', 'diagnosis', 'reason_for_discussion',
+                      'pathology_required', 'radiology_required', 'treatment_plan', 'order_index']
     update_data = {k: v for k, v in updates.items() if k in allowed_fields}
     
     if update_data:
+        update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
         await db.agenda_items.update_one({"id": item_id}, {"$set": update_data})
+    
+    item = await db.agenda_items.find_one({"id": item_id}, {"_id": 0})
+    return serialize_doc(item)
+
+@api_router.put("/meetings/{meeting_id}/agenda/{item_id}/treatment-plan")
+async def update_treatment_plan(meeting_id: str, item_id: str, data: dict, current_user: dict = Depends(get_current_user)):
+    """Update treatment plan during meeting - accessible to all participants"""
+    treatment_plan = data.get('treatment_plan', '')
+    
+    await db.agenda_items.update_one(
+        {"id": item_id, "meeting_id": meeting_id},
+        {"$set": {
+            "treatment_plan": treatment_plan,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "last_updated_by": current_user['id']
+        }}
+    )
     
     item = await db.agenda_items.find_one({"id": item_id}, {"_id": 0})
     return serialize_doc(item)
