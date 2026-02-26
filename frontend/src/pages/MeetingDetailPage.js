@@ -703,7 +703,7 @@ export default function MeetingDetailPage() {
                                     </div>
                                 ) : (
                                     <>
-                                        {isOrganizer && meeting.status !== 'completed' && (
+                                        {meeting.status !== 'completed' && (
                                             <div className="flex justify-end mb-4">
                                                 <Button 
                                                     onClick={() => setAgendaDialog(true)}
