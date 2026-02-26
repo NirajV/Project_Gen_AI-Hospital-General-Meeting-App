@@ -277,7 +277,7 @@ export default function DashboardPage() {
                                                                 size="sm"
                                                                 variant="outline"
                                                                 className="h-8 text-xs"
-                                                                onClick=(e) => handleResponseUpdate(meeting.id, 'maybe', e)}
+                                                                onClick={(e) => handleResponseUpdate(meeting.id, 'maybe', e)}
                                                                 disabled={updatingResponse[meeting.id]}
                                                             >
                                                                 <Minus className="w-3 h-3 mr-1" />
