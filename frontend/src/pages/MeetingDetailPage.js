@@ -859,32 +859,56 @@ export default function MeetingDetailPage() {
                             </Card>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {meeting.files?.map((file, idx) => (
-                                    <Card key={file.id} className="border-slate-200" data-testid={`file-${idx}`}>
-                                        <CardContent className="pt-6">
-                                            <div className="flex items-start justify-between">
-                                                <div className="flex items-start gap-3">
-                                                    <span className="text-2xl">{getFileIcon(file.file_type)}</span>
-                                                    <div>
-                                                        <p className="font-medium text-sm truncate max-w-[150px]">{file.original_name}</p>
-                                                        <p className="text-xs text-muted-foreground capitalize">{file.file_type?.replace('_', ' ')}</p>
-                                                        <p className="text-xs text-muted-foreground mt-1">By {file.uploader_name}</p>
+                                {meeting.files?.map((file, idx) => {
+                                    const filePatient = meeting.patients?.find(p => p.patient_id === file.patient_id);
+                                    return (
+                                        <Card key={file.id} className="border-slate-200" data-testid={`file-${idx}`}>
+                                            <CardContent className="pt-6">
+                                                <div className="flex items-start justify-between mb-3">
+                                                    <div className="flex items-start gap-3 flex-1">
+                                                        <span className="text-2xl">{getFileIcon(file.file_type)}</span>
+                                                        <div className="flex-1">
+                                                            <p className="font-medium text-sm truncate">{file.original_name}</p>
+                                                            <p className="text-xs text-muted-foreground capitalize">{file.file_type?.replace('_', ' ')}</p>
+                                                            <p className="text-xs text-muted-foreground mt-1">By {file.uploader_name}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex gap-1">
+                                                        <Button variant="ghost" size="icon" asChild>
+                                                            <a href={getFileUrl(file.id)} target="_blank" rel="noopener noreferrer">
+                                                                <Download className="w-4 h-4" />
+                                                            </a>
+                                                        </Button>
+                                                        <Button variant="ghost" size="icon" onClick={() => handleDeleteFile(file.id)} className="text-destructive">
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </Button>
                                                     </div>
                                                 </div>
-                                                <div className="flex gap-1">
-                                                    <Button variant="ghost" size="icon" asChild>
-                                                        <a href={getFileUrl(file.id)} target="_blank" rel="noopener noreferrer">
-                                                            <Download className="w-4 h-4" />
-                                                        </a>
-                                                    </Button>
-                                                    <Button variant="ghost" size="icon" onClick={() => handleDeleteFile(file.id)} className="text-destructive">
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                ))}
+                                                {filePatient && (
+                                                    <div className="pt-3 border-t border-slate-200">
+                                                        <div className="flex items-center gap-2">
+                                                            <Badge variant="outline" className="text-xs">
+                                                                👤 {filePatient.first_name} {filePatient.last_name}
+                                                            </Badge>
+                                                            {filePatient.patient_id_number && (
+                                                                <Badge variant="secondary" className="text-xs font-mono">
+                                                                    MRN: {filePatient.patient_id_number}
+                                                                </Badge>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {!filePatient && file.patient_id && (
+                                                    <div className="pt-3 border-t border-slate-200">
+                                                        <Badge variant="outline" className="text-xs text-slate-400">
+                                                            Patient not found
+                                                        </Badge>
+                                                    </div>
+                                                )}
+                                            </CardContent>
+                                        </Card>
+                                    );
+                                })}
                             </div>
                         )}
                     </TabsContent>
