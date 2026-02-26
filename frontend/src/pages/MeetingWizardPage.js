@@ -493,16 +493,19 @@ export default function MeetingWizardPage() {
                         )}
                         {(formData.meeting_type === 'video' || formData.meeting_type === 'hybrid') && (
                             <div className="space-y-2">
-                                <Label htmlFor="video_link">Teams/Video Link</Label>
+                                <Label htmlFor="video_link">Video Meeting Link *</Label>
                                 <Input
                                     id="video_link"
                                     name="video_link"
                                     value={formData.video_link}
                                     onChange={handleChange}
-                                    placeholder="https://teams.microsoft.com/..."
+                                    placeholder="https://teams.microsoft.com/... or Zoom link"
                                     className="h-12 bg-slate-50"
                                     data-testid="video-link-input"
                                 />
+                                <p className="text-xs text-slate-500">
+                                    Paste the full link from Teams, Zoom, or other video platform
+                                </p>
                             </div>
                         )}
                         {(formData.meeting_type === 'in_person' || formData.meeting_type === 'hybrid') && (
