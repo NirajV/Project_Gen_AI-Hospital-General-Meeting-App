@@ -702,6 +702,26 @@ async def remove_participant(meeting_id: str, user_id: str, current_user: dict =
     await db.meeting_participants.delete_one({"meeting_id": meeting_id, "user_id": user_id})
     return {"message": "Participant removed"}
 
+@api_router.put("/meetings/{meeting_id}/participants/{user_id}/response")
+async def update_participant_response(meeting_id: str, user_id: str, data: dict, current_user: dict = Depends(get_current_user)):
+    # Only the participant themselves can update their response
+    if user_id != current_user['id']:
+        raise HTTPException(status_code=403, detail="You can only update your own response")
+    
+    response_status = data.get('response_status')
+    if response_status not in ['accepted', 'maybe', 'declined']:
+        raise HTTPException(status_code=400, detail="Invalid response status")
+    
+    result = await db.meeting_participants.update_one(
+        {"meeting_id": meeting_id, "user_id": user_id},
+        {"$set": {"response_status": response_status, "responded_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Participant not found")
+    
+    return {"message": f"Response updated to {response_status}"}
+
 # ============== Meeting Patients Routes ==============
 
 @api_router.post("/meetings/{meeting_id}/patients")
