@@ -769,8 +769,11 @@ export default function MeetingWizardPage() {
                                             value={newPatient.date_of_birth}
                                             onChange={(e) => setNewPatient({ ...newPatient, date_of_birth: e.target.value })}
                                             className="h-11 bg-slate-50"
+                                            max={new Date().toISOString().split('T')[0]}
+                                            min="1900-01-01"
                                             data-testid="wizard-patient-dob"
                                         />
+                                        <p className="text-xs text-slate-500">Must be a valid date in the past</p>
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="patient-gender">Gender</Label>
