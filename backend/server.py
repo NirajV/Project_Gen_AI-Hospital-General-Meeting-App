@@ -121,12 +121,14 @@ class MeetingPatientCreate(BaseModel):
     status: Optional[str] = "new_case"
 
 class AgendaItemCreate(BaseModel):
-    title: str
-    description: Optional[str] = None
-    order_index: Optional[int] = 0
-    estimated_duration_minutes: Optional[int] = None
-    assigned_to: Optional[str] = None
-    patient_id: Optional[str] = None
+    patient_id: str
+    mrn: str
+    requested_provider: str
+    diagnosis: str
+    reason_for_discussion: str
+    pathology_required: bool
+    radiology_required: bool
+    treatment_plan: Optional[str] = None
 
 class DecisionLogCreate(BaseModel):
     meeting_patient_id: Optional[str] = None
