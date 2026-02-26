@@ -583,7 +583,14 @@ async def get_meeting_detail(meeting_id: str, current_user: dict):
     for p in participants:
         user = await db.users.find_one({"id": p['user_id']}, {"_id": 0, "name": 1, "email": 1, "specialty": 1, "picture": 1})
         if user:
+            # Preserve response_status and other participant fields
+            response_status = p.get('response_status')
+            responded_at = p.get('responded_at')
             p.update(user)
+            if response_status:
+                p['response_status'] = response_status
+            if responded_at:
+                p['responded_at'] = responded_at
     meeting['participants'] = [serialize_doc(p) for p in participants]
     
     # Get patients with patient info
