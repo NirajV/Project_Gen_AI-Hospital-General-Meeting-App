@@ -989,7 +989,6 @@ export default function MeetingWizardPage() {
                                 Add Agenda Item
                             </Button>
                         </div>
-                        </div>
 
                         {/* Agenda items list */}
                         {formData.agenda_items.length > 0 && (
