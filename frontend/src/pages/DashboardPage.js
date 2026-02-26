@@ -238,55 +238,65 @@ export default function DashboardPage() {
                                             {/* Response Section - Only show for participants, not organizers */}
                                             {!isOrganizer && meeting.status !== 'completed' && (
                                                 <div className="mt-3 pt-3 border-t border-slate-200">
-                                                    {/* Current Response Status */}
-                                                    {myResponse && (
-                                                        <div className="flex items-center gap-2 mb-2">
+                                                    {myResponse ? (
+                                                        /* Show only the large response badge when responded */
+                                                        <div className="flex items-center justify-center">
                                                             {myResponse === 'accepted' && (
-                                                                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-50 border border-green-200">
-                                                                    <Check className="w-4 h-4 text-green-600" />
-                                                                    <span className="text-sm font-medium text-green-700">accepted</span>
+                                                                <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-green-600 text-white font-medium">
+                                                                    <Check className="w-5 h-5" />
+                                                                    <span>Accept</span>
                                                                 </div>
                                                             )}
                                                             {myResponse === 'maybe' && (
-                                                                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200">
-                                                                    <Minus className="w-4 h-4 text-amber-600" />
-                                                                    <span className="text-sm font-medium text-amber-700">maybe</span>
+                                                                <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-amber-600 text-white font-medium">
+                                                                    <Minus className="w-5 h-5" />
+                                                                    <span>Maybe</span>
                                                                 </div>
                                                             )}
                                                             {myResponse === 'declined' && (
-                                                                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-50 border border-red-200">
-                                                                    <X className="w-4 h-4 text-red-600" />
-                                                                    <span className="text-sm font-medium text-red-700">declined</span>
+                                                                <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-red-600 text-white font-medium">
+                                                                    <X className="w-5 h-5" />
+                                                                    <span>Decline</span>
                                                                 </div>
                                                             )}
                                                         </div>
+                                                    ) : (
+                                                        /* Show response buttons when no response yet */
+                                                        <div className="flex items-center gap-2 justify-center">
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                className="h-8 text-xs"
+                                                                onClick={(e) => handleResponseUpdate(meeting.id, 'accepted', e)}
+                                                                disabled={updatingResponse[meeting.id]}
+                                                            >
+                                                                <Check className="w-3 h-3 mr-1" />
+                                                                Accept
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                className="h-8 text-xs"
+                                                                onClick=(e) => handleResponseUpdate(meeting.id, 'maybe', e)}
+                                                                disabled={updatingResponse[meeting.id]}
+                                                            >
+                                                                <Minus className="w-3 h-3 mr-1" />
+                                                                Maybe
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                className="h-8 text-xs"
+                                                                onClick={(e) => handleResponseUpdate(meeting.id, 'declined', e)}
+                                                                disabled={updatingResponse[meeting.id]}
+                                                            >
+                                                                <X className="w-3 h-3 mr-1" />
+                                                                Decline
+                                                            </Button>
+                                                        </div>
                                                     )}
-                                                    
-                                                    {/* Response Buttons */}
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-xs text-muted-foreground mr-1">
-                                                            {myResponse ? 'Change:' : 'Respond:'}
-                                                        </span>
-                                                        <Button
-                                                            size="sm"
-                                                            variant={myResponse === 'accepted' ? 'default' : 'outline'}
-                                                            className={`h-7 text-xs ${myResponse === 'accepted' ? 'bg-green-600 hover:bg-green-700' : ''}`}
-                                                            onClick={(e) => handleResponseUpdate(meeting.id, 'accepted', e)}
-                                                            disabled={updatingResponse[meeting.id]}
-                                                        >
-                                                            <Check className="w-3 h-3 mr-1" />
-                                                            Accept
-                                                        </Button>
-                                                        <Button
-                                                            size="sm"
-                                                            variant={myResponse === 'maybe' ? 'default' : 'outline'}
-                                                            className={`h-7 text-xs ${myResponse === 'maybe' ? 'bg-amber-600 hover:bg-amber-700' : ''}`}
-                                                            onClick={(e) => handleResponseUpdate(meeting.id, 'maybe', e)}
-                                                            disabled={updatingResponse[meeting.id]}
-                                                        >
-                                                            <Minus className="w-3 h-3 mr-1" />
-                                                            Maybe
-                                                        </Button>
+                                                </div>
+                                            )}
                                                         <Button
                                                             size="sm"
                                                             variant={myResponse === 'declined' ? 'default' : 'outline'}
