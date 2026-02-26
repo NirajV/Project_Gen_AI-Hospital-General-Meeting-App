@@ -62,6 +62,7 @@ export const removePatientFromMeeting = (meetingId, patientId) => api.delete(`/m
 // Agenda
 export const addAgendaItem = (meetingId, data) => api.post(`/meetings/${meetingId}/agenda`, data);
 export const updateAgendaItem = (meetingId, itemId, data) => api.put(`/meetings/${meetingId}/agenda/${itemId}`, data);
+export const updateTreatmentPlan = (meetingId, itemId, treatmentPlan) => api.put(`/meetings/${meetingId}/agenda/${itemId}/treatment-plan`, { treatment_plan: treatmentPlan });
 export const deleteAgendaItem = (meetingId, itemId) => api.delete(`/meetings/${meetingId}/agenda/${itemId}`);
 
 // Decisions
