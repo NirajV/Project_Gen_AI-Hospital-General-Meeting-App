@@ -17,7 +17,6 @@ export default function DashboardPage() {
     const [stats, setStats] = useState(null);
     const [upcomingMeetings, setUpcomingMeetings] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [updatingResponse, setUpdatingResponse] = useState({});
 
     useEffect(() => {
         loadDashboard();
@@ -35,22 +34,6 @@ export default function DashboardPage() {
             console.error('Failed to load dashboard:', error);
         } finally {
             setLoading(false);
-        }
-    };
-
-    const handleResponseUpdate = async (meetingId, responseStatus, e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        setUpdatingResponse({ ...updatingResponse, [meetingId]: true });
-        try {
-            await updateParticipantResponse(meetingId, user.id, responseStatus);
-            await loadDashboard(); // Reload to show updated status
-        } catch (error) {
-            console.error('Failed to update response:', error);
-            alert('Failed to update response');
-        } finally {
-            setUpdatingResponse({ ...updatingResponse, [meetingId]: false });
         }
     };
 
