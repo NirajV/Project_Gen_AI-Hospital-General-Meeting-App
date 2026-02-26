@@ -48,7 +48,13 @@ export default function MeetingDetailPage() {
     const [newInvite, setNewInvite] = useState({ email: '', name: '', specialty: '' });
     const [inviting, setInviting] = useState(false);
     const [newDecision, setNewDecision] = useState({
-        title: '', description: '', action_plan: '', follow_up_date: '', priority: 'medium'
+        title: '', 
+        description: '', 
+        action_plan: '', 
+        follow_up_date: '', 
+        priority: 'medium',
+        patient_id: '',
+        meeting_patient_id: ''
     });
     const [patientDialog, setPatientDialog] = useState(false);
     const [agendaDialog, setAgendaDialog] = useState(false);
