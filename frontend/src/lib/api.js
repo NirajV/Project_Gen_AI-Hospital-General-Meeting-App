@@ -52,6 +52,7 @@ export const deleteMeeting = (id) => api.delete(`/meetings/${id}`);
 
 // Meeting Participants
 export const addParticipant = (meetingId, data) => api.post(`/meetings/${meetingId}/participants`, data);
+export const updateParticipantResponse = (meetingId, userId, responseStatus) => api.put(`/meetings/${meetingId}/participants/${userId}/response`, { response_status: responseStatus });
 export const respondToInvite = (meetingId, data) => api.put(`/meetings/${meetingId}/respond`, data);
 export const removeParticipant = (meetingId, userId) => api.delete(`/meetings/${meetingId}/participants/${userId}`);
 
