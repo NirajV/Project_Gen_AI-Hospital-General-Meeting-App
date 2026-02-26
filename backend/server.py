@@ -554,13 +554,17 @@ async def create_meeting(meeting: MeetingCreate, current_user: dict = Depends(ge
         await db.agenda_items.insert_one({
             "id": str(uuid.uuid4()),
             "meeting_id": meeting_id,
-            "title": item.get('title'),
-            "description": item.get('description'),
+            "patient_id": item.get('patient_id'),
+            "mrn": item.get('mrn'),
+            "requested_provider": item.get('requested_provider'),
+            "diagnosis": item.get('diagnosis'),
+            "reason_for_discussion": item.get('reason_for_discussion'),
+            "pathology_required": item.get('pathology_required', False),
+            "radiology_required": item.get('radiology_required', False),
+            "treatment_plan": item.get('treatment_plan', ''),
             "order_index": idx,
-            "estimated_duration_minutes": item.get('estimated_duration_minutes', 15),
-            "assigned_to": item.get('assigned_to'),
-            "is_completed": False,
-            "created_at": datetime.now(timezone.utc).isoformat()
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat()
         })
     
     return await get_meeting_detail(meeting_id, current_user)
