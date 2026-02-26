@@ -851,48 +851,27 @@ export default function MeetingWizardPage() {
             case 4:
                 return (
                     <div className="space-y-6" data-testid="step-4">
-                        <p className="text-muted-foreground">Add agenda items for the meeting:</p>
+                        <p className="text-muted-foreground">Add agenda items (patient cases) for the meeting:</p>
                         
                         {/* Add new agenda item */}
-                        <div className="p-4 rounded-lg border border-slate-200 bg-slate-50 space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div className="md:col-span-2 space-y-2">
-                                    <Label htmlFor="agenda_title">Agenda Item Title *</Label>
-                                    <Input
-                                        id="agenda_title"
-                                        value={newAgendaItem.title}
-                                        onChange={(e) => setNewAgendaItem({ ...newAgendaItem, title: e.target.value })}
-                                        placeholder="e.g., Diagnosis Discussion"
-                                        className="h-11 bg-white"
-                                        data-testid="agenda-title-input"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="duration">Duration (min)</Label>
-                                    <Input
-                                        id="duration"
-                                        type="number"
-                                        value={newAgendaItem.estimated_duration_minutes}
-                                        onChange={(e) => setNewAgendaItem({ ...newAgendaItem, estimated_duration_minutes: parseInt(e.target.value) || 15 })}
-                                        className="h-11 bg-white"
-                                        data-testid="agenda-duration-input"
-                                    />
-                                </div>
-                            </div>
+                        <div className="p-5 rounded-lg border-2 border-slate-200 bg-white space-y-4">
+                            <h4 className="font-semibold text-slate-900">New Agenda Item</h4>
+                            
+                            {/* Patient Name */}
                             <div className="space-y-2">
-                                <Label htmlFor="agenda_patient">Patient (optional)</Label>
+                                <Label htmlFor="agenda_patient">Patient Name *</Label>
                                 <Select 
-                                    value={newAgendaItem.patient_id || "none"} 
-                                    onValueChange={(v) => setNewAgendaItem({ ...newAgendaItem, patient_id: v === "none" ? null : v })}
+                                    value={newAgendaItem.patient_id || ''} 
+                                    onValueChange={handleAgendaPatientSelect}
                                 >
-                                    <SelectTrigger className="h-11 bg-white" data-testid="agenda-patient-select">
+                                    <SelectTrigger className="h-11 bg-slate-50" data-testid="agenda-patient-select">
                                         <SelectValue placeholder="Select a patient" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="none">No specific patient</SelectItem>
                                         {patients.filter(p => formData.patient_ids.includes(p.id)).map((patient) => (
                                             <SelectItem key={patient.id} value={patient.id}>
-                                                {patient.first_name} {patient.last_name} {patient.primary_diagnosis ? `- ${patient.primary_diagnosis}` : ''}
+                                                {patient.first_name} {patient.last_name} 
+                                                {patient.patient_id_number ? ` (MRN: ${patient.patient_id_number})` : ''}
                                             </SelectItem>
                                         ))}
                                         {formData.patient_ids.length === 0 && (
@@ -903,21 +882,113 @@ export default function MeetingWizardPage() {
                                     </SelectContent>
                                 </Select>
                                 {formData.patient_ids.length === 0 && (
-                                    <p className="text-xs text-amber-600">💡 Tip: Select patients in Step 3 first to link them to agenda items</p>
+                                    <p className="text-xs text-amber-600">💡 Tip: Select patients in Step 3 first</p>
                                 )}
                             </div>
+
+                            {/* MRN */}
                             <div className="space-y-2">
-                                <Label htmlFor="agenda_desc">Description (optional)</Label>
-                                <Textarea
-                                    id="agenda_desc"
-                                    value={newAgendaItem.description}
-                                    onChange={(e) => setNewAgendaItem({ ...newAgendaItem, description: e.target.value })}
-                                    placeholder="Brief description of this agenda item"
-                                    className="bg-white"
-                                    rows={2}
-                                    data-testid="agenda-desc-input"
+                                <Label htmlFor="agenda_mrn">MRN (Medical Record Number) *</Label>
+                                <Input
+                                    id="agenda_mrn"
+                                    value={newAgendaItem.mrn}
+                                    onChange={(e) => setNewAgendaItem({ ...newAgendaItem, mrn: e.target.value })}
+                                    placeholder="e.g., 12345"
+                                    className="h-11 bg-slate-50"
+                                    data-testid="agenda-mrn-input"
+                                />
+                                <p className="text-xs text-slate-500">Auto-filled if available, otherwise enter manually</p>
+                            </div>
+
+                            {/* Requested Provider */}
+                            <div className="space-y-2">
+                                <Label htmlFor="agenda_provider">Requested Provider *</Label>
+                                <Input
+                                    id="agenda_provider"
+                                    value={newAgendaItem.requested_provider}
+                                    onChange={(e) => setNewAgendaItem({ ...newAgendaItem, requested_provider: e.target.value })}
+                                    placeholder="e.g., Dr. John Smith"
+                                    className="h-11 bg-slate-50"
+                                    data-testid="agenda-provider-input"
                                 />
                             </div>
+
+                            {/* Diagnosis */}
+                            <div className="space-y-2">
+                                <Label htmlFor="agenda_diagnosis">Diagnosis *</Label>
+                                <Input
+                                    id="agenda_diagnosis"
+                                    value={newAgendaItem.diagnosis}
+                                    onChange={(e) => setNewAgendaItem({ ...newAgendaItem, diagnosis: e.target.value })}
+                                    placeholder="e.g., Lung Cancer Stage 2"
+                                    className="h-11 bg-slate-50"
+                                    data-testid="agenda-diagnosis-input"
+                                />
+                            </div>
+
+                            {/* Reason for Discussion */}
+                            <div className="space-y-2">
+                                <Label htmlFor="agenda_reason">Reason For Discussion *</Label>
+                                <Textarea
+                                    id="agenda_reason"
+                                    value={newAgendaItem.reason_for_discussion}
+                                    onChange={(e) => setNewAgendaItem({ ...newAgendaItem, reason_for_discussion: e.target.value })}
+                                    placeholder="Brief explanation of why this case needs discussion"
+                                    className="bg-slate-50"
+                                    rows={3}
+                                    data-testid="agenda-reason-input"
+                                />
+                            </div>
+
+                            {/* Checkboxes Row */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="flex items-center space-x-3 p-3 rounded-lg border border-slate-200 bg-slate-50">
+                                    <Checkbox 
+                                        id="pathology_required"
+                                        checked={newAgendaItem.pathology_required}
+                                        onCheckedChange={(checked) => setNewAgendaItem({ ...newAgendaItem, pathology_required: checked })}
+                                        data-testid="agenda-pathology-checkbox"
+                                    />
+                                    <Label htmlFor="pathology_required" className="text-sm font-medium cursor-pointer">
+                                        Pathology Review Required *
+                                    </Label>
+                                </div>
+                                <div className="flex items-center space-x-3 p-3 rounded-lg border border-slate-200 bg-slate-50">
+                                    <Checkbox 
+                                        id="radiology_required"
+                                        checked={newAgendaItem.radiology_required}
+                                        onCheckedChange={(checked) => setNewAgendaItem({ ...newAgendaItem, radiology_required: checked })}
+                                        data-testid="agenda-radiology-checkbox"
+                                    />
+                                    <Label htmlFor="radiology_required" className="text-sm font-medium cursor-pointer">
+                                        Radiology Review Required *
+                                    </Label>
+                                </div>
+                            </div>
+
+                            {/* Treatment Plan (Optional initially) */}
+                            <div className="space-y-2">
+                                <Label htmlFor="agenda_treatment">Treatment Plan (Optional - can be added/updated during meeting)</Label>
+                                <Textarea
+                                    id="agenda_treatment"
+                                    value={newAgendaItem.treatment_plan}
+                                    onChange={(e) => setNewAgendaItem({ ...newAgendaItem, treatment_plan: e.target.value })}
+                                    placeholder="Treatment plan notes (can be updated later)"
+                                    className="bg-slate-50"
+                                    rows={3}
+                                    data-testid="agenda-treatment-input"
+                                />
+                            </div>
+
+                            <Button 
+                                onClick={addAgendaItem}
+                                className="w-full"
+                                data-testid="add-agenda-btn"
+                            >
+                                <Plus className="w-4 h-4 mr-2" />
+                                Add Agenda Item
+                            </Button>
+                        </div>
                             <Button
                                 type="button"
                                 variant="outline"
