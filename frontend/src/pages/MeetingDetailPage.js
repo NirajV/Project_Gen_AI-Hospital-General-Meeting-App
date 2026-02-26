@@ -1134,7 +1134,10 @@ export default function MeetingDetailPage() {
                                     type="date"
                                     value={newDecision.follow_up_date}
                                     onChange={(e) => setNewDecision({ ...newDecision, follow_up_date: e.target.value })}
+                                    min={new Date().toISOString().split('T')[0]}
+                                    max={new Date(new Date().setFullYear(new Date().getFullYear() + 2)).toISOString().split('T')[0]}
                                 />
+                                <p className="text-xs text-slate-500">Must be a future date</p>
                             </div>
                         </div>
                     </div>
