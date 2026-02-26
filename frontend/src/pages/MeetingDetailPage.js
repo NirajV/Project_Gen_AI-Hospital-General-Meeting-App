@@ -117,10 +117,14 @@ export default function MeetingDetailPage() {
             const formData = new FormData();
             formData.append('file', selectedFile);
             formData.append('file_type', fileType);
+            if (filePatientId) {
+                formData.append('patient_id', filePatientId);
+            }
             await uploadFile(id, formData);
             loadMeeting();
             setUploadDialog(false);
             setSelectedFile(null);
+            setFilePatientId('');
         } catch (error) {
             console.error('Failed to upload file:', error);
         } finally {
