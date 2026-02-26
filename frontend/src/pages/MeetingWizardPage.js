@@ -61,7 +61,16 @@ export default function MeetingWizardPage() {
         agenda_items: []
     });
 
-    const [newAgendaItem, setNewAgendaItem] = useState({ title: '', description: '', estimated_duration_minutes: 15, patient_id: null });
+    const [newAgendaItem, setNewAgendaItem] = useState({ 
+        patient_id: '', 
+        mrn: '', 
+        requested_provider: '', 
+        diagnosis: '', 
+        reason_for_discussion: '', 
+        pathology_required: false, 
+        radiology_required: false, 
+        treatment_plan: '' 
+    });
 
     useEffect(() => {
         loadData();
