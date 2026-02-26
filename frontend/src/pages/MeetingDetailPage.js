@@ -699,47 +699,133 @@ export default function MeetingDetailPage() {
                                                 </Button>
                                             </div>
                                         )}
-                                        <div className="space-y-3">
-                                            {meeting.agenda?.map((item, idx) => (
-                                            <div key={item.id} className={`flex items-center justify-between p-4 rounded-lg border ${
-                                                item.is_completed ? 'bg-green-50 border-green-200' : 'border-slate-200'
-                                            }`} data-testid={`agenda-item-${idx}`}>
-                                                <div className="flex items-center gap-4 flex-1">
-                                                    <Checkbox
-                                                        checked={item.is_completed}
-                                                        onCheckedChange={() => handleAgendaToggle(item.id, item.is_completed)}
-                                                        disabled={meeting.status === 'completed'}
-                                                    />
-                                                    <div className="flex-1">
-                                                        <p className={`font-medium ${item.is_completed ? 'line-through text-muted-foreground' : ''}`}>
-                                                            {item.title}
-                                                        </p>
-                                                        {item.patient_name && (
-                                                            <p className="text-xs text-primary mt-1">
-                                                                👤 Patient: {item.patient_name}
-                                                            </p>
-                                                        )}
-                                                        {item.description && <p className="text-sm text-muted-foreground">{item.description}</p>}
-                                                        {item.assigned_to_name && <p className="text-xs text-muted-foreground mt-1">Assigned to: {item.assigned_to_name}</p>}
+                                        <div className="space-y-4">
+                                            {meeting.agenda?.map((item, idx) => {
+                                                const isEditing = editingTreatmentPlan[item.id];
+                                                const currentTreatmentPlan = treatmentPlanText[item.id] !== undefined ? treatmentPlanText[item.id] : item.treatment_plan;
+                                                
+                                                return (
+                                                    <div key={item.id} className="p-6 rounded-lg border-2 border-slate-200 bg-white space-y-4" data-testid={`agenda-item-${idx}`}>
+                                                        {/* Header with Patient Name and Actions */}
+                                                        <div className="flex items-start justify-between">
+                                                            <div className="flex items-center gap-3">
+                                                                <Badge variant="outline" className="text-lg px-3 py-1">{idx + 1}</Badge>
+                                                                <div>
+                                                                    <h3 className="text-lg font-semibold text-slate-900">
+                                                                        {item.patient_name || 'Unknown Patient'}
+                                                                    </h3>
+                                                                    <p className="text-sm text-slate-600">MRN: <span className="font-mono">{item.mrn}</span></p>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                {isOrganizer && meeting.status !== 'completed' && (
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="icon"
+                                                                        onClick={() => handleDeleteAgenda(item.id)}
+                                                                        className="text-muted-foreground hover:text-destructive"
+                                                                        title="Delete agenda item"
+                                                                    >
+                                                                        <Trash2 className="w-4 h-4" />
+                                                                    </Button>
+                                                                )}
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Medical Information Grid */}
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4 border-y border-slate-200">
+                                                            <div>
+                                                                <p className="text-xs font-medium text-slate-500 uppercase mb-1">Requested Provider</p>
+                                                                <p className="text-sm font-medium text-slate-900">{item.requested_provider}</p>
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-xs font-medium text-slate-500 uppercase mb-1">Diagnosis</p>
+                                                                <p className="text-sm font-medium text-slate-900">{item.diagnosis}</p>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Reason for Discussion */}
+                                                        <div>
+                                                            <p className="text-xs font-medium text-slate-500 uppercase mb-2">Reason For Discussion</p>
+                                                            <p className="text-sm text-slate-700 leading-relaxed">{item.reason_for_discussion}</p>
+                                                        </div>
+
+                                                        {/* Review Requirements */}
+                                                        <div className="flex gap-3">
+                                                            {item.pathology_required && (
+                                                                <Badge variant="secondary" className="px-3 py-1">
+                                                                    ✓ Pathology Review Required
+                                                                </Badge>
+                                                            )}
+                                                            {item.radiology_required && (
+                                                                <Badge variant="secondary" className="px-3 py-1">
+                                                                    ✓ Radiology Review Required
+                                                                </Badge>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Treatment Plan Section */}
+                                                        <div className="mt-4 p-4 rounded-lg bg-slate-50 border border-slate-200">
+                                                            <div className="flex items-center justify-between mb-2">
+                                                                <p className="text-sm font-semibold text-slate-900">Treatment Plan</p>
+                                                                {meeting.status !== 'completed' && (
+                                                                    <>
+                                                                        {!isEditing ? (
+                                                                            <Button
+                                                                                size="sm"
+                                                                                variant="outline"
+                                                                                onClick={() => {
+                                                                                    setEditingTreatmentPlan({ ...editingTreatmentPlan, [item.id]: true });
+                                                                                    setTreatmentPlanText({ ...treatmentPlanText, [item.id]: item.treatment_plan || '' });
+                                                                                }}
+                                                                            >
+                                                                                📝 Edit
+                                                                            </Button>
+                                                                        ) : (
+                                                                            <div className="flex gap-2">
+                                                                                <Button
+                                                                                    size="sm"
+                                                                                    onClick={() => handleUpdateTreatmentPlan(item.id)}
+                                                                                >
+                                                                                    💾 Save
+                                                                                </Button>
+                                                                                <Button
+                                                                                    size="sm"
+                                                                                    variant="outline"
+                                                                                    onClick={() => {
+                                                                                        setEditingTreatmentPlan({ ...editingTreatmentPlan, [item.id]: false });
+                                                                                        setTreatmentPlanText({ ...treatmentPlanText, [item.id]: item.treatment_plan });
+                                                                                    }}
+                                                                                >
+                                                                                    Cancel
+                                                                                </Button>
+                                                                            </div>
+                                                                        )}
+                                                                    </>
+                                                                )}
+                                                            </div>
+                                                            {isEditing ? (
+                                                                <Textarea
+                                                                    value={currentTreatmentPlan}
+                                                                    onChange={(e) => setTreatmentPlanText({ ...treatmentPlanText, [item.id]: e.target.value })}
+                                                                    placeholder="Enter treatment plan notes..."
+                                                                    className="min-h-[100px]"
+                                                                />
+                                                            ) : (
+                                                                <p className="text-sm text-slate-700 whitespace-pre-wrap">
+                                                                    {item.treatment_plan || <span className="text-slate-400 italic">No treatment plan entered yet</span>}
+                                                                </p>
+                                                            )}
+                                                            {item.updated_at && (
+                                                                <p className="text-xs text-slate-500 mt-2">
+                                                                    Last updated: {new Date(item.updated_at).toLocaleString()}
+                                                                </p>
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <Badge variant="outline">{item.estimated_duration_minutes} min</Badge>
-                                                    {isOrganizer && meeting.status !== 'completed' && (
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            onClick={() => handleDeleteAgenda(item.id)}
-                                                            className="text-muted-foreground hover:text-destructive"
-                                                            title="Delete agenda item"
-                                                        >
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </Button>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
+                                                );
+                                            })}
+                                        </div>
                                     </>
                                 )}
                             </CardContent>
