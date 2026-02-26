@@ -1315,76 +1315,143 @@ export default function MeetingDetailPage() {
 
             {/* Add Agenda Item Dialog */}
             <Dialog open={agendaDialog} onOpenChange={setAgendaDialog}>
-                <DialogContent>
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
-                            <Clipboard className="w-5 h-5 text-primary" /> Add Agenda Item
+                            <Clipboard className="w-5 h-5 text-primary" /> Add Agenda Item (Patient Case)
                         </DialogTitle>
                         <DialogDescription>
-                            Add a new item to the meeting agenda
+                            Add a new patient case to the meeting agenda with all required medical information
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
+                        {/* Patient Name */}
                         <div className="space-y-2">
-                            <Label htmlFor="agenda-title">Title *</Label>
-                            <Input
-                                id="agenda-title"
-                                value={newAgenda.title}
-                                onChange={(e) => setNewAgenda({ ...newAgenda, title: e.target.value })}
-                                placeholder="e.g., Patient case review"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="agenda-patient">Patient (optional)</Label>
+                            <Label htmlFor="agenda-patient">Patient Name *</Label>
                             <Select 
-                                value={newAgenda.patient_id || "none"} 
-                                onValueChange={(v) => setNewAgenda({ ...newAgenda, patient_id: v === "none" ? null : v })}
+                                value={newAgenda.patient_id || ''} 
+                                onValueChange={handleAgendaPatientSelect}
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select a patient" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="none">General (no specific patient)</SelectItem>
                                     {meeting?.patients?.map((mp) => (
                                         <SelectItem key={mp.patient_id} value={mp.patient_id}>
-                                            {mp.first_name} {mp.last_name} - {mp.primary_diagnosis || 'N/A'}
+                                            {mp.first_name} {mp.last_name} 
+                                            {mp.patient_id_number ? ` (MRN: ${mp.patient_id_number})` : ''}
                                         </SelectItem>
                                     ))}
+                                    {(!meeting?.patients || meeting.patients.length === 0) && (
+                                        <SelectItem value="no-patients" disabled>
+                                            No patients in this meeting
+                                        </SelectItem>
+                                    )}
                                 </SelectContent>
                             </Select>
                         </div>
+
+                        {/* MRN */}
                         <div className="space-y-2">
-                            <Label htmlFor="agenda-desc">Description</Label>
+                            <Label htmlFor="agenda-mrn">MRN (Medical Record Number) *</Label>
+                            <Input
+                                id="agenda-mrn"
+                                value={newAgenda.mrn}
+                                onChange={(e) => setNewAgenda({ ...newAgenda, mrn: e.target.value })}
+                                placeholder="e.g., 12345"
+                            />
+                            <p className="text-xs text-slate-500">Auto-filled if available, otherwise enter manually</p>
+                        </div>
+
+                        {/* Requested Provider */}
+                        <div className="space-y-2">
+                            <Label htmlFor="agenda-provider">Requested Provider *</Label>
+                            <Input
+                                id="agenda-provider"
+                                value={newAgenda.requested_provider}
+                                onChange={(e) => setNewAgenda({ ...newAgenda, requested_provider: e.target.value })}
+                                placeholder="e.g., Dr. John Smith"
+                            />
+                        </div>
+
+                        {/* Diagnosis */}
+                        <div className="space-y-2">
+                            <Label htmlFor="agenda-diagnosis">Diagnosis *</Label>
+                            <Input
+                                id="agenda-diagnosis"
+                                value={newAgenda.diagnosis}
+                                onChange={(e) => setNewAgenda({ ...newAgenda, diagnosis: e.target.value })}
+                                placeholder="e.g., Lung Cancer Stage 2"
+                            />
+                        </div>
+
+                        {/* Reason for Discussion */}
+                        <div className="space-y-2">
+                            <Label htmlFor="agenda-reason">Reason For Discussion *</Label>
                             <Textarea
-                                id="agenda-desc"
-                                value={newAgenda.description}
-                                onChange={(e) => setNewAgenda({ ...newAgenda, description: e.target.value })}
-                                placeholder="Brief description"
+                                id="agenda-reason"
+                                value={newAgenda.reason_for_discussion}
+                                onChange={(e) => setNewAgenda({ ...newAgenda, reason_for_discussion: e.target.value })}
+                                placeholder="Brief explanation of why this case needs discussion"
                                 rows={3}
                             />
                         </div>
+
+                        {/* Checkboxes Row */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="flex items-center space-x-3 p-3 rounded-lg border border-slate-200">
+                                <Checkbox 
+                                    id="dialog-pathology"
+                                    checked={newAgenda.pathology_required}
+                                    onCheckedChange={(checked) => setNewAgenda({ ...newAgenda, pathology_required: checked })}
+                                />
+                                <Label htmlFor="dialog-pathology" className="text-sm font-medium cursor-pointer">
+                                    Pathology Review Required *
+                                </Label>
+                            </div>
+                            <div className="flex items-center space-x-3 p-3 rounded-lg border border-slate-200">
+                                <Checkbox 
+                                    id="dialog-radiology"
+                                    checked={newAgenda.radiology_required}
+                                    onCheckedChange={(checked) => setNewAgenda({ ...newAgenda, radiology_required: checked })}
+                                />
+                                <Label htmlFor="dialog-radiology" className="text-sm font-medium cursor-pointer">
+                                    Radiology Review Required *
+                                </Label>
+                            </div>
+                        </div>
+
+                        {/* Treatment Plan (Optional) */}
                         <div className="space-y-2">
-                            <Label htmlFor="agenda-duration">Estimated Duration (minutes)</Label>
-                            <Input
-                                id="agenda-duration"
-                                type="number"
-                                value={newAgenda.estimated_duration_minutes}
-                                onChange={(e) => setNewAgenda({ ...newAgenda, estimated_duration_minutes: parseInt(e.target.value) || 0 })}
-                                min="5"
-                                step="5"
+                            <Label htmlFor="agenda-treatment">Treatment Plan (Optional - can be updated during meeting)</Label>
+                            <Textarea
+                                id="agenda-treatment"
+                                value={newAgenda.treatment_plan}
+                                onChange={(e) => setNewAgenda({ ...newAgenda, treatment_plan: e.target.value })}
+                                placeholder="Treatment plan notes (can be updated later)"
+                                rows={3}
                             />
                         </div>
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => {
                             setAgendaDialog(false);
-                            setNewAgenda({ title: '', description: '', estimated_duration_minutes: 30, patient_id: null });
+                            setNewAgenda({
+                                patient_id: '',
+                                mrn: '',
+                                requested_provider: '',
+                                diagnosis: '',
+                                reason_for_discussion: '',
+                                pathology_required: false,
+                                radiology_required: false,
+                                treatment_plan: ''
+                            });
                         }}>
                             Cancel
                         </Button>
                         <Button 
                             onClick={handleAddAgenda}
-                            disabled={!newAgenda.title || addingAgenda}
+                            disabled={addingAgenda}
                         >
                             {addingAgenda ? (
                                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
