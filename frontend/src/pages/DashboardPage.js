@@ -193,40 +193,87 @@ export default function DashboardPage() {
                             </div>
                         ) : (
                             <div className="space-y-3">
-                                {upcomingMeetings.map((meeting, idx) => (
-                                    <Link 
-                                        key={meeting.id} 
-                                        to={`/meetings/${meeting.id}`}
-                                        className="block"
-                                        data-testid={`meeting-card-${idx}`}
-                                    >
-                                        <div className="flex items-center justify-between p-4 rounded-lg border border-slate-200 hover:border-primary/30 hover:bg-slate-50 transition-all">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                                                    {meeting.meeting_type === 'video' ? (
-                                                        <Video className="w-5 h-5 text-primary" />
-                                                    ) : (
-                                                        <MapPin className="w-5 h-5 text-primary" />
-                                                    )}
-                                                </div>
-                                                <div>
-                                                    <h3 className="font-medium text-foreground">{meeting.title}</h3>
-                                                    <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
-                                                        <span>{formatMeetingDate(meeting.meeting_date)}</span>
-                                                        <span>•</span>
-                                                        <span>{meeting.start_time?.slice(0, 5)}</span>
-                                                        <span>•</span>
-                                                        <span>{meeting.patient_count || 0} patients</span>
+                                {upcomingMeetings.map((meeting, idx) => {
+                                    const isOrganizer = meeting.organizer_id === user.id;
+                                    const myParticipation = meeting.participants?.find(p => p.user_id === user.id);
+                                    const myResponse = myParticipation?.response_status;
+                                    
+                                    return (
+                                        <div
+                                            key={meeting.id}
+                                            className="p-4 rounded-lg border border-slate-200 hover:border-primary/30 hover:bg-slate-50 transition-all"
+                                            data-testid={`meeting-card-${idx}`}
+                                        >
+                                            <Link 
+                                                to={`/meetings/${meeting.id}`}
+                                                className="block"
+                                            >
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                                                            {meeting.meeting_type === 'video' ? (
+                                                                <Video className="w-5 h-5 text-primary" />
+                                                            ) : (
+                                                                <MapPin className="w-5 h-5 text-primary" />
+                                                            )}
+                                                        </div>
+                                                        <div>
+                                                            <h3 className="font-medium text-foreground">{meeting.title}</h3>
+                                                            <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
+                                                                <span>{formatMeetingDate(meeting.meeting_date)}</span>
+                                                                <span>•</span>
+                                                                <span>{meeting.start_time?.slice(0, 5)}</span>
+                                                                <span>•</span>
+                                                                <span>{meeting.patient_count || 0} patients</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-3">
+                                                        {getStatusBadge(meeting.status)}
+                                                        <ArrowRight className="w-4 h-4 text-muted-foreground" />
                                                     </div>
                                                 </div>
-                                            </div>
-                                            <div className="flex items-center gap-3">
-                                                {getStatusBadge(meeting.status)}
-                                                <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                                            </div>
+                                            </Link>
+                                            
+                                            {/* Response Buttons - Only show for participants, not organizers */}
+                                            {!isOrganizer && meeting.status !== 'completed' && (
+                                                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-200">
+                                                    <span className="text-xs text-muted-foreground mr-2">Your response:</span>
+                                                    <Button
+                                                        size="sm"
+                                                        variant={myResponse === 'accepted' ? 'default' : 'outline'}
+                                                        className={`h-8 ${myResponse === 'accepted' ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                                                        onClick={(e) => handleResponseUpdate(meeting.id, 'accepted', e)}
+                                                        disabled={updatingResponse[meeting.id]}
+                                                    >
+                                                        <Check className="w-3 h-3 mr-1" />
+                                                        Accept
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant={myResponse === 'maybe' ? 'default' : 'outline'}
+                                                        className={`h-8 ${myResponse === 'maybe' ? 'bg-amber-600 hover:bg-amber-700' : ''}`}
+                                                        onClick={(e) => handleResponseUpdate(meeting.id, 'maybe', e)}
+                                                        disabled={updatingResponse[meeting.id]}
+                                                    >
+                                                        <Minus className="w-3 h-3 mr-1" />
+                                                        Maybe
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant={myResponse === 'declined' ? 'default' : 'outline'}
+                                                        className={`h-8 ${myResponse === 'declined' ? 'bg-red-600 hover:bg-red-700' : ''}`}
+                                                        onClick={(e) => handleResponseUpdate(meeting.id, 'declined', e)}
+                                                        disabled={updatingResponse[meeting.id]}
+                                                    >
+                                                        <X className="w-3 h-3 mr-1" />
+                                                        Decline
+                                                    </Button>
+                                                </div>
+                                            )}
                                         </div>
-                                    </Link>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
                     </CardContent>
