@@ -142,8 +142,11 @@ export default function PatientFormPage() {
                                             value={formData.date_of_birth}
                                             onChange={handleChange}
                                             className="h-11 bg-slate-50"
+                                            max={new Date().toISOString().split('T')[0]}
+                                            min="1900-01-01"
                                             data-testid="dob-input"
                                         />
+                                        <p className="text-xs text-slate-500">Must be a valid date in the past</p>
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="phone">Phone</Label>
