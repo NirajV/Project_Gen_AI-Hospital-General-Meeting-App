@@ -609,7 +609,7 @@ export default function MeetingDetailPage() {
                     {/* Patients Tab */}
                     <TabsContent value="patients" className="mt-6">
                         <div className="flex justify-end mb-4">
-                            {isOrganizer && meeting.status !== 'completed' && (
+                            {meeting.status !== 'completed' && (
                                 <Button 
                                     onClick={() => { loadAllPatients(); setPatientDialog(true); }}
                                     className="bg-primary hover:bg-primary/90"
