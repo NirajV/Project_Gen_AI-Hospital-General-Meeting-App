@@ -283,31 +283,8 @@ export default function DashboardPage() {
                                                                 <Minus className="w-3 h-3 mr-1" />
                                                                 Maybe
                                                             </Button>
-                                                            <Button
-                                                                size="sm"
-                                                                variant="outline"
-                                                                className="h-8 text-xs"
-                                                                onClick={(e) => handleResponseUpdate(meeting.id, 'declined', e)}
-                                                                disabled={updatingResponse[meeting.id]}
-                                                            >
-                                                                <X className="w-3 h-3 mr-1" />
-                                                                Decline
-                                                            </Button>
                                                         </div>
                                                     )}
-                                                </div>
-                                            )}
-                                                        <Button
-                                                            size="sm"
-                                                            variant={myResponse === 'declined' ? 'default' : 'outline'}
-                                                            className={`h-7 text-xs ${myResponse === 'declined' ? 'bg-red-600 hover:bg-red-700' : ''}`}
-                                                            onClick={(e) => handleResponseUpdate(meeting.id, 'declined', e)}
-                                                            disabled={updatingResponse[meeting.id]}
-                                                        >
-                                                            <X className="w-3 h-3 mr-1" />
-                                                            Decline
-                                                        </Button>
-                                                    </div>
                                                 </div>
                                             )}
                                         </div>
