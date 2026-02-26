@@ -691,7 +691,7 @@ export default function MeetingDetailPage() {
                                     <div className="text-center py-8">
                                         <Clipboard className="w-12 h-12 mx-auto mb-3 text-muted-foreground opacity-50" />
                                         <p className="text-muted-foreground">No agenda items</p>
-                                        {isOrganizer && meeting.status !== 'completed' && (
+                                        {meeting.status !== 'completed' && (
                                             <Button 
                                                 onClick={() => setAgendaDialog(true)}
                                                 variant="outline"
