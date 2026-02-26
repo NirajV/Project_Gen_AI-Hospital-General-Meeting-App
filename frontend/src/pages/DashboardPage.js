@@ -177,10 +177,6 @@ export default function DashboardPage() {
                         ) : (
                             <div className="space-y-3">
                                 {upcomingMeetings.map((meeting, idx) => {
-                                    const isOrganizer = meeting.organizer_id === user.id;
-                                    const myParticipation = meeting.participants?.find(p => p.user_id === user.id);
-                                    const myResponse = myParticipation?.response_status;
-                                    
                                     return (
                                         <div
                                             key={meeting.id}
