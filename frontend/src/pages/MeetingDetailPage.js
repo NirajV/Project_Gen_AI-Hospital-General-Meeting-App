@@ -624,7 +624,7 @@ export default function MeetingDetailPage() {
                                     <CardContent className="py-12 text-center">
                                         <User className="w-12 h-12 mx-auto mb-3 text-muted-foreground opacity-50" />
                                         <p className="text-muted-foreground">No patients added to this meeting</p>
-                                        {isOrganizer && meeting.status !== 'completed' && (
+                                        {meeting.status !== 'completed' && (
                                             <Button 
                                                 onClick={() => { loadAllPatients(); setPatientDialog(true); }}
                                                 variant="outline"
