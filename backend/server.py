@@ -733,18 +733,35 @@ async def remove_patient_from_meeting(meeting_id: str, patient_id: str, current_
 
 @api_router.post("/meetings/{meeting_id}/agenda")
 async def add_agenda_item(meeting_id: str, item: AgendaItemCreate, current_user: dict = Depends(get_current_user)):
+    # Check if patient already has an agenda item in this meeting
+    existing = await db.agenda_items.find_one({
+        "meeting_id": meeting_id,
+        "patient_id": item.patient_id
+    })
+    
+    if existing:
+        raise HTTPException(status_code=400, detail="This patient already has an agenda item in this meeting")
+    
     item_id = str(uuid.uuid4())
+    
+    # Get current max order_index
+    max_order = await db.agenda_items.find({"meeting_id": meeting_id}).sort("order_index", -1).limit(1).to_list(1)
+    order_index = (max_order[0]['order_index'] + 1) if max_order else 0
+    
     await db.agenda_items.insert_one({
         "id": item_id,
         "meeting_id": meeting_id,
-        "title": item.title,
-        "description": item.description,
-        "order_index": item.order_index,
-        "estimated_duration_minutes": item.estimated_duration_minutes,
-        "assigned_to": item.assigned_to,
         "patient_id": item.patient_id,
-        "is_completed": False,
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "mrn": item.mrn,
+        "requested_provider": item.requested_provider,
+        "diagnosis": item.diagnosis,
+        "reason_for_discussion": item.reason_for_discussion,
+        "pathology_required": item.pathology_required,
+        "radiology_required": item.radiology_required,
+        "treatment_plan": item.treatment_plan or '',
+        "order_index": order_index,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat()
     })
     
     return {"id": item_id, "message": "Agenda item added"}
