@@ -56,8 +56,17 @@ export default function MeetingDetailPage() {
     const [selectedPatients, setSelectedPatients] = useState([]);
     const [addingPatients, setAddingPatients] = useState(false);
     const [newAgenda, setNewAgenda] = useState({
-        title: '', description: '', estimated_duration_minutes: 30, patient_id: null
+        patient_id: '',
+        mrn: '',
+        requested_provider: '',
+        diagnosis: '',
+        reason_for_discussion: '',
+        pathology_required: false,
+        radiology_required: false,
+        treatment_plan: ''
     });
+    const [editingTreatmentPlan, setEditingTreatmentPlan] = useState({});
+    const [treatmentPlanText, setTreatmentPlanText] = useState({});
     const [addingAgenda, setAddingAgenda] = useState(false);
 
     useEffect(() => {
