@@ -298,12 +298,14 @@ export default function MeetingDetailPage() {
         setAddingParticipant(true);
         try {
             await addParticipant(id, { user_id: userId, role: 'attendee' });
-            loadMeeting();
+            await loadMeeting();
             // Refresh user list to update UI
             const res = await getUsers();
             setAllUsers(res.data);
+            alert('✅ Participant added successfully!');
         } catch (error) {
             console.error('Failed to add participant:', error);
+            alert('Failed to add participant: ' + (error.response?.data?.detail || error.message));
         } finally {
             setAddingParticipant(false);
         }
