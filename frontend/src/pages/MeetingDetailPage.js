@@ -1009,6 +1009,24 @@ export default function MeetingDetailPage() {
                     </DialogHeader>
                     <div className="space-y-4">
                         <div className="space-y-2">
+                            <Label>Patient (Optional)</Label>
+                            <Select value={filePatientId} onValueChange={setFilePatientId}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Link to a patient (optional)" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="">None - General file</SelectItem>
+                                    {meeting?.patients?.map((patient) => (
+                                        <SelectItem key={patient.patient_id} value={patient.patient_id}>
+                                            {patient.first_name} {patient.last_name}
+                                            {patient.patient_id_number ? ` (MRN: ${patient.patient_id_number})` : ''}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <p className="text-xs text-slate-500">Link this file to a specific patient for better organization</p>
+                        </div>
+                        <div className="space-y-2">
                             <Label>File Type</Label>
                             <select
                                 className="w-full h-10 px-3 rounded-md border border-input bg-background"
