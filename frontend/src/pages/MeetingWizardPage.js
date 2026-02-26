@@ -989,56 +989,55 @@ export default function MeetingWizardPage() {
                                 Add Agenda Item
                             </Button>
                         </div>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={addAgendaItem}
-                                disabled={!newAgendaItem.title.trim()}
-                                data-testid="add-agenda-btn"
-                            >
-                                <Plus className="w-4 h-4 mr-2" /> Add Item
-                            </Button>
                         </div>
 
                         {/* Agenda items list */}
                         {formData.agenda_items.length > 0 && (
                             <div className="space-y-3">
-                                <h4 className="font-medium">Agenda Items ({formData.agenda_items.length})</h4>
-                                {formData.agenda_items.map((item, index) => (
-                                    <div
-                                        key={index}
-                                        className="flex items-center justify-between p-3 rounded-lg border border-slate-200 bg-white"
-                                        data-testid={`agenda-item-${index}`}
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <Badge variant="outline" className="text-xs">{index + 1}</Badge>
-                                            <div>
-                                                <p className="font-medium">{item.title}</p>
-                                                {item.patient_id && (
-                                                    <p className="text-xs text-primary">
-                                                        👤 {patients.find(p => p.id === item.patient_id)?.first_name} {patients.find(p => p.id === item.patient_id)?.last_name}
-                                                    </p>
-                                                )}
-                                                {item.description && (
-                                                    <p className="text-sm text-muted-foreground">{item.description}</p>
-                                                )}
+                                <h4 className="font-medium text-slate-900">Added Agenda Items ({formData.agenda_items.length})</h4>
+                                {formData.agenda_items.map((item, index) => {
+                                    const patient = patients.find(p => p.id === item.patient_id);
+                                    return (
+                                        <div
+                                            key={index}
+                                            className="p-4 rounded-lg border border-slate-200 bg-white space-y-2"
+                                            data-testid={`agenda-item-${index}`}
+                                        >
+                                            <div className="flex items-start justify-between">
+                                                <div className="flex-1 space-y-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <Badge variant="outline" className="text-xs">{index + 1}</Badge>
+                                                        <p className="font-semibold text-slate-900">
+                                                            {patient ? `${patient.first_name} ${patient.last_name}` : 'Unknown Patient'}
+                                                        </p>
+                                                        <span className="text-sm text-slate-500">MRN: {item.mrn}</span>
+                                                    </div>
+                                                    <p className="text-sm"><span className="font-medium">Provider:</span> {item.requested_provider}</p>
+                                                    <p className="text-sm"><span className="font-medium">Diagnosis:</span> {item.diagnosis}</p>
+                                                    <p className="text-sm text-slate-600">{item.reason_for_discussion}</p>
+                                                    <div className="flex gap-3 mt-2">
+                                                        {item.pathology_required && (
+                                                            <Badge variant="secondary" className="text-xs">✓ Pathology Required</Badge>
+                                                        )}
+                                                        {item.radiology_required && (
+                                                            <Badge variant="secondary" className="text-xs">✓ Radiology Required</Badge>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => removeAgendaItem(index)}
+                                                    className="text-muted-foreground hover:text-destructive"
+                                                    data-testid={`remove-agenda-${index}`}
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </Button>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <Badge variant="secondary">{item.estimated_duration_minutes} min</Badge>
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() => removeAgendaItem(index)}
-                                                className="text-muted-foreground hover:text-destructive"
-                                                data-testid={`remove-agenda-${index}`}
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </Button>
-                                        </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
