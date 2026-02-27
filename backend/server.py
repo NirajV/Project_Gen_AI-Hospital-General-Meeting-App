@@ -1001,6 +1001,27 @@ async def health_check():
         return {"status": "unhealthy", "database": "disconnected"}
 
 # Include router and configure middleware
+# Health check endpoint for Docker
+@app.get("/api/health")
+async def health_check():
+    try:
+        # Check database connection
+        await db.command("ping")
+        return {
+            "status": "healthy",
+            "service": "Hospital Meeting Scheduler API",
+            "database": "connected",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        return {
+            "status": "unhealthy",
+            "service": "Hospital Meeting Scheduler API",
+            "database": "disconnected",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+
 app.include_router(api_router)
 
 app.add_middleware(
