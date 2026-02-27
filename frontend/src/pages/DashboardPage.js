@@ -238,39 +238,13 @@ export default function DashboardPage() {
                                             {/* Response Section - Only show for participants, not organizers */}
                                             {!isOrganizer && meeting.status !== 'completed' && (
                                                 <div className="mt-3 pt-3 border-t border-slate-200">
-                                                    {/* Current Response Status */}
-                                                    {myResponse && myResponse !== 'pending' && (
-                                                        <div className="flex items-center gap-2 mb-2">
-                                                            {myResponse === 'accepted' && (
-                                                                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-50 border border-green-200">
-                                                                    <Check className="w-4 h-4 text-green-600" />
-                                                                    <span className="text-sm font-medium text-green-700">accepted</span>
-                                                                </div>
-                                                            )}
-                                                            {myResponse === 'maybe' && (
-                                                                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200">
-                                                                    <Minus className="w-4 h-4 text-amber-600" />
-                                                                    <span className="text-sm font-medium text-amber-700">maybe</span>
-                                                                </div>
-                                                            )}
-                                                            {myResponse === 'declined' && (
-                                                                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-50 border border-red-200">
-                                                                    <X className="w-4 h-4 text-red-600" />
-                                                                    <span className="text-sm font-medium text-red-700">declined</span>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                    
-                                                    {/* Response Buttons */}
                                                     <div className="flex items-center gap-2">
                                                         <span className="text-xs text-muted-foreground mr-1">
                                                             {myResponse && myResponse !== 'pending' ? 'Change:' : 'Respond:'}
                                                         </span>
                                                         <Button
                                                             size="sm"
-                                                            variant={myResponse === 'accepted' ? 'default' : 'outline'}
-                                                            className={`h-7 text-xs ${myResponse === 'accepted' ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                                                            className="h-7 text-xs bg-green-600 hover:bg-green-700 text-white"
                                                             onClick={(e) => handleResponseUpdate(meeting.id, 'accepted', e)}
                                                             disabled={updatingResponse[meeting.id]}
                                                         >
@@ -279,8 +253,7 @@ export default function DashboardPage() {
                                                         </Button>
                                                         <Button
                                                             size="sm"
-                                                            variant={myResponse === 'maybe' ? 'default' : 'outline'}
-                                                            className={`h-7 text-xs ${myResponse === 'maybe' ? 'bg-amber-600 hover:bg-amber-700' : ''}`}
+                                                            className="h-7 text-xs bg-amber-500 hover:bg-amber-600 text-white"
                                                             onClick={(e) => handleResponseUpdate(meeting.id, 'maybe', e)}
                                                             disabled={updatingResponse[meeting.id]}
                                                         >
@@ -289,8 +262,7 @@ export default function DashboardPage() {
                                                         </Button>
                                                         <Button
                                                             size="sm"
-                                                            variant={myResponse === 'declined' ? 'default' : 'outline'}
-                                                            className={`h-7 text-xs ${myResponse === 'declined' ? 'bg-red-600 hover:bg-red-700' : ''}`}
+                                                            className="h-7 text-xs bg-red-600 hover:bg-red-700 text-white"
                                                             onClick={(e) => handleResponseUpdate(meeting.id, 'declined', e)}
                                                             disabled={updatingResponse[meeting.id]}
                                                         >
