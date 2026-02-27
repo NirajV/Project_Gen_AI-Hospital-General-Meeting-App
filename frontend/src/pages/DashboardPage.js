@@ -244,7 +244,12 @@ export default function DashboardPage() {
                                                         </span>
                                                         <Button
                                                             size="sm"
-                                                            className="h-7 text-xs bg-green-600 hover:bg-green-700 text-white"
+                                                            variant={myResponse === 'accepted' ? 'default' : 'outline'}
+                                                            className={`h-7 text-xs ${
+                                                                myResponse === 'accepted' 
+                                                                    ? 'bg-green-600 hover:bg-green-700 text-white border-green-600' 
+                                                                    : 'hover:bg-slate-50'
+                                                            }`}
                                                             onClick={(e) => handleResponseUpdate(meeting.id, 'accepted', e)}
                                                             disabled={updatingResponse[meeting.id]}
                                                         >
@@ -253,7 +258,12 @@ export default function DashboardPage() {
                                                         </Button>
                                                         <Button
                                                             size="sm"
-                                                            className="h-7 text-xs bg-amber-500 hover:bg-amber-600 text-white"
+                                                            variant={myResponse === 'maybe' ? 'default' : 'outline'}
+                                                            className={`h-7 text-xs ${
+                                                                myResponse === 'maybe' 
+                                                                    ? 'bg-amber-500 hover:bg-amber-600 text-white border-amber-500' 
+                                                                    : 'hover:bg-slate-50'
+                                                            }`}
                                                             onClick={(e) => handleResponseUpdate(meeting.id, 'maybe', e)}
                                                             disabled={updatingResponse[meeting.id]}
                                                         >
@@ -262,7 +272,12 @@ export default function DashboardPage() {
                                                         </Button>
                                                         <Button
                                                             size="sm"
-                                                            className="h-7 text-xs bg-red-600 hover:bg-red-700 text-white"
+                                                            variant={myResponse === 'declined' ? 'default' : 'outline'}
+                                                            className={`h-7 text-xs ${
+                                                                myResponse === 'declined' 
+                                                                    ? 'bg-red-600 hover:bg-red-700 text-white border-red-600' 
+                                                                    : 'hover:bg-slate-50'
+                                                            }`}
                                                             onClick={(e) => handleResponseUpdate(meeting.id, 'declined', e)}
                                                             disabled={updatingResponse[meeting.id]}
                                                         >
