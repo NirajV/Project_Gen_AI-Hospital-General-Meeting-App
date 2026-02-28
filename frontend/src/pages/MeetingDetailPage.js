@@ -28,6 +28,37 @@ import {
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 
+// Helper function to check if treatment plan editing is allowed (7-day rule)
+const isTreatmentPlanEditable = (meeting) => {
+    if (meeting.status !== 'completed') {
+        return true; // Meeting not completed, always editable
+    }
+    
+    if (!meeting.completed_at) {
+        return true; // No completion timestamp, allow editing
+    }
+    
+    const completedAt = new Date(meeting.completed_at);
+    const now = new Date();
+    const daysSinceCompletion = Math.floor((now - completedAt) / (1000 * 60 * 60 * 24));
+    
+    return daysSinceCompletion <= 7;
+};
+
+// Helper function to get remaining days for treatment plan editing
+const getRemainingEditDays = (meeting) => {
+    if (meeting.status !== 'completed' || !meeting.completed_at) {
+        return null;
+    }
+    
+    const completedAt = new Date(meeting.completed_at);
+    const now = new Date();
+    const daysSinceCompletion = Math.floor((now - completedAt) / (1000 * 60 * 60 * 24));
+    const remainingDays = 7 - daysSinceCompletion;
+    
+    return remainingDays >= 0 ? remainingDays : 0;
+};
+
 export default function MeetingDetailPage() {
     const { id } = useParams();
     const navigate = useNavigate();
