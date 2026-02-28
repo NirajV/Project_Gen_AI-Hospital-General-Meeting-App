@@ -814,7 +814,7 @@ export default function MeetingDetailPage() {
                                                         <div className="mt-4 p-4 rounded-lg bg-slate-50 border border-slate-200">
                                                             <div className="flex items-center justify-between mb-2">
                                                                 <p className="text-sm font-semibold text-slate-900">Treatment Plan</p>
-                                                                {meeting.status !== 'completed' && (
+                                                                {isTreatmentPlanEditable(meeting) ? (
                                                                     <>
                                                                         {!isEditing ? (
                                                                             <Button
@@ -848,8 +848,35 @@ export default function MeetingDetailPage() {
                                                                             </div>
                                                                         )}
                                                                     </>
+                                                                ) : (
+                                                                    <Badge variant="destructive" className="text-xs">
+                                                                        🔒 Editing Disabled
+                                                                    </Badge>
                                                                 )}
                                                             </div>
+                                                            
+                                                            {/* 7-Day Warning Message */}
+                                                            {meeting.status === 'completed' && getRemainingEditDays(meeting) !== null && (
+                                                                <div className={`mb-3 p-2 rounded text-xs ${
+                                                                    getRemainingEditDays(meeting) > 0 
+                                                                        ? 'bg-amber-50 border border-amber-200 text-amber-800'
+                                                                        : 'bg-red-50 border border-red-200 text-red-800'
+                                                                }`}>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <AlertCircle className="w-4 h-4" />
+                                                                        {getRemainingEditDays(meeting) > 0 ? (
+                                                                            <span>
+                                                                                ⚠️ Treatment plan can be edited for {getRemainingEditDays(meeting)} more day{getRemainingEditDays(meeting) !== 1 ? 's' : ''} after meeting completion.
+                                                                            </span>
+                                                                        ) : (
+                                                                            <span>
+                                                                                🔒 The 7-day edit window has expired. Treatment plan is now read-only.
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                            
                                                             {isEditing ? (
                                                                 <Textarea
                                                                     value={currentTreatmentPlan}
