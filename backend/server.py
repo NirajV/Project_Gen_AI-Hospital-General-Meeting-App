@@ -818,6 +818,23 @@ async def update_agenda_item(meeting_id: str, item_id: str, updates: dict, curre
 @api_router.put("/meetings/{meeting_id}/agenda/{item_id}/treatment-plan")
 async def update_treatment_plan(meeting_id: str, item_id: str, data: dict, current_user: dict = Depends(get_current_user)):
     """Update treatment plan during meeting - accessible to all participants"""
+    
+    # Get meeting details to check completion status and 7-day rule
+    meeting = await db.meetings.find_one({"id": meeting_id}, {"_id": 0})
+    if not meeting:
+        raise HTTPException(status_code=404, detail="Meeting not found")
+    
+    # Check if meeting is completed and if 7-day edit window has passed
+    if meeting.get('status') == 'completed' and meeting.get('completed_at'):
+        completed_at = datetime.fromisoformat(meeting['completed_at'].replace('Z', '+00:00'))
+        days_since_completion = (datetime.now(timezone.utc) - completed_at).days
+        
+        if days_since_completion > 7:
+            raise HTTPException(
+                status_code=403, 
+                detail=f"Treatment plan editing is disabled. The 7-day edit window expired {days_since_completion - 7} days ago."
+            )
+    
     treatment_plan = data.get('treatment_plan', '')
     
     await db.agenda_items.update_one(
