@@ -365,7 +365,7 @@ export default function MeetingDetailPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     email: newInvite.email,
-                    full_name: newInvite.name,
+                    name: newInvite.name,  // Backend expects 'name', not 'full_name'
                     specialty: newInvite.specialty,
                     password: 'TempPass123!', // Temporary password
                     role: 'doctor'
