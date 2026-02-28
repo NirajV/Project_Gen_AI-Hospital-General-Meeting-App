@@ -682,6 +682,23 @@ async def delete_meeting(meeting_id: str, current_user: dict = Depends(get_curre
 
 @api_router.post("/meetings/{meeting_id}/participants")
 async def add_participant(meeting_id: str, invite: ParticipantInvite, current_user: dict = Depends(get_current_user)):
+    # Check if meeting exists
+    meeting = await db.meetings.find_one({"id": meeting_id}, {"_id": 0})
+    if not meeting:
+        raise HTTPException(status_code=404, detail="Meeting not found")
+    
+    # Check permissions - both organizer AND participants can add new participants
+    is_organizer = meeting['organizer_id'] == current_user['id']
+    existing_participant = await db.meeting_participants.find_one({
+        "meeting_id": meeting_id, 
+        "user_id": current_user['id']
+    }, {"_id": 0})
+    is_participant = existing_participant is not None
+    
+    if not is_organizer and not is_participant:
+        raise HTTPException(status_code=403, detail="Only organizer or existing participants can add new participants")
+    
+    # Check if user to be added already exists as participant
     existing = await db.meeting_participants.find_one({"meeting_id": meeting_id, "user_id": invite.user_id})
     if existing:
         raise HTTPException(status_code=400, detail="User already a participant")
@@ -692,10 +709,11 @@ async def add_participant(meeting_id: str, invite: ParticipantInvite, current_us
         "user_id": invite.user_id,
         "role": invite.role,
         "response_status": "pending",
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "added_by": current_user['id']  # Track who added this participant
     })
     
-    return {"message": "Participant added"}
+    return {"message": "Participant added successfully"}
 
 @api_router.put("/meetings/{meeting_id}/respond")
 async def respond_to_invite(meeting_id: str, response: ParticipantResponse, current_user: dict = Depends(get_current_user)):
