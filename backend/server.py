@@ -760,6 +760,22 @@ async def update_participant_response(meeting_id: str, user_id: str, data: dict,
 
 @api_router.post("/meetings/{meeting_id}/patients")
 async def add_patient_to_meeting(meeting_id: str, patient_data: MeetingPatientCreate, current_user: dict = Depends(get_current_user)):
+    # Check if meeting exists
+    meeting = await db.meetings.find_one({"id": meeting_id}, {"_id": 0})
+    if not meeting:
+        raise HTTPException(status_code=404, detail="Meeting not found")
+    
+    # Check permissions - both organizer AND participants can add patients
+    is_organizer = meeting['organizer_id'] == current_user['id']
+    existing_participant = await db.meeting_participants.find_one({
+        "meeting_id": meeting_id, 
+        "user_id": current_user['id']
+    }, {"_id": 0})
+    is_participant = existing_participant is not None
+    
+    if not is_organizer and not is_participant:
+        raise HTTPException(status_code=403, detail="Only organizer or participants can add patients")
+    
     existing = await db.meeting_patients.find_one({"meeting_id": meeting_id, "patient_id": patient_data.patient_id})
     if existing:
         raise HTTPException(status_code=400, detail="Patient already in meeting")
