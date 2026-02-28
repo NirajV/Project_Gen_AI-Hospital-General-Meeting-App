@@ -803,6 +803,22 @@ async def remove_patient_from_meeting(meeting_id: str, patient_id: str, current_
 
 @api_router.post("/meetings/{meeting_id}/agenda")
 async def add_agenda_item(meeting_id: str, item: AgendaItemCreate, current_user: dict = Depends(get_current_user)):
+    # Check if meeting exists
+    meeting = await db.meetings.find_one({"id": meeting_id}, {"_id": 0})
+    if not meeting:
+        raise HTTPException(status_code=404, detail="Meeting not found")
+    
+    # Check permissions - both organizer AND participants can add agenda items
+    is_organizer = meeting['organizer_id'] == current_user['id']
+    existing_participant = await db.meeting_participants.find_one({
+        "meeting_id": meeting_id, 
+        "user_id": current_user['id']
+    }, {"_id": 0})
+    is_participant = existing_participant is not None
+    
+    if not is_organizer and not is_participant:
+        raise HTTPException(status_code=403, detail="Only organizer or participants can add agenda items")
+    
     # Check if patient already has an agenda item in this meeting
     existing = await db.agenda_items.find_one({
         "meeting_id": meeting_id,
@@ -831,7 +847,8 @@ async def add_agenda_item(meeting_id: str, item: AgendaItemCreate, current_user:
         "treatment_plan": item.treatment_plan or '',
         "order_index": order_index,
         "created_at": datetime.now(timezone.utc).isoformat(),
-        "updated_at": datetime.now(timezone.utc).isoformat()
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "added_by": current_user['id']
     })
     
     return {"id": item_id, "message": "Agenda item added"}
