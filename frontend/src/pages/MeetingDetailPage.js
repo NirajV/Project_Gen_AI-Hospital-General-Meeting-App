@@ -581,7 +581,8 @@ export default function MeetingDetailPage() {
                                         <CardTitle className="flex items-center gap-2">
                                             <Users className="w-5 h-5" /> Participants
                                         </CardTitle>
-                                        {isOrganizer && meeting.status !== 'completed' && (
+                                        {/* Allow both organizer AND participants to add new participants */}
+                                        {meeting.status !== 'completed' && (
                                             <Button variant="outline" size="sm" onClick={openParticipantDialog} data-testid="add-participant-btn">
                                                 <UserPlus className="w-4 h-4 mr-1" /> Add
                                             </Button>
