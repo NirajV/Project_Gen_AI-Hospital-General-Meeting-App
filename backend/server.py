@@ -657,6 +657,10 @@ async def update_meeting(meeting_id: str, updates: dict, current_user: dict = De
                       'meeting_type', 'location', 'video_link', 'status', 'recurrence_type']
     update_data = {k: v for k, v in updates.items() if k in allowed_fields}
     
+    # If status is being changed to 'completed', set completed_at timestamp
+    if 'status' in update_data and update_data['status'] == 'completed' and meeting.get('status') != 'completed':
+        update_data['completed_at'] = datetime.now(timezone.utc).isoformat()
+    
     if update_data:
         await db.meetings.update_one({"id": meeting_id}, {"$set": update_data})
     
