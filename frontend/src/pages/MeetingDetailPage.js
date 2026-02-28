@@ -372,8 +372,10 @@ export default function MeetingDetailPage() {
                 })
             });
             
+            // Parse response once
+            const data = await response.json();
+            
             if (response.ok) {
-                const data = await response.json();
                 // Add the new user as participant
                 await addParticipant(id, { user_id: data.user.id, role: 'attendee' });
                 await loadMeeting();
@@ -384,8 +386,7 @@ export default function MeetingDetailPage() {
                 setAllUsers(res.data);
                 alert(`✅ Successfully invited ${newInvite.name}!\nThey can login with: ${newInvite.email}\nTemporary password: TempPass123!`);
             } else {
-                const error = await response.json();
-                throw new Error(error.detail || 'Failed to create user account');
+                throw new Error(data.detail || 'Failed to create user account');
             }
         } catch (error) {
             console.error('Failed to invite by email:', error);
