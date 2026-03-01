@@ -20,6 +20,7 @@ const navItems = [
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/meetings', label: 'Meetings', icon: Calendar },
     { path: '/patients', label: 'Patients', icon: Users },
+    { path: '/participants', label: 'Participants', icon: User },
 ];
 
 export default function Layout({ children }) {
