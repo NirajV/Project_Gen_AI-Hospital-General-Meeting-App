@@ -12,6 +12,7 @@ import MeetingDetailPage from "@/pages/MeetingDetailPage";
 import PatientsPage from "@/pages/PatientsPage";
 import PatientFormPage from "@/pages/PatientFormPage";
 import PatientDetailPage from "@/pages/PatientDetailPage";
+import ParticipantsPage from "@/pages/ParticipantsPage";
 import ProfilePage from "@/pages/ProfilePage";
 
 // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
@@ -47,6 +48,9 @@ function AppRouter() {
             } />
             <Route path="/patients/:id" element={
                 <ProtectedRoute><PatientDetailPage /></ProtectedRoute>
+            } />
+            <Route path="/participants" element={
+                <ProtectedRoute><ParticipantsPage /></ProtectedRoute>
             } />
             <Route path="/profile" element={
                 <ProtectedRoute><ProfilePage /></ProtectedRoute>
