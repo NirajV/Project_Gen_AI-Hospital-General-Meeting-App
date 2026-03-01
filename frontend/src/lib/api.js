@@ -32,7 +32,7 @@ api.interceptors.response.use(
 export const getDashboardStats = () => api.get('/dashboard/stats');
 
 // Users
-export const getUsers = () => api.get('/users');
+export const getUsers = () => api.get('/users').then(res => ({ data: res.data }));
 export const getUser = (id) => api.get(`/users/${id}`);
 export const updateUser = (id, data) => api.put(`/users/${id}`, data);
 
