@@ -381,6 +381,109 @@ export default function ParticipantsPage() {
                         Showing {filteredParticipants.length} of {participants.length} participants
                     </p>
                 )}
+
+                {/* Create Participant Dialog */}
+                <Dialog open={createDialog} onOpenChange={setCreateDialog}>
+                    <DialogContent className="max-w-md">
+                        <DialogHeader>
+                            <DialogTitle className="flex items-center gap-2">
+                                <UserPlus className="w-5 h-5 text-primary" />
+                                Create New Participant
+                            </DialogTitle>
+                            <DialogDescription>
+                                Add a new staff member to the hospital system
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="space-y-4 py-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="name">Full Name *</Label>
+                                <Input
+                                    id="name"
+                                    placeholder="Dr. John Smith"
+                                    value={newParticipant.name}
+                                    onChange={(e) => setNewParticipant({ ...newParticipant, name: e.target.value })}
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="email">Email *</Label>
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    placeholder="john.smith@hospital.com"
+                                    value={newParticipant.email}
+                                    onChange={(e) => setNewParticipant({ ...newParticipant, email: e.target.value })}
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="role">Role *</Label>
+                                <Select
+                                    value={newParticipant.role}
+                                    onValueChange={(value) => setNewParticipant({ ...newParticipant, role: value })}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="doctor">Doctor</SelectItem>
+                                        <SelectItem value="nurse">Nurse</SelectItem>
+                                        <SelectItem value="admin">Admin</SelectItem>
+                                        <SelectItem value="organizer">Organizer</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="specialty">Specialty</Label>
+                                <Input
+                                    id="specialty"
+                                    placeholder="Cardiology, Oncology, etc."
+                                    value={newParticipant.specialty}
+                                    onChange={(e) => setNewParticipant({ ...newParticipant, specialty: e.target.value })}
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="phone">Phone Number</Label>
+                                <Input
+                                    id="phone"
+                                    placeholder="+1 (555) 123-4567"
+                                    value={newParticipant.phone}
+                                    onChange={(e) => setNewParticipant({ ...newParticipant, phone: e.target.value })}
+                                />
+                            </div>
+
+                            <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded text-sm text-amber-800">
+                                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                                <span>Default password will be: <strong>TempPass123!</strong></span>
+                            </div>
+                        </div>
+
+                        <DialogFooter>
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    setCreateDialog(false);
+                                    setNewParticipant({ name: '', email: '', specialty: '', phone: '', role: 'doctor', password: 'TempPass123!' });
+                                }}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                onClick={handleCreateParticipant}
+                                disabled={!newParticipant.name || !newParticipant.email || creating}
+                            >
+                                {creating ? (
+                                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Creating...</>
+                                ) : (
+                                    <><UserPlus className="w-4 h-4 mr-2" /> Create Participant</>
+                                )}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </div>
         </Layout>
     );
