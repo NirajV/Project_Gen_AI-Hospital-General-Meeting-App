@@ -10,20 +10,37 @@ Last Updated: February 2026
                             TEST CREDENTIALS
 ================================================================================
 
-ORGANIZER ACCOUNT (Full Access):
-Email: organizer@hospital.com
-Password: password123
-Role: Organizer
-Access: All features including Create Participant and Change Roles
+ORGANIZER/ADMIN ACCOUNTS (Full Access):
+
+1. Dr. Sarah Organizer
+   Email: organizer@hospital.com
+   Password: password123
+   Role: Organizer
+   Specialty: Cardiology
+   User ID: b885e166-4714-47e2-9e03-7ca58262ea66
+   Created: February 21, 2026
+   Access: All features including Create Participant and Change Roles
+
+2. Niraj Vishwakarma
+   Email: niraj.k.vishwakarma@gmail.com
+   Password: (Set during account creation)
+   Role: Organizer
+   Specialty: Oncology
+   User ID: b1f17ea6-2cd9-4b01-9201-85d0cb5e1dc3
+   Created: February 22, 2026
+   Access: All features including Create Participant and Change Roles
 
 DOCTOR ACCOUNTS (Participant Access):
-Email: testdoctor@hospital.com
-Password: password123
-Role: Doctor
 
-Email: doctor2@hospital.com
-Password: password123
-Role: Doctor
+1. Test Doctor
+   Email: testdoctor@hospital.com
+   Password: password123
+   Role: Doctor
+
+2. Dr. John Smith
+   Email: doctor2@hospital.com
+   Password: password123
+   Role: Doctor
 
 ================================================================================
                         FEATURES IMPLEMENTED
