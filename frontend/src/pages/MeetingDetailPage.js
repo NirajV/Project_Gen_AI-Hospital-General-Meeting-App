@@ -1443,90 +1443,202 @@ export default function MeetingDetailPage() {
             </Dialog>
 
             {/* Add Patient Dialog */}
-            <Dialog open={patientDialog} onOpenChange={setPatientDialog}>
-                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <Dialog open={patientDialog} onOpenChange={(open) => {
+                setPatientDialog(open);
+                if (!open) {
+                    setPatientTab('existing');
+                    setNewPatient({ first_name: '', last_name: '', mrn: '', date_of_birth: '', diagnosis: '', phone: '' });
+                    setSelectedPatients([]);
+                }
+            }}>
+                <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                             <User className="w-5 h-5 text-primary" /> Add Patients to Meeting
                         </DialogTitle>
                         <DialogDescription>
-                            Select patients to add to this meeting
+                            Select existing patients or create a new patient
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-2 max-h-96 overflow-y-auto">
-                        {allPatients.length === 0 ? (
-                            <div className="text-center py-8 text-muted-foreground">
-                                <User className="w-10 h-10 mx-auto mb-2 opacity-50" />
-                                <p>No patients available</p>
-                                <Link to="/patients/new">
-                                    <Button variant="link" className="mt-2">
-                                        Create a new patient first
-                                    </Button>
-                                </Link>
-                            </div>
-                        ) : (
-                            allPatients
-                                .filter(p => !meeting?.patients?.some(mp => mp.patient_id === p.id))
-                                .map((patient) => (
-                                    <div
-                                        key={patient.id}
-                                        className="flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:border-primary/30 hover:bg-slate-50 cursor-pointer"
-                                        onClick={() => {
-                                            const isSelected = selectedPatients.includes(patient.id);
-                                            if (isSelected) {
-                                                setSelectedPatients(selectedPatients.filter(id => id !== patient.id));
-                                            } else {
-                                                setSelectedPatients([...selectedPatients, patient.id]);
-                                            }
-                                        }}
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <Checkbox
-                                                checked={selectedPatients.includes(patient.id)}
-                                                onCheckedChange={(checked) => {
-                                                    if (checked) {
-                                                        setSelectedPatients([...selectedPatients, patient.id]);
-                                                    } else {
+                    
+                    {/* Tab Buttons */}
+                    <div className="flex gap-2 border-b pb-3">
+                        <Button
+                            variant={patientTab === 'existing' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setPatientTab('existing')}
+                        >
+                            <Users className="w-4 h-4 mr-2" /> Existing Patients
+                        </Button>
+                        <Button
+                            variant={patientTab === 'create' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setPatientTab('create')}
+                        >
+                            <Plus className="w-4 h-4 mr-2" /> Create New Patient
+                        </Button>
+                    </div>
+
+                    {patientTab === 'existing' ? (
+                        <>
+                            <div className="space-y-2 max-h-96 overflow-y-auto">
+                                {allPatients.length === 0 ? (
+                                    <div className="text-center py-8 text-muted-foreground">
+                                        <User className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                                        <p>No patients available</p>
+                                        <Button 
+                                            variant="link" 
+                                            className="mt-2"
+                                            onClick={() => setPatientTab('create')}
+                                        >
+                                            Create a new patient instead
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    allPatients
+                                        .filter(p => !meeting?.patients?.some(mp => mp.patient_id === p.id))
+                                        .map((patient) => (
+                                            <div
+                                                key={patient.id}
+                                                className="flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:border-primary/30 hover:bg-slate-50 cursor-pointer"
+                                                onClick={() => {
+                                                    const isSelected = selectedPatients.includes(patient.id);
+                                                    if (isSelected) {
                                                         setSelectedPatients(selectedPatients.filter(id => id !== patient.id));
+                                                    } else {
+                                                        setSelectedPatients([...selectedPatients, patient.id]);
                                                     }
                                                 }}
-                                            />
-                                            <div>
-                                                <p className="font-medium">{patient.first_name} {patient.last_name}</p>
-                                                <p className="text-sm text-muted-foreground">
-                                                    {patient.primary_diagnosis || patient.patient_id_number}
-                                                </p>
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <Checkbox
+                                                        checked={selectedPatients.includes(patient.id)}
+                                                        onCheckedChange={(checked) => {
+                                                            if (checked) {
+                                                                setSelectedPatients([...selectedPatients, patient.id]);
+                                                            } else {
+                                                                setSelectedPatients(selectedPatients.filter(id => id !== patient.id));
+                                                            }
+                                                        }}
+                                                    />
+                                                    <div>
+                                                        <p className="font-medium">{patient.first_name} {patient.last_name}</p>
+                                                        <p className="text-sm text-muted-foreground">
+                                                            {patient.primary_diagnosis || patient.patient_id_number}
+                                                        </p>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </div>
-                                ))
-                        )}
-                    </div>
-                    {allPatients.filter(p => !meeting?.patients?.some(mp => mp.patient_id === p.id)).length > 0 && selectedPatients.length === 0 && (
-                        <div className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-lg p-3">
-                            💡 Click on a patient row or checkbox to select patients to add
+                                        ))
+                                )}
+                            </div>
+                            {allPatients.filter(p => !meeting?.patients?.some(mp => mp.patient_id === p.id)).length > 0 && selectedPatients.length === 0 && (
+                                <div className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                                    💡 Click on a patient row or checkbox to select patients to add
+                                </div>
+                            )}
+                            <DialogFooter>
+                                <Button variant="outline" onClick={() => {
+                                    setPatientDialog(false);
+                                    setSelectedPatients([]);
+                                }}>
+                                    Cancel
+                                </Button>
+                                <Button 
+                                    onClick={handleAddPatients}
+                                    disabled={selectedPatients.length === 0 || addingPatients}
+                                >
+                                    {addingPatients ? (
+                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    ) : (
+                                        <Plus className="w-4 h-4 mr-2" />
+                                    )}
+                                    {selectedPatients.length > 0 ? `Add (${selectedPatients.length})` : 'Select patients'}
+                                </Button>
+                            </DialogFooter>
+                        </>
+                    ) : (
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label>First Name *</Label>
+                                    <Input
+                                        placeholder="John"
+                                        value={newPatient.first_name}
+                                        onChange={(e) => setNewPatient({ ...newPatient, first_name: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Last Name *</Label>
+                                    <Input
+                                        placeholder="Doe"
+                                        value={newPatient.last_name}
+                                        onChange={(e) => setNewPatient({ ...newPatient, last_name: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label>MRN *</Label>
+                                    <Input
+                                        placeholder="MRN123456"
+                                        value={newPatient.mrn}
+                                        onChange={(e) => setNewPatient({ ...newPatient, mrn: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Date of Birth *</Label>
+                                    <Input
+                                        type="date"
+                                        max={new Date().toISOString().split('T')[0]}
+                                        value={newPatient.date_of_birth}
+                                        onChange={(e) => setNewPatient({ ...newPatient, date_of_birth: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Diagnosis</Label>
+                                <Input
+                                    placeholder="e.g., Lung Cancer Stage II"
+                                    value={newPatient.diagnosis}
+                                    onChange={(e) => setNewPatient({ ...newPatient, diagnosis: e.target.value })}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Phone Number</Label>
+                                <Input
+                                    placeholder="+1 (555) 123-4567"
+                                    value={newPatient.phone}
+                                    onChange={(e) => setNewPatient({ ...newPatient, phone: e.target.value })}
+                                />
+                            </div>
+                            <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800">
+                                <AlertCircle className="w-4 h-4" />
+                                <span>Patient will be created in the system and added to this meeting</span>
+                            </div>
+                            <DialogFooter>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                        setNewPatient({ first_name: '', last_name: '', mrn: '', date_of_birth: '', diagnosis: '', phone: '' });
+                                        setPatientTab('existing');
+                                    }}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    onClick={handleCreateAndAddPatient}
+                                    disabled={!newPatient.first_name || !newPatient.last_name || !newPatient.mrn || !newPatient.date_of_birth || creatingPatient}
+                                >
+                                    {creatingPatient ? (
+                                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Creating...</>
+                                    ) : (
+                                        <><Plus className="w-4 h-4 mr-2" /> Create & Add</>
+                                    )}
+                                </Button>
+                            </DialogFooter>
                         </div>
                     )}
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => {
-                            setPatientDialog(false);
-                            setSelectedPatients([]);
-                        }}>
-                            Cancel
-                        </Button>
-                        <Button 
-                            onClick={handleAddPatients}
-                            disabled={selectedPatients.length === 0 || addingPatients}
-                            className={selectedPatients.length > 0 ? "bg-primary hover:bg-primary/90" : ""}
-                        >
-                            {addingPatients ? (
-                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            ) : (
-                                <Plus className="w-4 h-4 mr-2" />
-                            )}
-                            {selectedPatients.length > 0 ? `Add (${selectedPatients.length}) Patient${selectedPatients.length !== 1 ? 's' : ''}` : 'Select patients to add'}
-                        </Button>
-                    </DialogFooter>
                 </DialogContent>
             </Dialog>
 
