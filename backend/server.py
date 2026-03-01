@@ -346,6 +346,33 @@ async def get_user(user_id: str, current_user: dict = Depends(get_current_user))
         raise HTTPException(status_code=404, detail="User not found")
     return serialize_doc(user)
 
+@api_router.put("/users/{user_id}/role")
+async def update_user_role(user_id: str, data: dict, current_user: dict = Depends(get_current_user)):
+    """Update user role - only organizers and admins can do this"""
+    # Check if current user is organizer or admin
+    if current_user.get('role') not in ['organizer', 'admin']:
+        raise HTTPException(status_code=403, detail="Only organizers and admins can update user roles")
+    
+    new_role = data.get('role')
+    if not new_role:
+        raise HTTPException(status_code=400, detail="Role is required")
+    
+    valid_roles = ['doctor', 'nurse', 'admin', 'organizer']
+    if new_role not in valid_roles:
+        raise HTTPException(status_code=400, detail=f"Invalid role. Must be one of: {', '.join(valid_roles)}")
+    
+    # Update user role
+    result = await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"role": new_role, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    updated_user = await db.users.find_one({"id": user_id}, {"_id": 0})
+    return serialize_doc(updated_user)
+
 @api_router.put("/users/{user_id}")
 async def update_user(user_id: str, updates: dict, current_user: dict = Depends(get_current_user)):
     if current_user['id'] != user_id:
