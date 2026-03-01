@@ -219,6 +219,42 @@ export default function MeetingDetailPage() {
         }
     };
 
+    const handleCreateAndAddPatient = async () => {
+        if (!newPatient.first_name || !newPatient.last_name || !newPatient.mrn || !newPatient.date_of_birth) {
+            alert('Please fill in all required fields');
+            return;
+        }
+
+        setCreatingPatient(true);
+        try {
+            const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/patients`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                },
+                body: JSON.stringify(newPatient)
+            });
+
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.detail || 'Failed to create patient');
+
+            await addPatientToMeeting(id, { patient_id: data.id });
+            await loadMeeting();
+            await loadAllPatients();
+
+            setNewPatient({ first_name: '', last_name: '', mrn: '', date_of_birth: '', diagnosis: '', phone: '' });
+            setPatientTab('existing');
+            setPatientDialog(false);
+            alert(`✅ Patient "${newPatient.first_name} ${newPatient.last_name}" created and added!`);
+        } catch (error) {
+            console.error('Failed to create patient:', error);
+            alert('Failed to create patient: ' + error.message);
+        } finally {
+            setCreatingPatient(false);
+        }
+    };
+
     const handleAddAgenda = async () => {
         // Validation
         if (!newAgenda.patient_id) {
