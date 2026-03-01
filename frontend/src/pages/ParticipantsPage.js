@@ -6,11 +6,21 @@ import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { 
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { 
     Users, Search, Mail, Phone, Briefcase, UserPlus, 
-    Calendar, AlertCircle, Loader2
+    Calendar, AlertCircle, Loader2, Edit2, Save, X
 } from 'lucide-react';
 
 export default function ParticipantsPage() {
@@ -20,6 +30,20 @@ export default function ParticipantsPage() {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [filterRole, setFilterRole] = useState('all');
+    const [createDialog, setCreateDialog] = useState(false);
+    const [editingRole, setEditingRole] = useState(null);
+    const [newParticipant, setNewParticipant] = useState({
+        name: '',
+        email: '',
+        specialty: '',
+        phone: '',
+        role: 'doctor',
+        password: 'TempPass123!'
+    });
+    const [creating, setCreating] = useState(false);
+    const [updatingRole, setUpdatingRole] = useState(false);
+
+    const isOrganizer = user?.role === 'organizer' || user?.role === 'admin';
 
     useEffect(() => {
         loadParticipants();
@@ -37,6 +61,72 @@ export default function ParticipantsPage() {
         }
     };
 
+    const handleCreateParticipant = async () => {
+        if (!newParticipant.name || !newParticipant.email) {
+            alert('Please fill in name and email');
+            return;
+        }
+
+        setCreating(true);
+        try {
+            const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/auth/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                },
+                body: JSON.stringify(newParticipant)
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.detail || 'Failed to create participant');
+            }
+
+            await loadParticipants();
+            setNewParticipant({ name: '', email: '', specialty: '', phone: '', role: 'doctor', password: 'TempPass123!' });
+            setCreateDialog(false);
+            alert(`✅ Participant "${newParticipant.name}" created successfully!\nEmail: ${newParticipant.email}\nTemporary password: TempPass123!`);
+        } catch (error) {
+            console.error('Failed to create participant:', error);
+            if (error.message.includes('already exists')) {
+                alert('This email is already registered.');
+            } else {
+                alert('Failed to create participant: ' + error.message);
+            }
+        } finally {
+            setCreating(false);
+        }
+    };
+
+    const handleUpdateRole = async (participantId, newRole) => {
+        setUpdatingRole(true);
+        try {
+            const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/users/${participantId}/role`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                },
+                body: JSON.stringify({ role: newRole })
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.detail || 'Failed to update role');
+            }
+
+            await loadParticipants();
+            setEditingRole(null);
+            alert('✅ Role updated successfully!');
+        } catch (error) {
+            console.error('Failed to update role:', error);
+            alert('Failed to update role: ' + error.message);
+        } finally {
+            setUpdatingRole(false);
+        }
+    };
+
     const getInitials = (name) => {
         return name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'DR';
     };
@@ -44,6 +134,7 @@ export default function ParticipantsPage() {
     const getRoleBadgeColor = (role) => {
         switch (role?.toLowerCase()) {
             case 'admin':
+            case 'organizer':
                 return 'bg-purple-100 text-purple-800 border-purple-200';
             case 'doctor':
                 return 'bg-blue-100 text-blue-800 border-blue-200';
@@ -74,7 +165,7 @@ export default function ParticipantsPage() {
         total: participants.length,
         doctors: participants.filter(p => p.role === 'doctor').length,
         nurses: participants.filter(p => p.role === 'nurse').length,
-        admins: participants.filter(p => p.role === 'admin').length,
+        admins: participants.filter(p => p.role === 'admin' || p.role === 'organizer').length,
     };
 
     return (
