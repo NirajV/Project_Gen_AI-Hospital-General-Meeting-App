@@ -89,6 +89,16 @@ export default function MeetingDetailPage() {
         meeting_patient_id: ''
     });
     const [patientDialog, setPatientDialog] = useState(false);
+    const [patientTab, setPatientTab] = useState('existing'); // Tab state for patient dialog
+    const [newPatient, setNewPatient] = useState({ 
+        first_name: '', 
+        last_name: '', 
+        mrn: '', 
+        date_of_birth: '', 
+        diagnosis: '', 
+        phone: '' 
+    });
+    const [creatingPatient, setCreatingPatient] = useState(false);
     const [agendaDialog, setAgendaDialog] = useState(false);
     const [allPatients, setAllPatients] = useState([]);
     const [selectedPatients, setSelectedPatients] = useState([]);
