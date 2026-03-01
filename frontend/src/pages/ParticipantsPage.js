@@ -295,16 +295,57 @@ export default function ParticipantsPage() {
                                                 </AvatarFallback>
                                             </Avatar>
                                             <div className="flex-1 min-w-0">
-                                                <div className="flex items-start justify-between gap-2">
+                                                <div className="flex items-start justify-between gap-2 mb-2">
                                                     <h3 className="font-semibold text-slate-900 truncate">
                                                         {participant.name}
                                                     </h3>
-                                                    <Badge 
-                                                        variant="outline" 
-                                                        className={`text-xs capitalize ${getRoleBadgeColor(participant.role)}`}
-                                                    >
-                                                        {participant.role || 'Staff'}
-                                                    </Badge>
+                                                    {isOrganizer && editingRole === participant.id ? (
+                                                        <div className="flex items-center gap-1">
+                                                            <Select
+                                                                value={participant.role}
+                                                                onValueChange={(value) => handleUpdateRole(participant.id, value)}
+                                                                disabled={updatingRole}
+                                                            >
+                                                                <SelectTrigger className="h-7 text-xs w-28">
+                                                                    <SelectValue />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    <SelectItem value="doctor">Doctor</SelectItem>
+                                                                    <SelectItem value="nurse">Nurse</SelectItem>
+                                                                    <SelectItem value="admin">Admin</SelectItem>
+                                                                    <SelectItem value="organizer">Organizer</SelectItem>
+                                                                </SelectContent>
+                                                            </Select>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="ghost"
+                                                                className="h-7 w-7 p-0"
+                                                                onClick={() => setEditingRole(null)}
+                                                            >
+                                                                <X className="w-3 h-3" />
+                                                            </Button>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex items-center gap-1">
+                                                            <Badge 
+                                                                variant="outline" 
+                                                                className={`text-xs capitalize ${getRoleBadgeColor(participant.role)}`}
+                                                            >
+                                                                {participant.role || 'Staff'}
+                                                            </Badge>
+                                                            {isOrganizer && (
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="ghost"
+                                                                    className="h-6 w-6 p-0 hover:bg-primary/10"
+                                                                    onClick={() => setEditingRole(participant.id)}
+                                                                    title="Change role"
+                                                                >
+                                                                    <Edit2 className="w-3 h-3" />
+                                                                </Button>
+                                                            )}
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 
                                                 {participant.specialty && (
