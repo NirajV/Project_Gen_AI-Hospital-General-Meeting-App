@@ -182,10 +182,12 @@ export default function ParticipantsPage() {
                             Manage hospital staff and meeting participants
                         </p>
                     </div>
-                    <Button onClick={() => navigate('/meetings/new')} className="gap-2">
-                        <UserPlus className="w-4 h-4" />
-                        Invite to Meeting
-                    </Button>
+                    {isOrganizer && (
+                        <Button onClick={() => setCreateDialog(true)} className="gap-2">
+                            <UserPlus className="w-4 h-4" />
+                            Create Participant
+                        </Button>
+                    )}
                 </div>
 
                 {/* Statistics Cards */}
