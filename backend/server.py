@@ -19,7 +19,8 @@ from utils.email import (
     send_meeting_invite,
     send_response_alert,
     send_meeting_reminder,
-    send_daily_digest
+    send_daily_digest,
+    send_datetime_change_email
 )
 
 ROOT_DIR = Path(__file__).parent
@@ -715,12 +716,51 @@ async def update_meeting(meeting_id: str, updates: dict, current_user: dict = De
                       'meeting_type', 'location', 'video_link', 'status', 'recurrence_type']
     update_data = {k: v for k, v in updates.items() if k in allowed_fields}
     
+    # Check if date/time is being changed
+    datetime_changed = ('meeting_date' in update_data and update_data['meeting_date'] != meeting.get('meeting_date')) or \
+                      ('start_time' in update_data and update_data['start_time'] != meeting.get('start_time'))
+    
     # If status is being changed to 'completed', set completed_at timestamp
     if 'status' in update_data and update_data['status'] == 'completed' and meeting.get('status') != 'completed':
         update_data['completed_at'] = datetime.now(timezone.utc).isoformat()
     
     if update_data:
         await db.meetings.update_one({"id": meeting_id}, {"$set": update_data})
+    
+    # Send email notification if date/time changed
+    if datetime_changed:
+        try:
+            # Get all accepted participants
+            participants = await db.meeting_participants.find({
+                "meeting_id": meeting_id,
+                "response_status": "accepted"
+            }, {"_id": 0}).to_list(100)
+            
+            new_date = update_data.get('meeting_date', meeting.get('meeting_date'))
+            new_time = update_data.get('start_time', meeting.get('start_time'))
+            old_date = meeting.get('meeting_date')
+            old_time = meeting.get('start_time')
+            
+            for participant_doc in participants:
+                if participant_doc['user_id'] != current_user['id']:  # Don't email organizer
+                    user = await db.users.find_one({"id": participant_doc['user_id']}, {"_id": 0})
+                    if user and user.get('email'):
+                        try:
+                            send_datetime_change_email(
+                                meeting_title=update_data.get('title', meeting.get('title', 'Meeting')),
+                                participant=user,
+                                organizer=current_user,
+                                old_date=old_date,
+                                old_time=old_time,
+                                new_date=new_date,
+                                new_time=new_time,
+                                meeting_link=f"{FRONTEND_URL}/meetings/{meeting_id}"
+                            )
+                            logger.info(f"Sent datetime change notification to {user.get('email')}")
+                        except Exception as e:
+                            logger.error(f"Failed to send datetime change email: {str(e)}")
+        except Exception as e:
+            logger.error(f"Error sending datetime change notifications: {str(e)}")
     
     return await get_meeting_detail(meeting_id, current_user)
 

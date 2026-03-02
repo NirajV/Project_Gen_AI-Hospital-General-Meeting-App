@@ -304,3 +304,170 @@ def send_daily_digest(
         subject=subject,
         html_content=html_content
     )
+
+
+def send_datetime_change_email(
+    meeting_title: str,
+    participant: Dict,
+    organizer: Dict,
+    old_date: str,
+    old_time: str,
+    new_date: str,
+    new_time: str,
+    meeting_link: str
+) -> bool:
+    """
+    Send email notification when meeting date/time is changed
+    
+    Args:
+        meeting_title: Title of the meeting
+        participant: Participant user dict
+        organizer: Organizer user dict
+        old_date: Previous meeting date
+        old_time: Previous meeting time
+        new_date: New meeting date
+        new_time: New meeting time
+        meeting_link: Link to meeting details
+    
+    Returns:
+        bool: True if sent successfully
+    """
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Meeting Date/Time Changed</title>
+        <style>
+            body {{
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+                background-color: #f5f5f5;
+            }}
+            .container {{
+                background-color: #ffffff;
+                border-radius: 8px;
+                padding: 30px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }}
+            .header {{
+                text-align: center;
+                padding-bottom: 20px;
+                border-bottom: 2px solid #f59e0b;
+                margin-bottom: 30px;
+            }}
+            .header h1 {{
+                color: #d97706;
+                margin: 0;
+                font-size: 24px;
+            }}
+            .alert-box {{
+                background-color: #fef3c7;
+                border-left: 4px solid #f59e0b;
+                padding: 20px;
+                margin: 20px 0;
+                border-radius: 4px;
+            }}
+            .change-details {{
+                background-color: #fafafa;
+                padding: 20px;
+                margin: 20px 0;
+                border-radius: 4px;
+            }}
+            .old-value {{
+                color: #dc2626;
+                text-decoration: line-through;
+            }}
+            .new-value {{
+                color: #059669;
+                font-weight: 600;
+            }}
+            .button {{
+                display: inline-block;
+                padding: 12px 30px;
+                margin: 20px 0;
+                text-decoration: none;
+                border-radius: 6px;
+                font-weight: 600;
+                font-size: 14px;
+                background-color: #f59e0b;
+                color: #ffffff;
+            }}
+            .button-container {{
+                text-align: center;
+            }}
+            .footer {{
+                text-align: center;
+                margin-top: 30px;
+                padding-top: 20px;
+                border-top: 1px solid #e5e7eb;
+                color: #6b7280;
+                font-size: 12px;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>⚠️ Meeting Date/Time Changed</h1>
+            </div>
+            
+            <p>Hi {participant.get('name', 'there')},</p>
+            
+            <div class="alert-box">
+                <p style="margin: 0; font-size: 16px;">
+                    <strong>{organizer.get('name', 'The organizer')}</strong> has changed the date/time for:
+                </p>
+                <h3 style="margin: 10px 0 0 0; color: #d97706;">{meeting_title}</h3>
+            </div>
+            
+            <div class="change-details">
+                <h3 style="margin-top: 0; color: #374151;">Updated Schedule:</h3>
+                
+                <div style="margin: 15px 0;">
+                    <p style="margin: 5px 0;"><strong>📅 Date:</strong></p>
+                    <p style="margin: 5px 0 5px 20px;">
+                        <span class="old-value">{old_date}</span> → 
+                        <span class="new-value">{new_date}</span>
+                    </p>
+                </div>
+                
+                <div style="margin: 15px 0;">
+                    <p style="margin: 5px 0;"><strong>🕐 Time:</strong></p>
+                    <p style="margin: 5px 0 5px 20px;">
+                        <span class="old-value">{old_time}</span> → 
+                        <span class="new-value">{new_time}</span>
+                    </p>
+                </div>
+            </div>
+            
+            <div class="button-container">
+                <a href="{meeting_link}" class="button">View Updated Meeting</a>
+            </div>
+            
+            <p style="color: #6b7280; font-size: 14px; margin-top: 20px;">
+                Please update your calendar with the new meeting time. If this change causes a conflict, 
+                please contact the organizer as soon as possible.
+            </p>
+            
+            <div class="footer">
+                <p>This is an automated message from Hospital Meeting Scheduler</p>
+                <p>© 2026 MedMeet. All rights reserved.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    subject = f"Meeting Time Changed: {meeting_title}"
+    
+    return send_email(
+        to_email=participant.get('email'),
+        subject=subject,
+        html_content=html_content
+    )

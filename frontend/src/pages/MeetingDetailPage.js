@@ -24,7 +24,7 @@ import Layout from '@/components/Layout';
 import { 
     ArrowLeft, Calendar, Clock, Video, MapPin, Users, User, FileText,
     CheckCircle2, XCircle, HelpCircle, Play, Upload, Trash2, Download,
-    Plus, ExternalLink, Loader2, AlertCircle, Clipboard, UserPlus, Mail
+    Plus, ExternalLink, Loader2, AlertCircle, Clipboard, UserPlus, Mail, Edit
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 
@@ -116,6 +116,13 @@ export default function MeetingDetailPage() {
     const [editingTreatmentPlan, setEditingTreatmentPlan] = useState({});
     const [treatmentPlanText, setTreatmentPlanText] = useState({});
     const [addingAgenda, setAddingAgenda] = useState(false);
+    
+    // State for Edit Date/Time Dialog
+    const [showEditDateTimeDialog, setShowEditDateTimeDialog] = useState(false);
+    const [editedDate, setEditedDate] = useState('');
+    const [editedStartTime, setEditedStartTime] = useState('');
+    const [editedEndTime, setEditedEndTime] = useState('');
+    const [isUpdatingDateTime, setIsUpdatingDateTime] = useState(false);
 
     useEffect(() => {
         loadMeeting();
@@ -148,6 +155,37 @@ export default function MeetingDetailPage() {
             loadMeeting();
         } catch (error) {
             console.error('Failed to update status:', error);
+        }
+    };
+    
+    const openEditDateTimeDialog = () => {
+        setEditedDate(meeting.meeting_date);
+        setEditedStartTime(meeting.start_time?.slice(0, 5) || '');
+        setEditedEndTime(meeting.end_time?.slice(0, 5) || '');
+        setShowEditDateTimeDialog(true);
+    };
+    
+    const handleDateTimeUpdate = async () => {
+        if (!editedDate || !editedStartTime) {
+            alert('Please provide both date and start time');
+            return;
+        }
+        
+        setIsUpdatingDateTime(true);
+        try {
+            await updateMeeting(id, {
+                meeting_date: editedDate,
+                start_time: editedStartTime,
+                end_time: editedEndTime || editedStartTime
+            });
+            await loadMeeting();
+            setShowEditDateTimeDialog(false);
+            alert('Meeting date/time updated successfully! Participants have been notified.');
+        } catch (error) {
+            console.error('Failed to update date/time:', error);
+            alert('Failed to update meeting date/time');
+        } finally {
+            setIsUpdatingDateTime(false);
         }
     };
 
@@ -512,7 +550,7 @@ export default function MeetingDetailPage() {
 
                 {/* Header */}
                 <div className="flex items-start justify-between">
-                    <div>
+                    <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
                             <h1 className="text-3xl font-display font-bold text-foreground tracking-tight">
                                 {meeting.title}
@@ -528,6 +566,17 @@ export default function MeetingDetailPage() {
                                 <Clock className="w-4 h-4" />
                                 {meeting.start_time?.slice(0, 5)} - {meeting.end_time?.slice(0, 5)}
                             </span>
+                            {isOrganizer && meeting.status === 'scheduled' && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={openEditDateTimeDialog}
+                                    className="h-7 text-xs"
+                                >
+                                    <Edit className="w-3 h-3 mr-1" />
+                                    Edit Time
+                                </Button>
+                            )}
                             <span className="flex items-center gap-1">
                                 {meeting.meeting_type === 'video' ? <Video className="w-4 h-4" /> : <MapPin className="w-4 h-4" />}
                                 {meeting.meeting_type?.replace('_', ' ')}
@@ -1788,6 +1837,80 @@ export default function MeetingDetailPage() {
                                 <Plus className="w-4 h-4 mr-2" />
                             )}
                             Add Agenda Item
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+            
+            {/* Edit Date/Time Dialog */}
+            <Dialog open={showEditDateTimeDialog} onOpenChange={setShowEditDateTimeDialog}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Edit Meeting Date & Time</DialogTitle>
+                        <DialogDescription>
+                            Update the meeting schedule. All participants will be notified of the change.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="edit-date">Meeting Date *</Label>
+                            <Input
+                                id="edit-date"
+                                type="date"
+                                value={editedDate}
+                                onChange={(e) => setEditedDate(e.target.value)}
+                                required
+                            />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="edit-start-time">Start Time *</Label>
+                                <Input
+                                    id="edit-start-time"
+                                    type="time"
+                                    value={editedStartTime}
+                                    onChange={(e) => setEditedStartTime(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="edit-end-time">End Time</Label>
+                                <Input
+                                    id="edit-end-time"
+                                    type="time"
+                                    value={editedEndTime}
+                                    onChange={(e) => setEditedEndTime(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                        <div className="rounded-md bg-blue-50 p-4 text-sm text-blue-800">
+                            <div className="flex items-start gap-2">
+                                <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                                <div>
+                                    <strong>Note:</strong> All accepted participants will receive an email notification about this schedule change.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setShowEditDateTimeDialog(false)}>
+                            Cancel
+                        </Button>
+                        <Button 
+                            onClick={handleDateTimeUpdate}
+                            disabled={isUpdatingDateTime || !editedDate || !editedStartTime}
+                        >
+                            {isUpdatingDateTime ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    Updating...
+                                </>
+                            ) : (
+                                <>
+                                    <Clock className="w-4 h-4 mr-2" />
+                                    Update Date & Time
+                                </>
+                            )}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
