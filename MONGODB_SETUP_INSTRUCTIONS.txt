@@ -1,0 +1,127 @@
+========================================
+  MONGODB SETUP FOR HOSPITAL MEETING APP
+========================================
+
+QUICK SETUP INSTRUCTIONS:
+
+STEP 1: Download MongoDB
+------------------------
+1. Go to: https://www.mongodb.com/try/download/community
+2. Select:
+   - Version: 8.0 or higher
+   - Platform: Windows x64
+   - Package: ZIP (NOT MSI!)
+3. Click Download
+4. Wait for download to complete (~350MB)
+
+STEP 2: Extract MongoDB
+-----------------------
+1. Find downloaded file in Downloads folder
+   (Named: mongodb-windows-x86_64-8.0.x.zip)
+
+2. Right-click the ZIP file → Extract All
+
+3. Extract to: C:\mongodb
+   - Make sure you see C:\mongodb\bin\mongod.exe after extraction
+   - If you see C:\mongodb\mongodb-win32-...\bin\mongod.exe
+     Then MOVE all files up one level to C:\mongodb\
+
+4. Verify extraction:
+   - Open File Explorer
+   - Go to C:\mongodb\bin\
+   - You should see: mongod.exe, mongosh.exe, and other files
+
+STEP 3: Create Required Folders
+-------------------------------
+Open Command Prompt and run:
+
+    mkdir C:\data\db
+    mkdir C:\mongodb\log
+
+STEP 4: Start MongoDB
+--------------------
+Double-click this file in your project folder:
+
+    START_MONGODB.bat
+
+You should see:
+"waiting for connections on port 27017"
+
+✅ MongoDB is running!
+
+KEEP THAT WINDOW OPEN while using the app!
+
+STEP 5: Start Your App
+---------------------
+Now open 2 more Command Prompt windows:
+
+Terminal 1 - Backend:
+    cd path\to\your\app\backend
+    python -m uvicorn server:app --reload --host 0.0.0.0 --port 8001
+
+Terminal 2 - Frontend:
+    cd path\to\your\app\frontend
+    npm start
+
+Terminal 3 - MongoDB:
+    Keep START_MONGODB.bat window open
+
+========================================
+         TROUBLESHOOTING
+========================================
+
+Problem: "mongod.exe not found"
+Solution: MongoDB ZIP was not extracted to C:\mongodb\
+         Re-extract and make sure C:\mongodb\bin\mongod.exe exists
+
+Problem: "Port 27017 already in use"
+Solution: MongoDB is already running
+         Check Task Manager → End mongod.exe process
+         Then run START_MONGODB.bat again
+
+Problem: "Cannot create directory"
+Solution: Run Command Prompt as Administrator
+         Right-click → Run as administrator
+
+Problem: Backend still shows "ECONNREFUSED"
+Solution: 1. Make sure START_MONGODB.bat window is still open
+         2. Check MongoDB logs: type C:\mongodb\log\mongod.log
+         3. Restart backend after MongoDB starts
+
+========================================
+       VERIFICATION COMMANDS
+========================================
+
+Check if MongoDB is running:
+    C:\mongodb\bin\mongosh.exe
+
+You should see: test>
+Type: exit to quit
+
+Check if backend can connect:
+    curl http://localhost:8001/api/health
+
+Expected: {"status":"healthy","database":"connected"}
+
+========================================
+         EVERY DAY STARTUP
+========================================
+
+When you want to use the app:
+
+1. Double-click: START_MONGODB.bat (keep window open)
+2. Start backend (in Command Prompt)
+3. Start frontend (in Command Prompt)
+4. Open browser: http://localhost:3000
+
+When you're done:
+- Close frontend (Ctrl+C)
+- Close backend (Ctrl+C)
+- Close MongoDB (Ctrl+C in START_MONGODB.bat window)
+
+========================================
+
+Need help? Check the full guide:
+/app/MONGODB_INSTALLATION_GUIDE.md
+
+========================================
