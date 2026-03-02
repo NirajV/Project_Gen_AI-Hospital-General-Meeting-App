@@ -11,8 +11,12 @@ from typing import List, Dict, Optional
 from datetime import datetime, timedelta
 from jinja2 import Template
 import logging
+from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
+
+# Load environment variables first
+load_dotenv()
 
 # Email configuration from environment variables
 EMAIL_ENABLED = os.getenv("EMAIL_ENABLED", "false").lower() == "true"
