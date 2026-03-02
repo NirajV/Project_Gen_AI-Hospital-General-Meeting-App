@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Digest</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #10b981;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #059669;
+            margin: 0;
+            font-size: 24px;
+        }
+        .date-badge {
+            background-color: #d1fae5;
+            color: #065f46;
+            padding: 5px 15px;
+            border-radius: 15px;
+            display: inline-block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        .section {
+            margin: 30px 0;
+        }
+        .section-title {
+            color: #059669;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #d1fae5;
+        }
+        .meeting-item {
+            background-color: #f0fdf4;
+            border-left: 3px solid #10b981;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .meeting-title {
+            font-weight: 600;
+            color: #065f46;
+            margin: 0 0 8px 0;
+        }
+        .meeting-time {
+            color: #6b7280;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+        .meeting-link {
+            color: #059669;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: #6b7280;
+            font-style: italic;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            margin: 20px 0;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 14px;
+            background-color: #10b981;
+            color: #ffffff;
+        }
+        .button-container {
+            text-align: center;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            color: #6b7280;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📅 Daily Meeting Digest</h1>
+            <div class="date-badge">{{ today_date }}</div>
+        </div>
+        
+        <p>Good morning, {{ user_name }}!</p>
+        
+        <p>Here's your meeting schedule for today and the week ahead:</p>
+        
+        <!-- Today's Meetings -->
+        <div class="section">
+            <div class="section-title">🔹 Today's Meetings ({{ todays_meetings|length }})</div>
+            
+            {% if todays_meetings %}
+                {% for meeting in todays_meetings %}
+                <div class="meeting-item">
+                    <div class="meeting-title">{{ meeting.title }}</div>
+                    <div class="meeting-time">
+                        🕐 {{ meeting.time }}{% if meeting.location %} • 📍 {{ meeting.location }}{% endif %}
+                    </div>
+                    <a href="{{ meeting.link }}" class="meeting-link">View Details →</a>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    No meetings scheduled for today. Enjoy your free time! ☕
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Upcoming This Week -->
+        {% if upcoming_meetings %}
+        <div class="section">
+            <div class="section-title">📆 Upcoming This Week ({{ upcoming_meetings|length }})</div>
+            
+            {% for meeting in upcoming_meetings %}
+            <div class="meeting-item">
+                <div class="meeting-title">{{ meeting.title }}</div>
+                <div class="meeting-time">
+                    📅 {{ meeting.date }} • 🕐 {{ meeting.time }}
+                </div>
+                <a href="{{ meeting.link }}" class="meeting-link">View Details →</a>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <div class="button-container">
+            <a href="{{ dashboard_link }}" class="button">View Full Dashboard</a>
+        </div>
+        
+        <p style="color: #6b7280; font-size: 14px; margin-top: 20px;">
+            Stay organized and never miss a meeting. Have a productive day!
+        </p>
+        
+        <div class="footer">
+            <p>This is your daily digest from Hospital Meeting Scheduler</p>
+            <p>You're receiving this because you have upcoming meetings</p>
+            <p>© 2026 MedMeet. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

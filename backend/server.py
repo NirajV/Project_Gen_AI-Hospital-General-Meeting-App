@@ -15,6 +15,12 @@ import aiofiles
 import jwt
 import bcrypt
 import httpx
+from utils.email import (
+    send_meeting_invite,
+    send_response_alert,
+    send_meeting_reminder,
+    send_daily_digest
+)
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -29,6 +35,9 @@ JWT_ALGORITHM = os.environ.get('JWT_ALGORITHM', 'HS256')
 JWT_EXPIRATION_HOURS = int(os.environ.get('JWT_EXPIRATION_HOURS', 24))
 UPLOAD_DIR = Path(os.environ.get('UPLOAD_DIR', '/app/uploads'))
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+# Get frontend URL for email links
+FRONTEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'http://localhost:3000').replace(':8001', ':3000')
 
 app = FastAPI(title="Hospital Meeting Scheduler API")
 api_router = APIRouter(prefix="/api")
@@ -569,6 +578,28 @@ async def create_meeting(meeting: MeetingCreate, current_user: dict = Depends(ge
                 "response_status": "pending",
                 "created_at": datetime.now(timezone.utc).isoformat()
             })
+            
+            # Send email invitation to participant
+            try:
+                participant_user = await db.users.find_one({"id": participant_id}, {"_id": 0})
+                if participant_user and participant_user.get('email'):
+                    meeting_data = {
+                        "id": meeting_id,
+                        "title": meeting.title,
+                        "description": meeting.description,
+                        "date": meeting.meeting_date,
+                        "time": meeting.start_time,
+                        "location": meeting.location or "To be announced"
+                    }
+                    send_meeting_invite(
+                        meeting=meeting_data,
+                        participant=participant_user,
+                        organizer=current_user,
+                        frontend_url=FRONTEND_URL
+                    )
+                    logger.info(f"Sent meeting invite to {participant_user.get('email')}")
+            except Exception as e:
+                logger.error(f"Failed to send meeting invite: {str(e)}")
     
     # Add patients
     for patient_id in meeting.patient_ids or []:
@@ -780,6 +811,29 @@ async def update_participant_response(meeting_id: str, user_id: str, data: dict,
     
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="Participant not found")
+    
+    # Send response alert to organizer
+    try:
+        meeting = await db.meetings.find_one({"id": meeting_id}, {"_id": 0})
+        if meeting:
+            organizer = await db.users.find_one({"id": meeting['organizer_id']}, {"_id": 0})
+            if organizer and organizer.get('email') and organizer['id'] != current_user['id']:
+                meeting_data = {
+                    "id": meeting_id,
+                    "title": meeting.get('title', 'Meeting'),
+                    "date": meeting.get('meeting_date', 'TBD'),
+                    "time": meeting.get('start_time', 'TBD')
+                }
+                send_response_alert(
+                    meeting=meeting_data,
+                    participant=current_user,
+                    organizer=organizer,
+                    response_status=response_status,
+                    frontend_url=FRONTEND_URL
+                )
+                logger.info(f"Sent response alert to organizer {organizer.get('email')}")
+    except Exception as e:
+        logger.error(f"Failed to send response alert: {str(e)}")
     
     return {"message": f"Response updated to {response_status}"}
 
