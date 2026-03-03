@@ -159,8 +159,9 @@ export default function ParticipantsPage() {
                 })
             });
 
+            const data = await response.json();
+            
             if (!response.ok) {
-                const data = await response.json();
                 throw new Error(data.detail || 'Failed to update participant');
             }
 
