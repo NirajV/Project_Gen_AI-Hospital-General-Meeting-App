@@ -159,7 +159,16 @@ export default function ParticipantsPage() {
                 })
             });
 
-            const data = await response.json();
+            // Clone response to avoid body stream issues
+            const responseClone = response.clone();
+            
+            let data;
+            try {
+                data = await response.json();
+            } catch (jsonError) {
+                // If JSON parsing fails, try the clone
+                data = await responseClone.json();
+            }
             
             if (!response.ok) {
                 throw new Error(data.detail || 'Failed to update participant');
