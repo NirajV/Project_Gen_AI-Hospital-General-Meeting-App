@@ -119,15 +119,18 @@ backend:
   
   - task: "Fix Insufficient Permissions Bug - Edit Participant"
     implemented: true
-    working: "tested_backend"
+    working: "YES"
     file: "/app/backend/server.py"
     stuck_count: 1
     priority: "critical"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "tested_backend"
         agent: "main"
         comment: "FIXED: Case sensitivity bug in PUT /api/users/{user_id} endpoint (line 389). Changed role check from ['Admin', 'Organizer'] to ['admin', 'organizer'] to match database values. Backend curl test successful - organizer can now update other users' email and department. User reported issue, previous agent attempted frontend fixes but root cause was backend permission check. Needs E2E frontend testing."
+      - working: "YES"
+        agent: "testing_agent_v3"
+        comment: "✅ VERIFIED E2E: All 23 backend tests passed (100%). E2E playwright test confirmed organizer can successfully edit another user's email and department from Participants page. No permission errors. Changes persist in database. Duplicate email validation works. Test file created: /app/backend/tests/test_user_permissions.py. CRITICAL BUG FULLY RESOLVED."
 
 frontend:
   - task: "Enhanced Recurrence - Frontend UI Implementation"
@@ -144,15 +147,18 @@ frontend:
   
   - task: "Edit Participant Email & Department - E2E Flow"
     implemented: true
-    working: "NA"
+    working: "YES"
     file: "/app/frontend/src/pages/ParticipantsPage.js"
     stuck_count: 1
     priority: "critical"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Backend permission bug now fixed. Frontend edit UI already implemented in ParticipantsPage.js using axios helper from /app/frontend/src/lib/api.js. Need to test complete E2E flow: Login as organizer → Navigate to Participants page → Edit another user's email/department → Verify changes persist."
+      - working: "YES"
+        agent: "testing_agent_v3"
+        comment: "✅ VERIFIED E2E: Full frontend flow tested with Playwright. Organizer can login → navigate to Participants → open edit dialog → update email and specialty → changes save successfully → changes persist after page reload. No errors. UI works perfectly. Feature is now fully functional."
 
 metadata:
   created_by: "main_agent"
