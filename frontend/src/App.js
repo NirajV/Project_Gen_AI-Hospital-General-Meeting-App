@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-route
 import { AuthProvider } from "@/context/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import LoginPage from "@/pages/LoginPage";
+import PasswordResetPage from "@/pages/PasswordResetPage";
 import AuthCallback from "@/pages/AuthCallback";
 import DashboardPage from "@/pages/DashboardPage";
 import MeetingsPage from "@/pages/MeetingsPage";
@@ -27,6 +28,7 @@ function AppRouter() {
     return (
         <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/reset-password" element={<PasswordResetPage />} />
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={
                 <ProtectedRoute><DashboardPage /></ProtectedRoute>

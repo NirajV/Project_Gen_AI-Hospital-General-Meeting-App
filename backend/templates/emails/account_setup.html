@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Setup</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .email-container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px 8px 0 0;
+            margin: -30px -30px 30px -30px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .credentials-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .credential-item {
+            margin: 10px 0;
+        }
+        .credential-label {
+            font-weight: bold;
+            color: #667eea;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .credential-value {
+            font-family: 'Courier New', monospace;
+            background-color: #ffffff;
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+            display: inline-block;
+            font-size: 14px;
+        }
+        .steps {
+            background-color: #e8f4f8;
+            padding: 20px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .steps h3 {
+            margin-top: 0;
+            color: #0066cc;
+        }
+        .steps ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .steps li {
+            margin: 8px 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            font-size: 12px;
+            color: #6c757d;
+            text-align: center;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>🏥 Hospital Case Meeting Scheduler</h1>
+        </div>
+        
+        <h2>Dear {{ participant_name }},</h2>
+        
+        <p>You are cordially invited to participate in the <strong>{{ meeting_title }}</strong> to discuss the patient treatment plan.</p>
+        
+        <p>To facilitate your involvement, a professional account has been created for you on our secure clinical platform. Please use the credentials provided below to access the meeting space and review any relevant patient documentation:</p>
+        
+        <div class="credentials-box">
+            <div class="credential-item">
+                <span class="credential-label">Platform URL:</span>
+                <div class="credential-value">{{ platform_url }}</div>
+            </div>
+            
+            <div class="credential-item">
+                <span class="credential-label">User ID:</span>
+                <div class="credential-value">{{ user_email }}</div>
+            </div>
+            
+            <div class="credential-item">
+                <span class="credential-label">Temporary Password:</span>
+                <div class="credential-value">{{ temp_password }}</div>
+            </div>
+        </div>
+        
+        <div class="warning">
+            <strong>⚠️ Security Note:</strong> This is a temporary password. For security purposes, you may update your password after login from your profile settings.
+        </div>
+        
+        <div class="steps">
+            <h3>Next Steps:</h3>
+            <ol>
+                <li>Click the button below or visit the platform URL</li>
+                <li>Login with your User ID and Temporary Password</li>
+                <li>Access the meeting details and review patient information</li>
+                <li>Manage participants, update the agenda, and upload necessary medical reports</li>
+                <li>(Optional) Update your password from profile settings</li>
+            </ol>
+        </div>
+        
+        <center>
+            <a href="{{ platform_url }}" class="button">Access Platform Now</a>
+        </center>
+        
+        <p>We look forward to your contributions to the upcoming discussion.</p>
+        
+        <p>Best regards,<br>
+        <strong>{{ organizer_name }}</strong><br>
+        Meeting Organizer</p>
+        
+        <div class="footer">
+            <p>This is an automated email from the Hospital Case Meeting Scheduler.</p>
+            <p>If you received this email in error, please contact the meeting organizer.</p>
+        </div>
+    </div>
+</body>
+</html>

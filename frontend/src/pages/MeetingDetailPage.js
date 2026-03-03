@@ -77,7 +77,7 @@ export default function MeetingDetailPage() {
     const [allUsers, setAllUsers] = useState([]);
     const [addingParticipant, setAddingParticipant] = useState(false);
     const [inviteTab, setInviteTab] = useState('existing');
-    const [newInvite, setNewInvite] = useState({ email: '', name: '', specialty: '' });
+    const [newInvite, setNewInvite] = useState({ email: '', name: '', specialty: '', role: 'doctor' });
     const [inviting, setInviting] = useState(false);
     const [newDecision, setNewDecision] = useState({
         title: '', 
@@ -451,8 +451,8 @@ export default function MeetingDetailPage() {
                     email: newInvite.email,
                     name: newInvite.name,  // Backend expects 'name', not 'full_name'
                     specialty: newInvite.specialty,
-                    password: 'TempPass123!', // Temporary password
-                    role: 'doctor'
+                    role: newInvite.role || 'doctor',
+                    meeting_id: id  // Pass meeting_id to trigger account setup email
                 })
             });
             
@@ -473,12 +473,12 @@ export default function MeetingDetailPage() {
             try {
                 await addParticipant(id, { user_id: data.user.id, role: 'attendee' });
                 await loadMeeting();
-                setNewInvite({ email: '', name: '', specialty: '' });
+                setNewInvite({ email: '', name: '', specialty: '', role: 'doctor' });
                 setInviteTab('existing');
                 // Refresh user list
                 const res = await getUsers();
                 setAllUsers(res.data);
-                alert(`✅ Successfully invited ${newInvite.name}!\nThey can login with: ${newInvite.email}\nTemporary password: TempPass123!`);
+                alert(`✅ Successfully invited ${newInvite.name}!\nAccount setup email sent to: ${newInvite.email}\nThey can login and access the meeting details.`);
             } catch (addError) {
                 throw new Error('User created but failed to add to meeting: ' + (addError.response?.data?.detail || addError.message));
             }
@@ -1346,7 +1346,7 @@ export default function MeetingDetailPage() {
                 setParticipantDialog(open);
                 if (!open) {
                     setInviteTab('existing');
-                    setNewInvite({ email: '', name: '', specialty: '' });
+                    setNewInvite({ email: '', name: '', specialty: '', role: 'doctor' });
                 }
             }}>
                 <DialogContent className="max-w-lg">
@@ -1465,6 +1465,23 @@ export default function MeetingDetailPage() {
                                     data-testid="invite-specialty-input"
                                 />
                             </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="invite-role">Role *</Label>
+                                <Select
+                                    value={newInvite.role}
+                                    onValueChange={(value) => setNewInvite({ ...newInvite, role: value })}
+                                >
+                                    <SelectTrigger id="invite-role" data-testid="invite-role-select">
+                                        <SelectValue placeholder="Select role" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="doctor">Doctor</SelectItem>
+                                        <SelectItem value="nurse">Nurse</SelectItem>
+                                        <SelectItem value="organizer">Organizer</SelectItem>
+                                        <SelectItem value="guest">Guest</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                             <Button
                                 className="w-full"
                                 onClick={handleInviteByEmail}
@@ -1478,7 +1495,7 @@ export default function MeetingDetailPage() {
                                 )}
                             </Button>
                             <p className="text-xs text-muted-foreground text-center">
-                                An account will be created for the invited person. They can login with a temporary password.
+                                An account will be created and login credentials will be emailed to the invited person.
                             </p>
                         </div>
                     )}

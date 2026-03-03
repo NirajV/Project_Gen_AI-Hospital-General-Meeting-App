@@ -471,3 +471,84 @@ def send_datetime_change_email(
         subject=subject,
         html_content=html_content
     )
+
+
+
+def send_account_setup_email(
+    user: Dict,
+    temp_password: str,
+    meeting: Dict,
+    organizer: Dict,
+    frontend_url: str
+) -> bool:
+    """
+    Send account setup email with login credentials to newly created user
+    
+    Args:
+        user: User details dict
+        temp_password: Temporary password for first login
+        meeting: Meeting details dict
+        organizer: Meeting organizer details
+        frontend_url: Base URL of frontend app
+    
+    Returns:
+        bool: True if sent successfully
+    """
+    template = load_email_template("account_setup")
+    if not template:
+        return False
+    
+    template_obj = Template(template)
+    html_content = template_obj.render(
+        participant_name=user.get('name', user.get('email', 'there')),
+        meeting_title=meeting.get('title', 'Hospital Case Meeting'),
+        platform_url=frontend_url,
+        user_email=user.get('email'),
+        temp_password=temp_password,
+        organizer_name=organizer.get('name', 'Meeting Organizer')
+    )
+    
+    subject = "Account Setup: Access for Hospital Case Meeting Scheduler"
+    
+    return send_email(
+        to_email=user.get('email'),
+        subject=subject,
+        html_content=html_content
+    )
+
+
+def send_password_reset_email(
+    user: Dict,
+    new_password: str,
+    frontend_url: str
+) -> bool:
+    """
+    Send password reset email with new credentials
+    
+    Args:
+        user: User details dict
+        new_password: New randomly generated password
+        frontend_url: Base URL of frontend app
+    
+    Returns:
+        bool: True if sent successfully
+    """
+    template = load_email_template("password_reset")
+    if not template:
+        return False
+    
+    template_obj = Template(template)
+    html_content = template_obj.render(
+        user_name=user.get('name', user.get('email', 'there')),
+        user_email=user.get('email'),
+        new_password=new_password,
+        platform_url=frontend_url
+    )
+    
+    subject = "Password Reset: Hospital Case Meeting Scheduler"
+    
+    return send_email(
+        to_email=user.get('email'),
+        subject=subject,
+        html_content=html_content
+    )

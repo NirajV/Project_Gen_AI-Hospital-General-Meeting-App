@@ -221,6 +221,15 @@ export default function LoginPage() {
                                 {isLogin ? 'Register' : 'Sign In'}
                             </button>
                         </p>
+                        
+                        {isLogin && (
+                            <p className="mt-2 text-center text-sm text-muted-foreground">
+                                Forgot your password?{' '}
+                                <Link to="/reset-password" className="text-primary hover:underline font-medium">
+                                    Reset it here
+                                </Link>
+                            </p>
+                        )}
                     </CardContent>
                 </Card>
             </div>

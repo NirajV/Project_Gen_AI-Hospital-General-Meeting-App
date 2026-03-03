@@ -146,6 +146,30 @@ backend:
       - working: "YES"
         agent: "testing_agent_v3"
         comment: "✅ VERIFIED E2E: All 11 backend tests passed (100%). E2E test confirmed participant added from meeting detail page successfully receives email invite. Backend logs verified email sent. Email contains meeting details, accept/decline links. Tested with doctor and nurse roles. Test file created: /app/backend/tests/test_participant_email_invite.py. FEATURE FULLY WORKING."
+  
+  - task: "Account Setup Email for New Participants"
+    implemented: true
+    working: "tested_backend"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "tested_backend"
+        agent: "main"
+        comment: "NEW FEATURE: Auto-generated credentials email when inviting new participants. Modified POST /api/auth/register endpoint to accept optional meeting_id parameter. When provided, sends account_setup email with secure random password, platform URL, meeting details, and organizer info. Created send_account_setup_email() in utils/email.py and account_setup.html template. Backend curl test successful - email sent to test.new.participant123@hospital.com. Backend logs confirm: 'Sent account setup email'."
+  
+  - task: "Password Reset Functionality"
+    implemented: true
+    working: "tested_backend"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "tested_backend"
+        agent: "main"
+        comment: "NEW FEATURE: Password reset endpoint. Created POST /api/auth/reset-password endpoint that generates secure random password (12 chars with letters, numbers, special chars), updates database with hashed password, sends password_reset email. Created send_password_reset_email() in utils/email.py and password_reset.html template. Backend curl test successful - email sent to organizer@hospital.com. Backend logs confirm: 'Password reset email sent'."
 
 frontend:
   - task: "Enhanced Recurrence - Frontend UI Implementation"
@@ -174,6 +198,30 @@ frontend:
       - working: "YES"
         agent: "testing_agent_v3"
         comment: "✅ VERIFIED E2E: Full frontend flow tested with Playwright. Organizer can login → navigate to Participants → open edit dialog → update email and specialty → changes save successfully → changes persist after page reload. No errors. UI works perfectly. Feature is now fully functional."
+  
+  - task: "Role Dropdown in Add Participant Dialog"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/MeetingDetailPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added role dropdown in 'Invite by Email' dialog. Updated newInvite state to include role field with default 'doctor'. Added Select component with options: Doctor, Nurse, Organizer, Guest. Updated handleInviteByEmail to pass role and meeting_id to registration endpoint. Updated dialog reset to include role. UI message updated to reflect credential email being sent."
+  
+  - task: "Password Reset Page"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/PasswordResetPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created PasswordResetPage.js with email input form, submit button, success/error messages, auto-redirect to login after 5 seconds. Added route /reset-password in App.js. Added 'Forgot Password?' link on LoginPage below login form. Page calls POST /api/auth/reset-password endpoint."
 
 metadata:
   created_by: "main_agent"
@@ -183,9 +231,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Email Invite for Newly Added Participants"
-    - "Enhanced Recurrence - Backend Support"
-    - "Enhanced Recurrence - Frontend UI Implementation"
+    - "Account Setup Email for New Participants"
+    - "Password Reset Functionality"
+    - "Role Dropdown in Add Participant Dialog"
+    - "Password Reset Page"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -197,3 +246,5 @@ agent_communication:
     message: "CRITICAL FIX APPLIED: Fixed 'Insufficient permissions' bug in PUT /api/users/{user_id}. Root cause was case sensitivity - roles stored as lowercase ('admin', 'organizer') but endpoint checked for capitalized ('Admin', 'Organizer'). Backend curl test passed successfully. PRIORITY: Test complete E2E flow for editing participant email/department from Participants page as organizer. Also test enhanced recurrence features. Credentials: organizer@hospital.com / password123"
   - agent: "main"
     message: "NEW FEATURE IMPLEMENTED: Email invites now sent to participants added to existing meetings. Modified POST /api/meetings/{meeting_id}/participants endpoint. Backend curl test successful - confirmed email sent via logs. PRIORITY: Test E2E flow - create meeting, then add new participant from meeting detail page, verify email sent. Credentials: organizer@hospital.com / password123"
+  - agent: "main"
+    message: "TWO NEW FEATURES IMPLEMENTED: 1) Account Setup Email - When inviting new participants by email, system auto-generates secure password and sends credentials via email. Added role dropdown (Doctor/Nurse/Organizer/Guest) in invite dialog. 2) Password Reset - New page at /reset-password where users can request password reset. Both features tested with curl, emails sent successfully. PRIORITY: Test E2E flows - invite new participant and reset password from UI. Test credentials: Use reset password feature to create new test credentials."
