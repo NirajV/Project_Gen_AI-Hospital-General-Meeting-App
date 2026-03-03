@@ -385,11 +385,30 @@ async def update_user_role(user_id: str, data: dict, current_user: dict = Depend
 
 @api_router.put("/users/{user_id}")
 async def update_user(user_id: str, updates: dict, current_user: dict = Depends(get_current_user)):
-    if current_user['id'] != user_id:
-        raise HTTPException(status_code=403, detail="Can only update own profile")
+    # Check if current user is admin/organizer or updating own profile
+    is_admin_or_organizer = current_user.get('role') in ['Admin', 'Organizer']
+    is_self_update = current_user['id'] == user_id
     
-    allowed_fields = ['name', 'specialty', 'organization', 'phone']
+    if not is_admin_or_organizer and not is_self_update:
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    
+    # Admin/Organizer can update email and specialty, users can update their own info
+    if is_admin_or_organizer:
+        allowed_fields = ['name', 'email', 'specialty', 'organization', 'phone']
+    else:
+        allowed_fields = ['name', 'specialty', 'organization', 'phone']
+    
     update_data = {k: v for k, v in updates.items() if k in allowed_fields}
+    
+    # If updating email, check if it's unique
+    if 'email' in update_data:
+        existing_user = await db.users.find_one({
+            "email": update_data['email'],
+            "id": {"$ne": user_id}
+        }, {"_id": 0})
+        
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Email already in use")
     
     if update_data:
         await db.users.update_one({"id": user_id}, {"$set": update_data})

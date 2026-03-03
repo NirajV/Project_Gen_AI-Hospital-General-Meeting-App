@@ -32,6 +32,11 @@ export default function ParticipantsPage() {
     const [filterRole, setFilterRole] = useState('all');
     const [createDialog, setCreateDialog] = useState(false);
     const [editingRole, setEditingRole] = useState(null);
+    const [editDialog, setEditDialog] = useState(false);
+    const [editingUser, setEditingUser] = useState(null);
+    const [editedEmail, setEditedEmail] = useState('');
+    const [editedSpecialty, setEditedSpecialty] = useState('');
+    const [updatingUser, setUpdatingUser] = useState(false);
     const [newParticipant, setNewParticipant] = useState({
         name: '',
         email: '',
@@ -124,6 +129,54 @@ export default function ParticipantsPage() {
             alert('Failed to update role: ' + error.message);
         } finally {
             setUpdatingRole(false);
+        }
+    };
+
+    const openEditDialog = (participant) => {
+        setEditingUser(participant);
+        setEditedEmail(participant.email);
+        setEditedSpecialty(participant.specialty || '');
+        setEditDialog(true);
+    };
+
+    const handleUpdateUser = async () => {
+        if (!editedEmail) {
+            alert('Email is required');
+            return;
+        }
+
+        setUpdatingUser(true);
+        try {
+            const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/users/${editingUser.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                },
+                body: JSON.stringify({
+                    email: editedEmail,
+                    specialty: editedSpecialty
+                })
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.detail || 'Failed to update participant');
+            }
+
+            await loadParticipants();
+            setEditDialog(false);
+            setEditingUser(null);
+            alert(`✅ Participant "${editingUser.name}" updated successfully!`);
+        } catch (error) {
+            console.error('Failed to update participant:', error);
+            if (error.message.includes('Email already in use')) {
+                alert('This email is already registered to another user.');
+            } else {
+                alert('Failed to update participant: ' + error.message);
+            }
+        } finally {
+            setUpdatingUser(false);
         }
     };
 
@@ -358,6 +411,17 @@ export default function ParticipantsPage() {
                                                 <div className="flex items-center gap-1 mt-1 text-sm text-muted-foreground">
                                                     <Mail className="w-3 h-3 flex-shrink-0" />
                                                     <span className="truncate">{participant.email}</span>
+                                                    {isOrganizer && (
+                                                        <Button
+                                                            size="sm"
+                                                            variant="ghost"
+                                                            className="h-5 w-5 p-0 ml-auto hover:bg-primary/10"
+                                                            onClick={() => openEditDialog(participant)}
+                                                            title="Edit email and department"
+                                                        >
+                                                            <Edit2 className="w-3 h-3" />
+                                                        </Button>
+                                                    )}
                                                 </div>
                                                 
                                                 {participant.phone && (
@@ -479,6 +543,83 @@ export default function ParticipantsPage() {
                                     <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Creating...</>
                                 ) : (
                                     <><UserPlus className="w-4 h-4 mr-2" /> Create Participant</>
+                                )}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Edit User Dialog */}
+                <Dialog open={editDialog} onOpenChange={setEditDialog}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Edit Participant Details</DialogTitle>
+                            <DialogDescription>
+                                Update email address and department/specialty for {editingUser?.name}
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="edit-email">Email Address *</Label>
+                                <div className="flex items-center gap-2">
+                                    <Mail className="w-4 h-4 text-muted-foreground" />
+                                    <Input
+                                        id="edit-email"
+                                        type="email"
+                                        placeholder="email@hospital.com"
+                                        value={editedEmail}
+                                        onChange={(e) => setEditedEmail(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="edit-specialty">Department / Specialty</Label>
+                                <div className="flex items-center gap-2">
+                                    <Briefcase className="w-4 h-4 text-muted-foreground" />
+                                    <Input
+                                        id="edit-specialty"
+                                        type="text"
+                                        placeholder="e.g., Cardiology, Oncology"
+                                        value={editedSpecialty}
+                                        onChange={(e) => setEditedSpecialty(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                            <div className="rounded-md bg-blue-50 p-4 text-sm text-blue-800">
+                                <div className="flex items-start gap-2">
+                                    <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                                    <div>
+                                        <strong>Note:</strong> Email updates will be reflected immediately. 
+                                        The participant will need to use the new email for future logins.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    setEditDialog(false);
+                                    setEditingUser(null);
+                                }}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                onClick={handleUpdateUser}
+                                disabled={!editedEmail || updatingUser}
+                            >
+                                {updatingUser ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                        Updating...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Save className="w-4 h-4 mr-2" />
+                                        Update Participant
+                                    </>
                                 )}
                             </Button>
                         </DialogFooter>
