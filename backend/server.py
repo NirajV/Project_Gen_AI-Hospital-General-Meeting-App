@@ -830,6 +830,32 @@ async def add_participant(meeting_id: str, invite: ParticipantInvite, current_us
         "added_by": current_user['id']  # Track who added this participant
     })
     
+    # Send email invite to newly added participant
+    try:
+        # Get participant user details
+        participant_user = await db.users.find_one({"id": invite.user_id}, {"_id": 0})
+        # Get organizer details
+        organizer = await db.users.find_one({"id": meeting['organizer_id']}, {"_id": 0})
+        
+        if participant_user and participant_user.get('email') and organizer:
+            meeting_data = {
+                "id": meeting_id,
+                "title": meeting.get('title'),
+                "description": meeting.get('description'),
+                "date": meeting.get('meeting_date'),
+                "time": meeting.get('start_time'),
+                "location": meeting.get('location') or "To be announced"
+            }
+            send_meeting_invite(
+                meeting=meeting_data,
+                participant=participant_user,
+                organizer=organizer,
+                frontend_url=FRONTEND_URL
+            )
+            logger.info(f"Sent meeting invite to newly added participant: {participant_user.get('email')}")
+    except Exception as e:
+        logger.error(f"Failed to send meeting invite to newly added participant: {str(e)}")
+    
     return {"message": "Participant added successfully"}
 
 @api_router.put("/meetings/{meeting_id}/respond")

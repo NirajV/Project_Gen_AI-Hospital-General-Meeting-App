@@ -131,6 +131,18 @@ backend:
       - working: "YES"
         agent: "testing_agent_v3"
         comment: "✅ VERIFIED E2E: All 23 backend tests passed (100%). E2E playwright test confirmed organizer can successfully edit another user's email and department from Participants page. No permission errors. Changes persist in database. Duplicate email validation works. Test file created: /app/backend/tests/test_user_permissions.py. CRITICAL BUG FULLY RESOLVED."
+  
+  - task: "Email Invite for Newly Added Participants"
+    implemented: true
+    working: "tested_backend"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "tested_backend"
+        agent: "main"
+        comment: "NEW FEATURE: Added email notification when participant is added to existing meeting. Modified POST /api/meetings/{meeting_id}/participants endpoint (line 800-863) to fetch participant and organizer details, then send meeting invite using send_meeting_invite(). Backend curl test successful - email sent to newly added participant. Backend logs confirm: 'Sent meeting invite to newly added participant: test_e2e_7681@hospital.com'. Needs E2E frontend testing."
 
 frontend:
   - task: "Enhanced Recurrence - Frontend UI Implementation"
@@ -168,8 +180,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Fix Insufficient Permissions Bug - Edit Participant"
-    - "Edit Participant Email & Department - E2E Flow"
+    - "Email Invite for Newly Added Participants"
     - "Enhanced Recurrence - Backend Support"
     - "Enhanced Recurrence - Frontend UI Implementation"
   stuck_tasks: []
@@ -181,3 +192,5 @@ agent_communication:
     message: "Completed enhanced recurrence implementation. Users can now: 1) Select day of week for weekly recurrence, 2) Select day (1-31) for monthly recurrence, 3) Must provide end date for all recurring meetings with validation. Need comprehensive testing of all recurrence patterns and validation logic. Test credentials: organizer@hospital.com / password123"
   - agent: "main"
     message: "CRITICAL FIX APPLIED: Fixed 'Insufficient permissions' bug in PUT /api/users/{user_id}. Root cause was case sensitivity - roles stored as lowercase ('admin', 'organizer') but endpoint checked for capitalized ('Admin', 'Organizer'). Backend curl test passed successfully. PRIORITY: Test complete E2E flow for editing participant email/department from Participants page as organizer. Also test enhanced recurrence features. Credentials: organizer@hospital.com / password123"
+  - agent: "main"
+    message: "NEW FEATURE IMPLEMENTED: Email invites now sent to participants added to existing meetings. Modified POST /api/meetings/{meeting_id}/participants endpoint. Backend curl test successful - confirmed email sent via logs. PRIORITY: Test E2E flow - create meeting, then add new participant from meeting detail page, verify email sent. Credentials: organizer@hospital.com / password123"
