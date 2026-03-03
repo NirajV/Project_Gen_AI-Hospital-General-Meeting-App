@@ -730,10 +730,10 @@ async def update_meeting(meeting_id: str, updates: dict, current_user: dict = De
     # Send email notification if date/time changed
     if datetime_changed:
         try:
-            # Get all accepted participants
+            # Get all participants except those who explicitly declined
             participants = await db.meeting_participants.find({
                 "meeting_id": meeting_id,
-                "response_status": "accepted"
+                "response_status": {"$ne": "declined"}  # Send to everyone except declined
             }, {"_id": 0}).to_list(100)
             
             new_date = update_data.get('meeting_date', meeting.get('meeting_date'))
