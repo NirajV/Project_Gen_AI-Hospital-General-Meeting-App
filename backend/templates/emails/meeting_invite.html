@@ -31,6 +31,16 @@
             margin: 0;
             font-size: 24px;
         }
+        .greeting {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        .invitation-text {
+            font-size: 15px;
+            line-height: 1.8;
+            margin: 20px 0;
+            color: #374151;
+        }
         .meeting-details {
             background-color: #eff6ff;
             border-left: 4px solid #3b82f6;
@@ -46,6 +56,40 @@
             color: #1e40af;
             display: inline-block;
             width: 100px;
+        }
+        .capabilities-section {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+        .capabilities-title {
+            font-weight: 600;
+            color: #1e40af;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        .capability-item {
+            margin: 12px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+        .capability-item::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #10b981;
+            font-weight: bold;
+        }
+        .capability-title {
+            font-weight: 600;
+            color: #374151;
+        }
+        .capability-description {
+            color: #6b7280;
+            font-size: 14px;
+            margin-top: 3px;
         }
         .button-container {
             text-align: center;
@@ -73,6 +117,16 @@
             background-color: #3b82f6;
             color: #ffffff;
         }
+        .closing {
+            margin-top: 30px;
+            font-size: 15px;
+            line-height: 1.8;
+        }
+        .signature {
+            margin-top: 20px;
+            font-weight: 600;
+            color: #374151;
+        }
         .footer {
             text-align: center;
             margin-top: 30px;
@@ -89,12 +143,14 @@
             <h1>🏥 Meeting Invitation</h1>
         </div>
         
-        <p>Hi {{ participant_name }},</p>
+        <p class="greeting">Dear {{ participant_name }},</p>
         
-        <p>You have been invited to a meeting by <strong>{{ organizer_name }}</strong>.</p>
+        <p class="invitation-text">
+            You are cordially invited to attend the <strong>{{ meeting_title }}</strong> to discuss the comprehensive treatment plan for our patient. Your expertise and input are vital to ensuring the best possible outcome.
+        </p>
         
         <div class="meeting-details">
-            <h2 style="margin-top: 0; color: #1e40af;">{{ meeting_title }}</h2>
+            <h2 style="margin-top: 0; color: #1e40af; font-size: 18px;">{{ meeting_title }}</h2>
             
             <div class="detail-row">
                 <span class="detail-label">📅 Date:</span>
@@ -119,8 +175,34 @@
             {% endif %}
         </div>
         
+        <div class="capabilities-section">
+            <div class="capabilities-title">
+                To streamline our discussion, please note that you have the administrative flexibility to manage the following within the meeting portal:
+            </div>
+            
+            <div class="capability-item">
+                <div class="capability-title">Participant Management</div>
+                <div class="capability-description">Add new or existing team members who should be involved.</div>
+            </div>
+            
+            <div class="capability-item">
+                <div class="capability-title">Patient Profiles</div>
+                <div class="capability-description">Link additional existing patients or register a new patient for review.</div>
+            </div>
+            
+            <div class="capability-item">
+                <div class="capability-title">Agenda Updates</div>
+                <div class="capability-description">Create or modify agenda items to ensure specific concerns are addressed.</div>
+            </div>
+            
+            <div class="capability-item">
+                <div class="capability-title">Clinical Documentation</div>
+                <div class="capability-description">Upload or attach pre-existing patient reports relevant to this case.</div>
+            </div>
+        </div>
+        
         <div class="button-container">
-            <a href="{{ accept_link }}" class="button btn-accept">✓ Accept</a>
+            <a href="{{ accept_link }}" class="button btn-accept">✓ Accept Invitation</a>
             <a href="{{ decline_link }}" class="button btn-decline">✗ Decline</a>
         </div>
         
@@ -128,12 +210,17 @@
             <a href="{{ view_link }}" class="button btn-view">View Meeting Details</a>
         </div>
         
-        <p style="color: #6b7280; font-size: 14px;">
-            Please respond at your earliest convenience so the organizer can plan accordingly.
-        </p>
+        <div class="closing">
+            <p>I look forward to our meeting and a productive session.</p>
+        </div>
+        
+        <div class="signature">
+            Best regards,<br>
+            {{ organizer_name }}
+        </div>
         
         <div class="footer">
-            <p>This is an automated message from Hospital Meeting Scheduler</p>
+            <p>This is an automated invitation from Hospital Meeting Scheduler</p>
             <p>© 2026 MedMeet. All rights reserved.</p>
         </div>
     </div>
