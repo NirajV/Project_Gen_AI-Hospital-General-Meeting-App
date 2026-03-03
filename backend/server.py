@@ -386,7 +386,7 @@ async def update_user_role(user_id: str, data: dict, current_user: dict = Depend
 @api_router.put("/users/{user_id}")
 async def update_user(user_id: str, updates: dict, current_user: dict = Depends(get_current_user)):
     # Check if current user is admin/organizer or updating own profile
-    is_admin_or_organizer = current_user.get('role') in ['Admin', 'Organizer']
+    is_admin_or_organizer = current_user.get('role') in ['admin', 'organizer']
     is_self_update = current_user['id'] == user_id
     
     if not is_admin_or_organizer and not is_self_update:

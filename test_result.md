@@ -116,6 +116,18 @@ backend:
       - working: "NA"
         agent: "main"
         comment: "Added recurrence_day_of_month field to MeetingBase model (line 103). Updated POST /api/meetings to save recurrence_day_of_month along with existing fields (line 510). Backend now supports: weekly with day_of_week, monthly with day_of_month, monthly_on with week_of_month + day_of_week, and recurrence_end_date for all recurring types."
+  
+  - task: "Fix Insufficient Permissions Bug - Edit Participant"
+    implemented: true
+    working: "tested_backend"
+    file: "/app/backend/server.py"
+    stuck_count: 1
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "tested_backend"
+        agent: "main"
+        comment: "FIXED: Case sensitivity bug in PUT /api/users/{user_id} endpoint (line 389). Changed role check from ['Admin', 'Organizer'] to ['admin', 'organizer'] to match database values. Backend curl test successful - organizer can now update other users' email and department. User reported issue, previous agent attempted frontend fixes but root cause was backend permission check. Needs E2E frontend testing."
 
 frontend:
   - task: "Enhanced Recurrence - Frontend UI Implementation"
@@ -129,6 +141,18 @@ frontend:
       - working: "NA"
         agent: "main"
         comment: "Changed 'Meeting Date' to 'Meeting Start Date'. Added recurrence_end_date, recurrence_day_of_month to formData. Implemented conditional UI: Weekly shows day_of_week selector, Monthly shows day_of_month selector (1-31), All recurring types show required recurrence_end_date field. Added comprehensive validation in handleSubmit to ensure end date is provided and is after start date, and required fields for each recurrence type are selected."
+  
+  - task: "Edit Participant Email & Department - E2E Flow"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/ParticipantsPage.js"
+    stuck_count: 1
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Backend permission bug now fixed. Frontend edit UI already implemented in ParticipantsPage.js using axios helper from /app/frontend/src/lib/api.js. Need to test complete E2E flow: Login as organizer → Navigate to Participants page → Edit another user's email/department → Verify changes persist."
 
 metadata:
   created_by: "main_agent"
@@ -138,9 +162,10 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Fix Insufficient Permissions Bug - Edit Participant"
+    - "Edit Participant Email & Department - E2E Flow"
     - "Enhanced Recurrence - Backend Support"
     - "Enhanced Recurrence - Frontend UI Implementation"
-    - "Validation logic for recurring meetings"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -148,3 +173,5 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: "Completed enhanced recurrence implementation. Users can now: 1) Select day of week for weekly recurrence, 2) Select day (1-31) for monthly recurrence, 3) Must provide end date for all recurring meetings with validation. Need comprehensive testing of all recurrence patterns and validation logic. Test credentials: organizer@hospital.com / password123"
+  - agent: "main"
+    message: "CRITICAL FIX APPLIED: Fixed 'Insufficient permissions' bug in PUT /api/users/{user_id}. Root cause was case sensitivity - roles stored as lowercase ('admin', 'organizer') but endpoint checked for capitalized ('Admin', 'Organizer'). Backend curl test passed successfully. PRIORITY: Test complete E2E flow for editing participant email/department from Participants page as organizer. Also test enhanced recurrence features. Credentials: organizer@hospital.com / password123"
