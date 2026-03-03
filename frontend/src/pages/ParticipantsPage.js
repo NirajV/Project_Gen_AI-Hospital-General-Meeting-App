@@ -147,32 +147,10 @@ export default function ParticipantsPage() {
 
         setUpdatingUser(true);
         try {
-            const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/users/${editingUser.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                },
-                body: JSON.stringify({
-                    email: editedEmail,
-                    specialty: editedSpecialty
-                })
+            await updateUser(editingUser.id, {
+                email: editedEmail,
+                specialty: editedSpecialty
             });
-
-            // Clone response to avoid body stream issues
-            const responseClone = response.clone();
-            
-            let data;
-            try {
-                data = await response.json();
-            } catch (jsonError) {
-                // If JSON parsing fails, try the clone
-                data = await responseClone.json();
-            }
-            
-            if (!response.ok) {
-                throw new Error(data.detail || 'Failed to update participant');
-            }
 
             await loadParticipants();
             setEditDialog(false);
@@ -180,10 +158,11 @@ export default function ParticipantsPage() {
             alert(`✅ Participant "${editingUser.name}" updated successfully!`);
         } catch (error) {
             console.error('Failed to update participant:', error);
-            if (error.message.includes('Email already in use')) {
+            const errorMsg = error.response?.data?.detail || error.message;
+            if (errorMsg.includes('Email already in use')) {
                 alert('This email is already registered to another user.');
             } else {
-                alert('Failed to update participant: ' + error.message);
+                alert('Failed to update participant: ' + errorMsg);
             }
         } finally {
             setUpdatingUser(false);
