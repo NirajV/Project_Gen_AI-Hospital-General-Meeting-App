@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Setup & Meeting Invitation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .email-container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px 8px 0 0;
+            margin: -30px -30px 30px -30px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .credentials-section {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .credentials-section h2 {
+            margin-top: 0;
+            font-size: 20px;
+        }
+        .credentials-box {
+            background-color: rgba(255, 255, 255, 0.95);
+            color: #333;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        .credential-item {
+            margin: 12px 0;
+        }
+        .credential-label {
+            font-weight: bold;
+            color: #764ba2;
+            display: block;
+            margin-bottom: 5px;
+            font-size: 13px;
+        }
+        .credential-value {
+            font-family: 'Courier New', monospace;
+            background-color: #f8f9fa;
+            padding: 10px 14px;
+            border-radius: 4px;
+            border: 2px solid #667eea;
+            display: block;
+            font-size: 15px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .divider {
+            border-top: 3px solid #667eea;
+            margin: 30px 0;
+        }
+        .meeting-section {
+            background-color: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            border-left: 5px solid #667eea;
+            margin: 20px 0;
+        }
+        .meeting-section h2 {
+            margin-top: 0;
+            color: #667eea;
+            font-size: 20px;
+        }
+        .meeting-detail {
+            margin: 12px 0;
+            padding: 10px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .meeting-detail:last-child {
+            border-bottom: none;
+        }
+        .meeting-label {
+            font-weight: bold;
+            color: #495057;
+            display: inline-block;
+            min-width: 100px;
+        }
+        .meeting-value {
+            color: #212529;
+        }
+        .actions {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 14px 32px;
+            margin: 8px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+        .button-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .button-accept {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+        .button-decline {
+            background: linear-gradient(135deg, #fc4a1a 0%, #f7b733 100%);
+            color: white;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            font-size: 12px;
+            color: #6c757d;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>🎉 Welcome to Hospital Case Meeting Scheduler!</h1>
+        </div>
+        
+        <h2>Dear {{ participant_name }},</h2>
+        
+        <p>You have been invited to participate in <strong>{{ meeting_title }}</strong>. We've created a professional account for you to access our secure clinical platform.</p>
+        
+        <!-- CREDENTIALS SECTION (TOP) -->
+        <div class="credentials-section">
+            <h2>🔑 Your Login Credentials</h2>
+            <p style="margin: 10px 0; font-size: 14px;">Use these credentials to access the platform and manage your meeting participation:</p>
+            
+            <div class="credentials-box">
+                <div class="credential-item">
+                    <span class="credential-label">🌐 Platform URL:</span>
+                    <span class="credential-value">{{ platform_url }}</span>
+                </div>
+                
+                <div class="credential-item">
+                    <span class="credential-label">📧 User ID (Email):</span>
+                    <span class="credential-value">{{ user_email }}</span>
+                </div>
+                
+                <div class="credential-item">
+                    <span class="credential-label">🔐 Temporary Password:</span>
+                    <span class="credential-value">{{ temp_password }}</span>
+                </div>
+            </div>
+            
+            <div class="warning">
+                <strong>⚠️ Important:</strong> This is a temporary password. You can optionally update it after login from your profile settings for enhanced security.
+            </div>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <!-- MEETING INVITATION SECTION (BOTTOM) -->
+        <div class="meeting-section">
+            <h2>📅 Meeting Details</h2>
+            
+            <div class="meeting-detail">
+                <span class="meeting-label">📋 Title:</span>
+                <span class="meeting-value">{{ meeting_title }}</span>
+            </div>
+            
+            <div class="meeting-detail">
+                <span class="meeting-label">📝 Description:</span>
+                <span class="meeting-value">{{ meeting_description }}</span>
+            </div>
+            
+            <div class="meeting-detail">
+                <span class="meeting-label">📅 Date:</span>
+                <span class="meeting-value">{{ meeting_date }}</span>
+            </div>
+            
+            <div class="meeting-detail">
+                <span class="meeting-label">🕐 Time:</span>
+                <span class="meeting-value">{{ meeting_time }}</span>
+            </div>
+            
+            <div class="meeting-detail">
+                <span class="meeting-label">📍 Location:</span>
+                <span class="meeting-value">{{ meeting_location }}</span>
+            </div>
+            
+            <div class="meeting-detail">
+                <span class="meeting-label">👤 Organizer:</span>
+                <span class="meeting-value">{{ organizer_name }}</span>
+            </div>
+        </div>
+        
+        <!-- ACTION BUTTONS -->
+        <div class="actions">
+            <a href="{{ platform_url }}" class="button button-primary">
+                🚀 Access Platform Now
+            </a>
+            <br><br>
+            <a href="{{ accept_url }}" class="button button-accept">
+                ✅ Accept Invitation
+            </a>
+            <a href="{{ decline_url }}" class="button button-decline">
+                ❌ Decline
+            </a>
+            <a href="{{ view_url }}" class="button button-primary">
+                👁️ View Meeting Details
+            </a>
+        </div>
+        
+        <p><strong>Next Steps:</strong></p>
+        <ol>
+            <li>Click "Access Platform Now" or visit the platform URL</li>
+            <li>Login with your User ID and Temporary Password</li>
+            <li>Review the meeting details and participant list</li>
+            <li>Accept or decline your invitation</li>
+            <li>Upload any necessary medical reports or documents</li>
+        </ol>
+        
+        <p>We look forward to your participation in this important discussion.</p>
+        
+        <p>Best regards,<br>
+        <strong>{{ organizer_name }}</strong><br>
+        Meeting Organizer</p>
+        
+        <div class="footer">
+            <p>This is an automated email from the Hospital Case Meeting Scheduler.</p>
+            <p>If you received this email in error, please contact the meeting organizer.</p>
+        </div>
+    </div>
+</body>
+</html>

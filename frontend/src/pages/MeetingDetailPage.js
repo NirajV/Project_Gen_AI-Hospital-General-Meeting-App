@@ -1495,7 +1495,7 @@ export default function MeetingDetailPage() {
                                 )}
                             </Button>
                             <p className="text-xs text-muted-foreground text-center">
-                                An account will be created and login credentials will be emailed to the invited person.
+                                ✉️ ONE combined email will be sent with: Login Credentials (at top) + Meeting Invitation (below).
                             </p>
                         </div>
                     )}

@@ -22,7 +22,8 @@ from utils.email import (
     send_daily_digest,
     send_datetime_change_email,
     send_account_setup_email,
-    send_password_reset_email
+    send_password_reset_email,
+    send_combined_account_setup_and_invite
 )
 
 ROOT_DIR = Path(__file__).parent
@@ -280,23 +281,23 @@ async def register(user: UserCreate):
     user_data = await db.users.find_one({"id": user_id}, {"_id": 0})
     token = create_jwt_token(user_id, user.email)
     
-    # Send account setup email if meeting_id is provided
+    # Send combined account setup + meeting invitation email if meeting_id is provided
     if user.meeting_id:
         try:
             meeting = await db.meetings.find_one({"id": user.meeting_id}, {"_id": 0})
             if meeting:
                 organizer = await db.users.find_one({"id": meeting['organizer_id']}, {"_id": 0})
                 if organizer:
-                    send_account_setup_email(
+                    send_combined_account_setup_and_invite(
                         user=user_data,
                         temp_password=temp_password,
                         meeting=meeting,
                         organizer=organizer,
                         frontend_url=FRONTEND_URL
                     )
-                    logger.info(f"Sent account setup email to {user.email}")
+                    logger.info(f"Sent combined account setup + meeting invite to {user.email}")
         except Exception as e:
-            logger.error(f"Failed to send account setup email: {str(e)}")
+            logger.error(f"Failed to send combined email: {str(e)}")
     
     return TokenResponse(access_token=token, user=UserResponse(**serialize_doc(user_data)))
 

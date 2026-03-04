@@ -552,3 +552,57 @@ def send_password_reset_email(
         subject=subject,
         html_content=html_content
     )
+
+
+
+def send_combined_account_setup_and_invite(
+    user: Dict,
+    temp_password: str,
+    meeting: Dict,
+    organizer: Dict,
+    frontend_url: str
+) -> bool:
+    """
+    Send combined email with account credentials AND meeting invitation
+    
+    Args:
+        user: User details dict
+        temp_password: Temporary password for first login
+        meeting: Meeting details dict
+        organizer: Meeting organizer details
+        frontend_url: Base URL of frontend app
+    
+    Returns:
+        bool: True if sent successfully
+    """
+    template = load_email_template("account_setup_with_invite")
+    if not template:
+        return False
+    
+    meeting_id = meeting.get('id')
+    user_id = user.get('id')
+    
+    template_obj = Template(template)
+    html_content = template_obj.render(
+        participant_name=user.get('name', user.get('email', 'there')),
+        meeting_title=meeting.get('title', 'Hospital Case Meeting'),
+        meeting_description=meeting.get('description', 'Discussion of patient treatment plan'),
+        meeting_date=meeting.get('meeting_date', meeting.get('date', 'TBD')),
+        meeting_time=meeting.get('start_time', meeting.get('time', 'TBD')),
+        meeting_location=meeting.get('location', 'To be announced'),
+        platform_url=frontend_url,
+        user_email=user.get('email'),
+        temp_password=temp_password,
+        organizer_name=organizer.get('name', 'Meeting Organizer'),
+        accept_url=f"{frontend_url}/meetings/{meeting_id}/respond?user_id={user_id}&response=accepted",
+        decline_url=f"{frontend_url}/meetings/{meeting_id}/respond?user_id={user_id}&response=declined",
+        view_url=f"{frontend_url}/meetings/{meeting_id}"
+    )
+    
+    subject = f"Account Setup & Meeting Invitation: {meeting.get('title', 'Hospital Meeting')}"
+    
+    return send_email(
+        to_email=user.get('email'),
+        subject=subject,
+        html_content=html_content
+    )
