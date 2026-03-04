@@ -30,7 +30,7 @@ export default function MeetingWizardPage() {
     const [patients, setPatients] = useState([]);
     const [participantTab, setParticipantTab] = useState('existing');
     const [patientTab, setPatientTab] = useState('existing');
-    const [newInvite, setNewInvite] = useState({ email: '', name: '', specialty: '' });
+    const [newInvite, setNewInvite] = useState({ email: '', name: '', specialty: '', role: 'doctor' });
     const [inviting, setInviting] = useState(false);
     const [newPatient, setNewPatient] = useState({ 
         first_name: '', 
@@ -115,7 +115,7 @@ export default function MeetingWizardPage() {
                     email: newInvite.email,
                     name: newInvite.name,
                     specialty: newInvite.specialty,
-                    password: 'TempPass123!'
+                    role: newInvite.role || 'doctor'
                 })
             });
             
@@ -127,7 +127,7 @@ export default function MeetingWizardPage() {
                     ...prev,
                     participant_ids: [...prev.participant_ids, data.user.id]
                 }));
-                setNewInvite({ email: '', name: '', specialty: '' });
+                setNewInvite({ email: '', name: '', specialty: '', role: 'doctor' });
                 setParticipantTab('existing');
             } else {
                 const error = await response.json();
@@ -140,7 +140,7 @@ export default function MeetingWizardPage() {
                             participant_ids: [...prev.participant_ids, existingUser.id]
                         }));
                     }
-                    setNewInvite({ email: '', name: '', specialty: '' });
+                    setNewInvite({ email: '', name: '', specialty: '', role: 'doctor' });
                     setParticipantTab('existing');
                 }
             }
@@ -643,6 +643,23 @@ export default function MeetingWizardPage() {
                                         data-testid="wizard-invite-specialty"
                                     />
                                 </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="wizard-invite-role">Role *</Label>
+                                    <Select
+                                        value={newInvite.role}
+                                        onValueChange={(value) => setNewInvite({ ...newInvite, role: value })}
+                                    >
+                                        <SelectTrigger id="wizard-invite-role" className="h-11 bg-slate-50" data-testid="wizard-invite-role">
+                                            <SelectValue placeholder="Select role" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="doctor">Doctor</SelectItem>
+                                            <SelectItem value="nurse">Nurse</SelectItem>
+                                            <SelectItem value="organizer">Organizer</SelectItem>
+                                            <SelectItem value="guest">Guest</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                                 <Button
                                     className="w-full"
                                     onClick={handleInviteByEmail}
@@ -650,13 +667,13 @@ export default function MeetingWizardPage() {
                                     data-testid="wizard-send-invite"
                                 >
                                     {inviting ? (
-                                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Adding...</>
+                                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Sending Invite...</>
                                     ) : (
-                                        <><UserPlus className="w-4 h-4 mr-2" /> Add & Invite</>
+                                        <><Mail className="w-4 h-4 mr-2" /> Send Invite</>
                                     )}
                                 </Button>
                                 <p className="text-xs text-muted-foreground text-center">
-                                    An account will be created and they'll be added as a participant.
+                                    ⚠️ Note: During meeting creation, participants will be added but credentials won't be emailed yet. After creating the meeting, use "Add Participant" to send them login credentials.
                                 </p>
                             </div>
                         )}
