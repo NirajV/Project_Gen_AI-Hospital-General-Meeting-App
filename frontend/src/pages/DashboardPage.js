@@ -64,12 +64,17 @@ export default function DashboardPage() {
 
     const getStatusBadge = (status) => {
         const styles = {
-            scheduled: 'bg-blue-100 text-blue-700',
-            in_progress: 'bg-green-100 text-green-700',
-            completed: 'bg-slate-100 text-slate-700',
-            cancelled: 'bg-red-100 text-red-700'
+            scheduled: 'status-badge bg-blue-100 text-blue-800',
+            in_progress: 'status-badge bg-emerald-100 text-emerald-800',
+            completed: 'status-completed',
+            cancelled: 'status-declined',
+            pending: 'status-pending',
+            accepted: 'status-accepted',
+            declined: 'status-declined'
         };
-        return <Badge className={styles[status] || styles.scheduled}>{status.replace('_', ' ')}</Badge>;
+        return <Badge className={styles[status] || 'status-badge bg-slate-100 text-slate-700'}>
+            {status.replace('_', ' ').charAt(0).toUpperCase() + status.replace('_', ' ').slice(1)}
+        </Badge>;
     };
 
     if (loading) {
@@ -105,12 +110,12 @@ export default function DashboardPage() {
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <Card className="border-slate-200" data-testid="stat-upcoming">
+                    <Card className="border-slate-200 hover:shadow-lg transition-all duration-200 bg-gradient-to-br from-blue-50 to-white" data-testid="stat-upcoming">
                         <CardContent className="pt-6">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-muted-foreground">Upcoming Meetings</p>
-                                    <p className="text-3xl font-display font-bold text-foreground mt-1">
+                                    <p className="text-3xl font-display font-bold text-primary mt-1">
                                         {stats?.upcoming_meetings || 0}
                                     </p>
                                 </div>
@@ -121,12 +126,12 @@ export default function DashboardPage() {
                         </CardContent>
                     </Card>
 
-                    <Card className="border-slate-200" data-testid="stat-week">
+                    <Card className="border-slate-200 hover:shadow-lg transition-all duration-200 bg-gradient-to-br from-emerald-50 to-white" data-testid="stat-week">
                         <CardContent className="pt-6">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-muted-foreground">This Week</p>
-                                    <p className="text-3xl font-display font-bold text-foreground mt-1">
+                                    <p className="text-3xl font-display font-bold text-emerald-700 mt-1">
                                         {stats?.meetings_this_week || 0}
                                     </p>
                                 </div>
@@ -137,28 +142,28 @@ export default function DashboardPage() {
                         </CardContent>
                     </Card>
 
-                    <Card className="border-slate-200" data-testid="stat-invites">
+                    <Card className="border-slate-200 hover:shadow-lg transition-all duration-200 bg-gradient-to-br from-amber-50 to-white" data-testid="stat-invites">
                         <CardContent className="pt-6">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-muted-foreground">Pending Invites</p>
-                                    <p className="text-3xl font-display font-bold text-foreground mt-1">
+                                    <p className="text-3xl font-display font-bold text-amber-700 mt-1">
                                         {stats?.pending_invites || 0}
                                     </p>
                                 </div>
-                                <div className="w-12 h-12 rounded-lg bg-orange-100 flex items-center justify-center">
-                                    <UserPlus className="w-6 h-6 text-orange-600" />
+                                <div className="w-12 h-12 rounded-lg bg-amber-100 flex items-center justify-center">
+                                    <UserPlus className="w-6 h-6 text-amber-600" />
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card className="border-slate-200" data-testid="stat-patients">
+                    <Card className="border-slate-200 hover:shadow-lg transition-all duration-200 bg-gradient-to-br from-purple-50 to-white" data-testid="stat-patients">
                         <CardContent className="pt-6">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-muted-foreground">Total Patients</p>
-                                    <p className="text-3xl font-display font-bold text-foreground mt-1">
+                                    <p className="text-3xl font-display font-bold text-purple-700 mt-1">
                                         {stats?.total_patients || 0}
                                     </p>
                                 </div>
@@ -201,7 +206,7 @@ export default function DashboardPage() {
                                     return (
                                         <div
                                             key={meeting.id}
-                                            className="p-4 rounded-lg border border-slate-200 hover:border-primary/30 hover:bg-slate-50 transition-all"
+                                            className="p-4 rounded-sm border border-slate-200 hover:shadow-md hover:-translate-y-0.5 hover:border-primary/40 transition-all duration-200 bg-white"
                                             data-testid={`meeting-card-${idx}`}
                                         >
                                             <Link 
