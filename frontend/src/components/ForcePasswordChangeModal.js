@@ -51,7 +51,7 @@ export default function ForcePasswordChangeModal({ open, onPasswordChanged }) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
                 },
                 body: JSON.stringify({
                     current_password: passwords.currentPassword,
