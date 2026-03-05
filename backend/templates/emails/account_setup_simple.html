@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Setup - Hospital Meeting Scheduler</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .email-container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px 8px 0 0;
+            margin: -30px -30px 30px -30px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .credentials-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .credential-item {
+            margin: 10px 0;
+        }
+        .credential-label {
+            font-weight: bold;
+            color: #667eea;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .credential-value {
+            font-family: 'Courier New', monospace;
+            background-color: #ffffff;
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+            display: inline-block;
+            font-size: 14px;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            font-size: 12px;
+            color: #6c757d;
+            text-align: center;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>🔑 Your Account Has Been Created</h1>
+        </div>
+        
+        <h2>Hello {{ user_name }},</h2>
+        
+        <p>Welcome to the Hospital Case Meeting Scheduler! Your professional account has been created successfully.</p>
+        
+        <p>Please use the credentials below to access the platform:</p>
+        
+        <div class="credentials-box">
+            <div class="credential-item">
+                <span class="credential-label">🌐 Platform URL:</span>
+                <div class="credential-value">{{ platform_url }}</div>
+            </div>
+            
+            <div class="credential-item">
+                <span class="credential-label">📧 User ID (Email):</span>
+                <div class="credential-value">{{ user_email }}</div>
+            </div>
+            
+            <div class="credential-item">
+                <span class="credential-label">🔐 Temporary Password:</span>
+                <div class="credential-value">{{ temp_password }}</div>
+            </div>
+        </div>
+        
+        <div class="warning">
+            <strong>⚠️ Security Note:</strong> This is a temporary password. You can optionally update your password after login from your profile settings.
+        </div>
+        
+        <center>
+            <a href="{{ platform_url }}" class="button">Access Platform Now</a>
+        </center>
+        
+        <p><strong>Next Steps:</strong></p>
+        <ol>
+            <li>Click the button above or visit the platform URL</li>
+            <li>Login with your User ID and Temporary Password</li>
+            <li>You will receive separate meeting invitations as they are created</li>
+            <li>(Optional) Update your password from profile settings</li>
+        </ol>
+        
+        <p>You will receive meeting invitations separately as you are added to meetings.</p>
+        
+        <p>Best regards,<br>
+        <strong>Hospital Case Meeting Scheduler Team</strong></p>
+        
+        <div class="footer">
+            <p>This is an automated email from the Hospital Case Meeting Scheduler.</p>
+            <p>If you received this email in error, please contact your system administrator.</p>
+        </div>
+    </div>
+</body>
+</html>

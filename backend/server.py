@@ -23,7 +23,8 @@ from utils.email import (
     send_datetime_change_email,
     send_account_setup_email,
     send_password_reset_email,
-    send_combined_account_setup_and_invite
+    send_combined_account_setup_and_invite,
+    send_simple_account_setup_email
 )
 
 ROOT_DIR = Path(__file__).parent
@@ -281,9 +282,10 @@ async def register(user: UserCreate):
     user_data = await db.users.find_one({"id": user_id}, {"_id": 0})
     token = create_jwt_token(user_id, user.email)
     
-    # Send account setup email if meeting_id is provided
-    if user.meeting_id:
-        try:
+    # ALWAYS send account setup email immediately (with or without meeting_id)
+    try:
+        if user.meeting_id:
+            # If meeting_id provided, try to send email with meeting details
             meeting = await db.meetings.find_one({"id": user.meeting_id}, {"_id": 0})
             if meeting:
                 organizer = await db.users.find_one({"id": meeting['organizer_id']}, {"_id": 0})
@@ -295,9 +297,25 @@ async def register(user: UserCreate):
                         organizer=organizer,
                         frontend_url=FRONTEND_URL
                     )
-                    logger.info(f"Sent account setup email to {user.email}")
-        except Exception as e:
-            logger.error(f"Failed to send account setup email: {str(e)}")
+                    logger.info(f"Sent account setup email (with meeting details) to {user.email}")
+            else:
+                # Meeting doesn't exist yet, send simple credentials email
+                send_simple_account_setup_email(
+                    user=user_data,
+                    temp_password=temp_password,
+                    frontend_url=FRONTEND_URL
+                )
+                logger.info(f"Sent simple account setup email (credentials only) to {user.email}")
+        else:
+            # No meeting_id, send simple credentials email
+            send_simple_account_setup_email(
+                user=user_data,
+                temp_password=temp_password,
+                frontend_url=FRONTEND_URL
+            )
+            logger.info(f"Sent simple account setup email (credentials only) to {user.email}")
+    except Exception as e:
+        logger.error(f"Failed to send account setup email: {str(e)}")
     
     return TokenResponse(access_token=token, user=UserResponse(**serialize_doc(user_data)))
 

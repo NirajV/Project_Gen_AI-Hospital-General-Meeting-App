@@ -606,3 +606,41 @@ def send_combined_account_setup_and_invite(
         subject=subject,
         html_content=html_content
     )
+
+
+def send_simple_account_setup_email(
+    user: Dict,
+    temp_password: str,
+    frontend_url: str
+) -> bool:
+    """
+    Send simple account setup email with credentials only (no meeting details)
+    Used when creating account before meeting is created
+    
+    Args:
+        user: User details dict
+        temp_password: Temporary password for first login
+        frontend_url: Base URL of frontend app
+    
+    Returns:
+        bool: True if sent successfully
+    """
+    template = load_email_template("account_setup_simple")
+    if not template:
+        return False
+    
+    template_obj = Template(template)
+    html_content = template_obj.render(
+        user_name=user.get('name', user.get('email', 'there')),
+        platform_url=frontend_url,
+        user_email=user.get('email'),
+        temp_password=temp_password
+    )
+    
+    subject = "Account Setup: Hospital Case Meeting Scheduler Login Credentials"
+    
+    return send_email(
+        to_email=user.get('email'),
+        subject=subject,
+        html_content=html_content
+    )
