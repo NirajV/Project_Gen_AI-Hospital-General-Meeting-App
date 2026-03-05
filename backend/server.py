@@ -80,6 +80,7 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: UserResponse
+    requires_password_change: bool = False
 
 class PatientBase(BaseModel):
     patient_id_number: Optional[str] = None
@@ -275,6 +276,7 @@ async def register(user: UserCreate):
         "role": user.role or "doctor",
         "picture": None,
         "is_active": True,
+        "requires_password_change": not user.password,  # True if password was auto-generated
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.users.insert_one(user_doc)
@@ -329,7 +331,13 @@ async def login(credentials: UserLogin):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     token = create_jwt_token(user['id'], user['email'])
-    return TokenResponse(access_token=token, user=UserResponse(**serialize_doc(user)))
+    user_response = UserResponse(**serialize_doc(user))
+    
+    return TokenResponse(
+        access_token=token,
+        user=user_response,
+        requires_password_change=user.get('requires_password_change', False)
+    )
 
 
 @api_router.post("/auth/reset-password")
@@ -367,6 +375,44 @@ async def reset_password(data: dict):
         logger.error(f"Failed to send password reset email: {str(e)}")
     
     return {"message": "If the email exists, a password reset email has been sent"}
+
+
+
+@api_router.post("/auth/change-password")
+async def change_password(data: dict, current_user: dict = Depends(get_current_user)):
+    """Change user password with current password verification"""
+    current_password = data.get('current_password')
+    new_password = data.get('new_password')
+    
+    if not current_password or not new_password:
+        raise HTTPException(status_code=400, detail="Current and new password are required")
+    
+    if len(new_password) < 8:
+        raise HTTPException(status_code=400, detail="New password must be at least 8 characters")
+    
+    # Get user from database
+    user = await db.users.find_one({"id": current_user['id']}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Verify current password
+    if not verify_password(current_password, user['password_hash']):
+        raise HTTPException(status_code=401, detail="Current password is incorrect")
+    
+    # Hash and update new password
+    new_password_hash = hash_password(new_password)
+    await db.users.update_one(
+        {"id": current_user['id']},
+        {"$set": {
+            "password_hash": new_password_hash,
+            "requires_password_change": False,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    logger.info(f"Password changed successfully for user: {current_user['email']}")
+    
+    return {"message": "Password changed successfully"}
 
 
 # REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH

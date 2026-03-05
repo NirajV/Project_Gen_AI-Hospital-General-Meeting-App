@@ -159,7 +159,145 @@ export default function ProfilePage() {
                         </form>
                     </CardContent>
                 </Card>
+
+                {/* Change Password Card */}
+                <Card className="border-l-4 border-l-primary">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <span className="text-primary">🔐</span> Change Password
+                        </CardTitle>
+                        <CardDescription>
+                            Update your password to keep your account secure
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ChangePasswordForm />
+                    </CardContent>
+                </Card>
             </div>
         </Layout>
+    );
+}
+
+// Change Password Component
+function ChangePasswordForm() {
+    const { user } = useAuth();
+    const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState({ type: '', text: '' });
+    const [passwords, setPasswords] = useState({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+    });
+
+    const handlePasswordChange = (e) => {
+        setPasswords({ ...passwords, [e.target.name]: e.target.value });
+        setMessage({ type: '', text: '' });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setMessage({ type: '', text: '' });
+
+        // Validation
+        if (!passwords.currentPassword || !passwords.newPassword || !passwords.confirmPassword) {
+            setMessage({ type: 'error', text: 'All fields are required' });
+            return;
+        }
+
+        if (passwords.newPassword.length < 8) {
+            setMessage({ type: 'error', text: 'New password must be at least 8 characters' });
+            return;
+        }
+
+        if (passwords.newPassword !== passwords.confirmPassword) {
+            setMessage({ type: 'error', text: 'New passwords do not match' });
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/auth/change-password`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    current_password: passwords.currentPassword,
+                    new_password: passwords.newPassword
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                setMessage({ type: 'success', text: 'Password changed successfully!' });
+                setPasswords({ currentPassword: '', newPassword: '', confirmPassword: '' });
+            } else {
+                setMessage({ type: 'error', text: data.detail || 'Failed to change password' });
+            }
+        } catch (error) {
+            setMessage({ type: 'error', text: 'An error occurred. Please try again.' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="space-y-4">
+            {message.text && (
+                <div className={`p-3 rounded-md ${message.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
+                    {message.text}
+                </div>
+            )}
+
+            <div className="space-y-2">
+                <Label htmlFor="currentPassword">Current Password *</Label>
+                <Input
+                    id="currentPassword"
+                    name="currentPassword"
+                    type="password"
+                    value={passwords.currentPassword}
+                    onChange={handlePasswordChange}
+                    placeholder="Enter current password"
+                    disabled={loading}
+                />
+            </div>
+
+            <div className="space-y-2">
+                <Label htmlFor="newPassword">New Password *</Label>
+                <Input
+                    id="newPassword"
+                    name="newPassword"
+                    type="password"
+                    value={passwords.newPassword}
+                    onChange={handlePasswordChange}
+                    placeholder="Enter new password (min 8 characters)"
+                    disabled={loading}
+                />
+            </div>
+
+            <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm New Password *</Label>
+                <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type="password"
+                    value={passwords.confirmPassword}
+                    onChange={handlePasswordChange}
+                    placeholder="Confirm new password"
+                    disabled={loading}
+                />
+            </div>
+
+            <Button type="submit" disabled={loading} className="w-full">
+                {loading ? (
+                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Changing Password...</>
+                ) : (
+                    'Change Password'
+                )}
+            </Button>
+        </form>
     );
 }

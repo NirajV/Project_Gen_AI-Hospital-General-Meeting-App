@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Activity, Mail, Lock, User, Building, Stethoscope } from 'lucide-react';
+import ForcePasswordChangeModal from '@/components/ForcePasswordChangeModal';
 
 export default function LoginPage() {
     const navigate = useNavigate();
@@ -13,6 +14,7 @@ export default function LoginPage() {
     const [isLogin, setIsLogin] = useState(true);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [showPasswordChangeModal, setShowPasswordChangeModal] = useState(false);
     const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -32,16 +34,27 @@ export default function LoginPage() {
         setError('');
         try {
             if (isLogin) {
-                await login(formData.email, formData.password);
+                const result = await login(formData.email, formData.password);
+                if (result.requires_password_change) {
+                    // Show password change modal
+                    setShowPasswordChangeModal(true);
+                } else {
+                    navigate('/dashboard');
+                }
             } else {
                 await register(formData);
+                navigate('/dashboard');
             }
-            navigate('/dashboard');
         } catch (err) {
             setError(err.response?.data?.detail || 'Authentication failed');
         } finally {
             setLoading(false);
         }
+    };
+
+    const handlePasswordChanged = () => {
+        setShowPasswordChangeModal(false);
+        navigate('/dashboard');
     };
 
     // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
@@ -233,6 +246,12 @@ export default function LoginPage() {
                     </CardContent>
                 </Card>
             </div>
+
+            {/* Force Password Change Modal */}
+            <ForcePasswordChangeModal 
+                open={showPasswordChangeModal} 
+                onPasswordChanged={handlePasswordChanged}
+            />
         </div>
     );
 }

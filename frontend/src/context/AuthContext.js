@@ -32,11 +32,11 @@ export function AuthProvider({ children }) {
 
     const login = async (email, password) => {
         const response = await axios.post(`${API_URL}/api/auth/login`, { email, password });
-        const { access_token, user: userData } = response.data;
+        const { access_token, user: userData, requires_password_change } = response.data;
         setToken(access_token);
         localStorage.setItem('auth_token', access_token);
         setUser(userData);
-        return userData;
+        return { user: userData, requires_password_change };
     };
 
     const register = async (userData) => {
