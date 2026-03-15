@@ -331,22 +331,33 @@ export default function ParticipantsPage() {
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {filteredParticipants.map((participant) => (
-                                    <div
-                                        key={participant.id}
-                                        className="p-4 rounded-lg border border-slate-200 hover:border-primary/30 hover:bg-slate-50 transition-all"
-                                    >
-                                        <div className="flex items-start gap-3">
-                                            <Avatar className="w-12 h-12">
-                                                <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                                                    {getInitials(participant.name)}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-start justify-between gap-2 mb-2">
-                                                    <h3 className="font-semibold text-slate-900 truncate">
-                                                        {participant.name}
-                                                    </h3>
+                                {filteredParticipants.map((participant, idx) => {
+                                    // Rotating colors for participant cards (same as Dashboard)
+                                    const cardColors = [
+                                        { light: '#e8f5f0', dark: '#3b6658', hover: '#2d5047' }, // Meetings color
+                                        { light: '#f5f0e8', dark: '#694e20', hover: '#523c19' }, // Patients color
+                                        { light: '#f3edf5', dark: '#68517d', hover: '#523d61' }, // Participants color
+                                        { light: '#e8e8f5', dark: '#0b0b30', hover: '#070725' }, // Dashboard color
+                                    ];
+                                    const colors = cardColors[idx % cardColors.length];
+                                    
+                                    return (
+                                        <div
+                                            key={participant.id}
+                                            className="p-4 rounded-lg border-0 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group"
+                                            style={{ backgroundColor: colors.light }}
+                                        >
+                                            <div className="flex items-start gap-3">
+                                                <Avatar className="w-12 h-12" style={{ backgroundColor: colors.dark }}>
+                                                    <AvatarFallback className="font-semibold text-white" style={{ backgroundColor: colors.dark }}>
+                                                        {getInitials(participant.name)}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-start justify-between gap-2 mb-2">
+                                                        <h3 className="font-semibold truncate group-hover:text-slate-900 transition-colors" style={{ color: colors.dark }}>
+                                                            {participant.name}
+                                                        </h3>
                                                     {isOrganizer && editingRole === participant.id ? (
                                                         <div className="flex items-center gap-1">
                                                             <Select
@@ -397,20 +408,20 @@ export default function ParticipantsPage() {
                                                 </div>
                                                 
                                                 {participant.specialty && (
-                                                    <div className="flex items-center gap-1 mt-1 text-sm text-muted-foreground">
+                                                    <div className="flex items-center gap-1 mt-1 text-sm" style={{ color: colors.dark, opacity: 0.8 }}>
                                                         <Briefcase className="w-3 h-3" />
                                                         <span className="truncate">{participant.specialty}</span>
                                                     </div>
                                                 )}
                                                 
-                                                <div className="flex items-center gap-1 mt-1 text-sm text-muted-foreground">
+                                                <div className="flex items-center gap-1 mt-1 text-sm" style={{ color: colors.dark, opacity: 0.8 }}>
                                                     <Mail className="w-3 h-3 flex-shrink-0" />
                                                     <span className="truncate">{participant.email}</span>
                                                     {isOrganizer && (
                                                         <Button
                                                             size="sm"
                                                             variant="ghost"
-                                                            className="h-5 w-5 p-0 ml-auto hover:bg-primary/10"
+                                                            className="h-5 w-5 p-0 ml-auto hover:bg-slate-200"
                                                             onClick={() => openEditDialog(participant)}
                                                             title="Edit email and department"
                                                         >
@@ -420,7 +431,7 @@ export default function ParticipantsPage() {
                                                 </div>
                                                 
                                                 {participant.phone && (
-                                                    <div className="flex items-center gap-1 mt-1 text-sm text-muted-foreground">
+                                                    <div className="flex items-center gap-1 mt-1 text-sm" style={{ color: colors.dark, opacity: 0.8 }}>
                                                         <Phone className="w-3 h-3" />
                                                         <span>{participant.phone}</span>
                                                     </div>
@@ -428,7 +439,8 @@ export default function ParticipantsPage() {
                                             </div>
                                         </div>
                                     </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
                     </CardContent>

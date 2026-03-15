@@ -118,81 +118,92 @@ export default function PatientsPage() {
                     </Card>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {patients.map((patient, idx) => (
-                            <Card 
-                                key={patient.id} 
-                                className="border-0 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 shadow-sm group" 
-                                style={{ backgroundColor: '#f5f0e8' }}
-                                data-testid={`patient-card-${idx}`}
-                            >
-                                <CardContent className="pt-6">
-                                    <div className="flex items-start justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div 
-                                                className="w-12 h-12 rounded-full flex items-center justify-center" 
-                                                style={{ backgroundColor: '#694e20' }}
-                                            >
-                                                <User className="w-6 h-6 text-white" />
+                        {patients.map((patient, idx) => {
+                            // Rotating colors for patient cards (same as Dashboard)
+                            const cardColors = [
+                                { light: '#e8f5f0', dark: '#3b6658', hover: '#2d5047' }, // Meetings color
+                                { light: '#f5f0e8', dark: '#694e20', hover: '#523c19' }, // Patients color
+                                { light: '#f3edf5', dark: '#68517d', hover: '#523d61' }, // Participants color
+                                { light: '#e8e8f5', dark: '#0b0b30', hover: '#070725' }, // Dashboard color
+                            ];
+                            const colors = cardColors[idx % cardColors.length];
+                            
+                            return (
+                                <Card 
+                                    key={patient.id} 
+                                    className="border-0 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 shadow-sm group" 
+                                    style={{ backgroundColor: colors.light }}
+                                    data-testid={`patient-card-${idx}`}
+                                >
+                                    <CardContent className="pt-6">
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div 
+                                                    className="w-12 h-12 rounded-full flex items-center justify-center" 
+                                                    style={{ backgroundColor: colors.dark }}
+                                                >
+                                                    <User className="w-6 h-6 text-white" />
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-semibold text-foreground group-hover:text-slate-900 transition-colors">
+                                                        {patient.first_name} {patient.last_name}
+                                                    </h3>
+                                                    {patient.patient_id_number && (
+                                                        <p className="text-xs" style={{ color: colors.dark }}>ID: {patient.patient_id_number}</p>
+                                                    )}
+                                                </div>
                                             </div>
-                                            <div>
-                                                <h3 className="font-semibold text-foreground group-hover:text-slate-900 transition-colors">
-                                                    {patient.first_name} {patient.last_name}
-                                                </h3>
-                                                {patient.patient_id_number && (
-                                                    <p className="text-xs" style={{ color: '#694e20' }}>ID: {patient.patient_id_number}</p>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="text-muted-foreground hover:text-destructive"
+                                                onClick={() => setDeleteDialog({ open: true, patient })}
+                                                data-testid={`delete-patient-${idx}`}
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                        </div>
+
+                                        <div className="mt-4 space-y-2 text-sm">
+                                            <div className="flex items-center gap-2" style={{ color: colors.dark }}>
+                                                <Calendar className="w-4 h-4" />
+                                                <span>{calculateAge(patient.date_of_birth)} years</span>
+                                                {patient.gender && (
+                                                    <Badge variant="outline" className="text-xs capitalize" style={{ borderColor: colors.dark, color: colors.dark }}>
+                                                        {patient.gender}
+                                                    </Badge>
                                                 )}
                                             </div>
-                                        </div>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="text-muted-foreground hover:text-destructive"
-                                            onClick={() => setDeleteDialog({ open: true, patient })}
-                                            data-testid={`delete-patient-${idx}`}
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </Button>
-                                    </div>
-
-                                    <div className="mt-4 space-y-2 text-sm">
-                                        <div className="flex items-center gap-2" style={{ color: '#694e20' }}>
-                                            <Calendar className="w-4 h-4" />
-                                            <span>{calculateAge(patient.date_of_birth)} years</span>
-                                            {patient.gender && (
-                                                <Badge variant="outline" className="text-xs capitalize border-[#694e20] text-[#694e20]">
-                                                    {patient.gender}
-                                                </Badge>
+                                            {patient.department_name && (
+                                                <div className="flex items-center gap-2" style={{ color: colors.dark }}>
+                                                    <Building className="w-4 h-4" />
+                                                    <span>{patient.department_name}</span>
+                                                </div>
+                                            )}
+                                            {patient.primary_diagnosis && (
+                                                <div className="flex items-center gap-2" style={{ color: colors.dark }}>
+                                                    <FileText className="w-4 h-4" />
+                                                    <span className="truncate">{patient.primary_diagnosis}</span>
+                                                </div>
                                             )}
                                         </div>
-                                        {patient.department_name && (
-                                            <div className="flex items-center gap-2" style={{ color: '#694e20' }}>
-                                                <Building className="w-4 h-4" />
-                                                <span>{patient.department_name}</span>
-                                            </div>
-                                        )}
-                                        {patient.primary_diagnosis && (
-                                            <div className="flex items-center gap-2" style={{ color: '#694e20' }}>
-                                                <FileText className="w-4 h-4" />
-                                                <span className="truncate">{patient.primary_diagnosis}</span>
-                                            </div>
-                                        )}
-                                    </div>
 
-                                    <Link to={`/patients/${patient.id}`} className="block mt-4">
-                                        <Button 
-                                            className="w-full font-semibold transition-all duration-200"
-                                            style={{ backgroundColor: '#694e20', color: '#ffffff' }}
-                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#523c19'}
-                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#694e20'}
-                                            data-testid={`view-patient-${idx}`}
-                                        >
-                                            View Details
-                                            <ArrowRight className="w-4 h-4 ml-2" />
-                                        </Button>
-                                    </Link>
-                                </CardContent>
-                            </Card>
-                        ))}
+                                        <Link to={`/patients/${patient.id}`} className="block mt-4">
+                                            <Button 
+                                                className="w-full font-semibold transition-all duration-200"
+                                                style={{ backgroundColor: colors.dark, color: '#ffffff' }}
+                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.hover}
+                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = colors.dark}
+                                                data-testid={`view-patient-${idx}`}
+                                            >
+                                                View Details
+                                                <ArrowRight className="w-4 h-4 ml-2" />
+                                            </Button>
+                                        </Link>
+                                    </CardContent>
+                                </Card>
+                            );
+                        })}
                     </div>
                 )}
             </div>
