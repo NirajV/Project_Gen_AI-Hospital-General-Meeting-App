@@ -203,10 +203,20 @@ export default function DashboardPage() {
                                     const myParticipation = meeting.participants?.find(p => p.user_id === user.id);
                                     const myResponse = myParticipation?.response_status;
                                     
+                                    // Rotating colors for meeting cards
+                                    const cardColors = [
+                                        { light: '#e8f5f0', dark: '#3b6658', hover: '#2d5047' }, // Meetings color
+                                        { light: '#f5f0e8', dark: '#694e20', hover: '#523c19' }, // Patients color
+                                        { light: '#f3edf5', dark: '#68517d', hover: '#523d61' }, // Participants color
+                                        { light: '#e8e8f5', dark: '#0b0b30', hover: '#070725' }, // Dashboard color
+                                    ];
+                                    const colors = cardColors[idx % cardColors.length];
+                                    
                                     return (
                                         <div
                                             key={meeting.id}
-                                            className="p-4 rounded-sm border border-slate-200 hover:shadow-md hover:-translate-y-0.5 hover:border-primary/40 transition-all duration-200 bg-white"
+                                            className="p-4 rounded-lg border-0 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group"
+                                            style={{ backgroundColor: colors.light }}
                                             data-testid={`meeting-card-${idx}`}
                                         >
                                             <Link 
@@ -215,16 +225,19 @@ export default function DashboardPage() {
                                             >
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-4">
-                                                        <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                                                        <div 
+                                                            className="w-12 h-12 rounded-lg flex items-center justify-center transition-colors duration-300"
+                                                            style={{ backgroundColor: colors.dark }}
+                                                        >
                                                             {meeting.meeting_type === 'video' ? (
-                                                                <Video className="w-5 h-5 text-primary" />
+                                                                <Video className="w-5 h-5 text-white" />
                                                             ) : (
-                                                                <MapPin className="w-5 h-5 text-primary" />
+                                                                <MapPin className="w-5 h-5 text-white" />
                                                             )}
                                                         </div>
                                                         <div>
-                                                            <h3 className="font-medium text-foreground">{meeting.title}</h3>
-                                                            <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
+                                                            <h3 className="font-semibold text-foreground group-hover:text-slate-900 transition-colors">{meeting.title}</h3>
+                                                            <div className="flex items-center gap-3 mt-1 text-sm" style={{ color: colors.dark }}>
                                                                 <span>{formatMeetingDate(meeting.meeting_date)}</span>
                                                                 <span>•</span>
                                                                 <span>{meeting.start_time?.slice(0, 5)}</span>
@@ -235,16 +248,16 @@ export default function DashboardPage() {
                                                     </div>
                                                     <div className="flex items-center gap-3">
                                                         {getStatusBadge(meeting.status)}
-                                                        <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                                                        <ArrowRight className="w-4 h-4" style={{ color: colors.dark }} />
                                                     </div>
                                                 </div>
                                             </Link>
                                             
                                             {/* Response Section - Only show for participants, not organizers */}
                                             {!isOrganizer && meeting.status !== 'completed' && (
-                                                <div className="mt-3 pt-3 border-t border-slate-200">
+                                                <div className="mt-3 pt-3" style={{ borderTop: `1px solid ${colors.dark}40` }}>
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-xs text-muted-foreground mr-1">
+                                                        <span className="text-xs mr-1" style={{ color: colors.dark }}>
                                                             {myResponse && myResponse !== 'pending' ? 'Change:' : 'Respond:'}
                                                         </span>
                                                         <Button

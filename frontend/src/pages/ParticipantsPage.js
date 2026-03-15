@@ -225,7 +225,13 @@ export default function ParticipantsPage() {
                         </p>
                     </div>
                     {isOrganizer && (
-                        <Button onClick={() => setCreateDialog(true)} className="gap-2">
+                        <Button 
+                            onClick={() => setCreateDialog(true)} 
+                            className="gap-2 shadow-md hover:shadow-lg transition-all duration-200 font-semibold"
+                            style={{ backgroundColor: '#68517d', color: '#ffffff' }}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#523d61'}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#68517d'}
+                        >
                             <UserPlus className="w-4 h-4" />
                             Create Participant
                         </Button>
@@ -234,47 +240,47 @@ export default function ParticipantsPage() {
 
                 {/* Statistics Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <Card>
+                    <Card className="border-0 shadow-sm hover:shadow-lg transition-all duration-300" style={{ backgroundColor: '#f3edf5' }}>
                         <CardContent className="pt-6">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-muted-foreground">Total Participants</p>
-                                    <p className="text-3xl font-bold text-slate-900 mt-1">{stats.total}</p>
+                                    <p className="text-3xl font-bold mt-1" style={{ color: '#68517d' }}>{stats.total}</p>
                                 </div>
-                                <Users className="w-10 h-10 text-slate-400" />
+                                <Users className="w-10 h-10" style={{ color: '#68517d', opacity: 0.5 }} />
                             </div>
                         </CardContent>
                     </Card>
-                    <Card>
+                    <Card className="border-0 shadow-sm hover:shadow-lg transition-all duration-300" style={{ backgroundColor: '#e8e8f5' }}>
                         <CardContent className="pt-6">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-muted-foreground">Doctors</p>
-                                    <p className="text-3xl font-bold text-blue-600 mt-1">{stats.doctors}</p>
+                                    <p className="text-3xl font-bold mt-1" style={{ color: '#0b0b30' }}>{stats.doctors}</p>
                                 </div>
-                                <Briefcase className="w-10 h-10 text-blue-400" />
+                                <Briefcase className="w-10 h-10" style={{ color: '#0b0b30', opacity: 0.5 }} />
                             </div>
                         </CardContent>
                     </Card>
-                    <Card>
+                    <Card className="border-0 shadow-sm hover:shadow-lg transition-all duration-300" style={{ backgroundColor: '#e8f5f0' }}>
                         <CardContent className="pt-6">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-muted-foreground">Nurses</p>
-                                    <p className="text-3xl font-bold text-green-600 mt-1">{stats.nurses}</p>
+                                    <p className="text-3xl font-bold mt-1" style={{ color: '#3b6658' }}>{stats.nurses}</p>
                                 </div>
-                                <Users className="w-10 h-10 text-green-400" />
+                                <Users className="w-10 h-10" style={{ color: '#3b6658', opacity: 0.5 }} />
                             </div>
                         </CardContent>
                     </Card>
-                    <Card>
+                    <Card className="border-0 shadow-sm hover:shadow-lg transition-all duration-300" style={{ backgroundColor: '#f5f0e8' }}>
                         <CardContent className="pt-6">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-muted-foreground">Admins</p>
-                                    <p className="text-3xl font-bold text-purple-600 mt-1">{stats.admins}</p>
+                                    <p className="text-3xl font-bold mt-1" style={{ color: '#694e20' }}>{stats.admins}</p>
                                 </div>
-                                <AlertCircle className="w-10 h-10 text-purple-400" />
+                                <AlertCircle className="w-10 h-10" style={{ color: '#694e20', opacity: 0.5 }} />
                             </div>
                         </CardContent>
                     </Card>

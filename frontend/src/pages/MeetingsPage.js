@@ -152,10 +152,40 @@ export default function MeetingsPage() {
                 </div>
 
                 <Tabs value={activeTab} onValueChange={handleTabChange}>
-                    <TabsList className="bg-slate-100">
-                        <TabsTrigger value="upcoming" data-testid="tab-upcoming">Upcoming</TabsTrigger>
-                        <TabsTrigger value="my_invites" data-testid="tab-invites">My Invites</TabsTrigger>
-                        <TabsTrigger value="past" data-testid="tab-past">Past</TabsTrigger>
+                    <TabsList className="bg-transparent border-0 p-0 gap-2">
+                        <TabsTrigger 
+                            value="upcoming" 
+                            data-testid="tab-upcoming"
+                            className="data-[state=active]:shadow-md transition-all duration-200 font-semibold"
+                            style={{
+                                backgroundColor: activeTab === 'upcoming' ? '#3b6658' : '#e8f5f0',
+                                color: activeTab === 'upcoming' ? '#ffffff' : '#3b6658',
+                            }}
+                        >
+                            Upcoming
+                        </TabsTrigger>
+                        <TabsTrigger 
+                            value="my_invites" 
+                            data-testid="tab-invites"
+                            className="data-[state=active]:shadow-md transition-all duration-200 font-semibold"
+                            style={{
+                                backgroundColor: activeTab === 'my_invites' ? '#3b6658' : '#e8f5f0',
+                                color: activeTab === 'my_invites' ? '#ffffff' : '#3b6658',
+                            }}
+                        >
+                            My Invites
+                        </TabsTrigger>
+                        <TabsTrigger 
+                            value="past" 
+                            data-testid="tab-past"
+                            className="data-[state=active]:shadow-md transition-all duration-200 font-semibold"
+                            style={{
+                                backgroundColor: activeTab === 'past' ? '#3b6658' : '#e8f5f0',
+                                color: activeTab === 'past' ? '#ffffff' : '#3b6658',
+                            }}
+                        >
+                            Past
+                        </TabsTrigger>
                     </TabsList>
 
                     {loading ? (
