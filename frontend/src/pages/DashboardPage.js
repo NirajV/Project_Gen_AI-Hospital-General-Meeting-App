@@ -110,7 +110,7 @@ export default function DashboardPage() {
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <Card className="border-0 shadow-sm hover:shadow-lg transition-all duration-200 bg-gradient-to-br from-blue-50 to-white" data-testid="stat-upcoming">
+                    <Card className="border-0 shadow-sm hover:shadow-lg transition-all duration-300" style={{ backgroundColor: '#e8e8f5' }} data-testid="stat-upcoming">
                         <CardContent className="pt-6">
                             <div className="flex items-center justify-between">
                                 <div>
@@ -119,14 +119,14 @@ export default function DashboardPage() {
                                         {stats?.upcoming_meetings || 0}
                                     </p>
                                 </div>
-                                <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#0b0b30' + '20' }}>
-                                    <Calendar className="w-6 h-6" style={{ color: '#0b0b30' }} />
+                                <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#0b0b30', opacity: 0.9 }}>
+                                    <Calendar className="w-6 h-6 text-white" />
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card className="border-0 shadow-sm hover:shadow-lg transition-all duration-200 bg-gradient-to-br from-emerald-50 to-white" data-testid="stat-week">
+                    <Card className="border-0 shadow-sm hover:shadow-lg transition-all duration-300" style={{ backgroundColor: '#e8f5f0' }} data-testid="stat-week">
                         <CardContent className="pt-6">
                             <div className="flex items-center justify-between">
                                 <div>
@@ -135,14 +135,14 @@ export default function DashboardPage() {
                                         {stats?.meetings_this_week || 0}
                                     </p>
                                 </div>
-                                <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#3b6658' + '20' }}>
-                                    <Clock className="w-6 h-6" style={{ color: '#3b6658' }} />
+                                <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#3b6658', opacity: 0.9 }}>
+                                    <Clock className="w-6 h-6 text-white" />
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card className="border-0 shadow-sm hover:shadow-lg transition-all duration-200 bg-gradient-to-br from-amber-50 to-white" data-testid="stat-invites">
+                    <Card className="border-0 shadow-sm hover:shadow-lg transition-all duration-300" style={{ backgroundColor: '#f5f0e8' }} data-testid="stat-invites">
                         <CardContent className="pt-6">
                             <div className="flex items-center justify-between">
                                 <div>
@@ -151,14 +151,14 @@ export default function DashboardPage() {
                                         {stats?.pending_invites || 0}
                                     </p>
                                 </div>
-                                <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#694e20' + '20' }}>
-                                    <UserPlus className="w-6 h-6" style={{ color: '#694e20' }} />
+                                <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#694e20', opacity: 0.9 }}>
+                                    <UserPlus className="w-6 h-6 text-white" />
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card className="border-0 shadow-sm hover:shadow-lg transition-all duration-200 bg-gradient-to-br from-purple-50 to-white" data-testid="stat-patients">
+                    <Card className="border-0 shadow-sm hover:shadow-lg transition-all duration-300" style={{ backgroundColor: '#f3edf5' }} data-testid="stat-patients">
                         <CardContent className="pt-6">
                             <div className="flex items-center justify-between">
                                 <div>
@@ -167,8 +167,8 @@ export default function DashboardPage() {
                                         {stats?.total_patients || 0}
                                     </p>
                                 </div>
-                                <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#68517d' + '20' }}>
-                                    <Users className="w-6 h-6" style={{ color: '#68517d' }} />
+                                <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#68517d', opacity: 0.9 }}>
+                                    <Users className="w-6 h-6 text-white" />
                                 </div>
                             </div>
                         </CardContent>
