@@ -115,12 +115,12 @@ export default function DashboardPage() {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-muted-foreground">Upcoming Meetings</p>
-                                    <p className="text-3xl font-display font-bold mt-1" style={{ color: '#484878' }}>
+                                    <p className="text-3xl font-display font-bold mt-1" style={{ color: '#0b0b30' }}>
                                         {stats?.upcoming_meetings || 0}
                                     </p>
                                 </div>
-                                <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#484878' + '20' }}>
-                                    <Calendar className="w-6 h-6" style={{ color: '#484878' }} />
+                                <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#0b0b30' + '20' }}>
+                                    <Calendar className="w-6 h-6" style={{ color: '#0b0b30' }} />
                                 </div>
                             </div>
                         </CardContent>
