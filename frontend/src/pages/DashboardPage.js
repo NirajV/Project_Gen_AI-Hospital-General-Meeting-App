@@ -203,10 +203,21 @@ export default function DashboardPage() {
                                     const myParticipation = meeting.participants?.find(p => p.user_id === user.id);
                                     const myResponse = myParticipation?.response_status;
                                     
+                                    // Dark variant colors for meeting cards
+                                    const cardColors = [
+                                        { bg: '#1a1a3e', text: '#ffffff', iconBg: '#2d2d5f', iconColor: '#818cf8' }, // Deep indigo
+                                        { bg: '#1e3a2e', text: '#ffffff', iconBg: '#2d5a47', iconColor: '#6ee7b7' }, // Deep emerald
+                                        { bg: '#3d2817', text: '#ffffff', iconBg: '#5a3d24', iconColor: '#fbbf24' }, // Deep amber
+                                        { bg: '#2d1b3d', text: '#ffffff', iconBg: '#452958', iconColor: '#c084fc' }, // Deep purple
+                                        { bg: '#1f2937', text: '#ffffff', iconBg: '#374151', iconColor: '#94a3b8' }, // Deep slate
+                                    ];
+                                    const colorScheme = cardColors[idx % cardColors.length];
+                                    
                                     return (
                                         <div
                                             key={meeting.id}
-                                            className="p-4 rounded-sm border border-slate-200 hover:shadow-md hover:-translate-y-0.5 hover:border-primary/40 transition-all duration-200 bg-white"
+                                            className="p-4 rounded-lg border-0 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200"
+                                            style={{ backgroundColor: colorScheme.bg }}
                                             data-testid={`meeting-card-${idx}`}
                                         >
                                             <Link 
@@ -215,16 +226,16 @@ export default function DashboardPage() {
                                             >
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-4">
-                                                        <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                                                        <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: colorScheme.iconBg }}>
                                                             {meeting.meeting_type === 'video' ? (
-                                                                <Video className="w-5 h-5 text-primary" />
+                                                                <Video className="w-5 h-5" style={{ color: colorScheme.iconColor }} />
                                                             ) : (
-                                                                <MapPin className="w-5 h-5 text-primary" />
+                                                                <MapPin className="w-5 h-5" style={{ color: colorScheme.iconColor }} />
                                                             )}
                                                         </div>
                                                         <div>
-                                                            <h3 className="font-medium text-foreground">{meeting.title}</h3>
-                                                            <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
+                                                            <h3 className="font-medium" style={{ color: colorScheme.text }}>{meeting.title}</h3>
+                                                            <div className="flex items-center gap-3 mt-1 text-sm" style={{ color: colorScheme.text, opacity: 0.7 }}>
                                                                 <span>{formatMeetingDate(meeting.meeting_date)}</span>
                                                                 <span>•</span>
                                                                 <span>{meeting.start_time?.slice(0, 5)}</span>
@@ -235,16 +246,16 @@ export default function DashboardPage() {
                                                     </div>
                                                     <div className="flex items-center gap-3">
                                                         {getStatusBadge(meeting.status)}
-                                                        <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                                                        <ArrowRight className="w-4 h-4" style={{ color: colorScheme.text, opacity: 0.6 }} />
                                                     </div>
                                                 </div>
                                             </Link>
                                             
                                             {/* Response Section - Only show for participants, not organizers */}
                                             {!isOrganizer && meeting.status !== 'completed' && (
-                                                <div className="mt-3 pt-3 border-t border-slate-200">
+                                                <div className="mt-3 pt-3" style={{ borderTop: `1px solid ${colorScheme.iconBg}` }}>
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-xs text-muted-foreground mr-1">
+                                                        <span className="text-xs mr-1" style={{ color: colorScheme.text, opacity: 0.7 }}>
                                                             {myResponse && myResponse !== 'pending' ? 'Change:' : 'Respond:'}
                                                         </span>
                                                         <Button
