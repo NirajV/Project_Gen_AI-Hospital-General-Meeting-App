@@ -17,10 +17,10 @@ import {
 import { useState } from 'react';
 
 const navItems = [
-    { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { path: '/meetings', label: 'Meetings', icon: Calendar },
-    { path: '/patients', label: 'Patients', icon: Users },
-    { path: '/participants', label: 'Participants', icon: User },
+    { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, color: '#0b0b30', lightBg: '#e8e8f5' },
+    { path: '/meetings', label: 'Meetings', icon: Calendar, color: '#3b6658', lightBg: '#e8f5f0' },
+    { path: '/patients', label: 'Patients', icon: Users, color: '#694e20', lightBg: '#f5f0e8' },
+    { path: '/participants', label: 'Participants', icon: User, color: '#68517d', lightBg: '#f3edf5' },
 ];
 
 export default function Layout({ children }) {
@@ -41,17 +41,20 @@ export default function Layout({ children }) {
     return (
         <div className="min-h-screen bg-background">
             {/* Top Navigation */}
-            <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+            <header className="sticky top-0 z-50 w-full border-b-2 border-slate-200/80 bg-white shadow-sm">
                 <div className="container mx-auto px-4 lg:px-8">
                     <div className="flex h-16 items-center justify-between">
                         {/* Logo */}
-                        <Link to="/dashboard" className="flex items-center gap-2" data-testid="logo">
-                            <Activity className="w-7 h-7 text-primary" />
-                            <span className="text-xl font-display font-bold text-primary">MedMeet</span>
+                        <Link to="/dashboard" className="flex items-center gap-2 group" data-testid="logo">
+                            <Activity className="w-7 h-7 text-primary group-hover:scale-110 transition-transform duration-200" />
+                            <span className="text-xl font-display font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                                MedMeet
+                            </span>
+                            <span className="text-xs font-medium text-muted-foreground ml-1 hidden sm:block">Hospital Case Meeting Scheduler</span>
                         </Link>
 
                         {/* Desktop Navigation */}
-                        <nav className="hidden md:flex items-center gap-1">
+                        <nav className="hidden md:flex items-center gap-2">
                             {navItems.map((item) => {
                                 const Icon = item.icon;
                                 const isActive = location.pathname === item.path || 
@@ -59,12 +62,20 @@ export default function Layout({ children }) {
                                 return (
                                     <Link key={item.path} to={item.path}>
                                         <Button
-                                            variant={isActive ? 'secondary' : 'ghost'}
-                                            className={`gap-2 ${isActive ? 'bg-primary/10 text-primary' : ''}`}
+                                            variant="ghost"
+                                            className={`gap-2 px-4 py-2 font-medium transition-all duration-200 ${
+                                                isActive 
+                                                    ? 'shadow-md' 
+                                                    : 'hover:shadow-sm'
+                                            }`}
+                                            style={{
+                                                backgroundColor: isActive ? item.color : item.lightBg,
+                                                color: isActive ? '#ffffff' : item.color,
+                                            }}
                                             data-testid={`nav-${item.label.toLowerCase()}`}
                                         >
                                             <Icon className="w-4 h-4" />
-                                            {item.label}
+                                            <span className="text-sm font-semibold">{item.label}</span>
                                         </Button>
                                     </Link>
                                 );
@@ -129,18 +140,26 @@ export default function Layout({ children }) {
                 {/* Mobile Navigation */}
                 {mobileMenuOpen && (
                     <div className="md:hidden border-t border-slate-200 bg-white p-4">
-                        <nav className="flex flex-col gap-2">
+                        <nav className="flex flex-col gap-3">
                             {navItems.map((item) => {
                                 const Icon = item.icon;
                                 const isActive = location.pathname === item.path;
                                 return (
                                     <Link key={item.path} to={item.path} onClick={() => setMobileMenuOpen(false)}>
                                         <Button
-                                            variant={isActive ? 'secondary' : 'ghost'}
-                                            className={`w-full justify-start gap-2 ${isActive ? 'bg-primary/10 text-primary' : ''}`}
+                                            variant="ghost"
+                                            className={`w-full justify-start gap-3 px-4 py-3 font-medium transition-all duration-200 ${
+                                                isActive 
+                                                    ? 'shadow-md' 
+                                                    : 'hover:shadow-sm'
+                                            }`}
+                                            style={{
+                                                backgroundColor: isActive ? item.color : item.lightBg,
+                                                color: isActive ? '#ffffff' : item.color,
+                                            }}
                                         >
-                                            <Icon className="w-4 h-4" />
-                                            {item.label}
+                                            <Icon className="w-5 h-5" />
+                                            <span className="text-base font-semibold">{item.label}</span>
                                         </Button>
                                     </Link>
                                 );
@@ -151,7 +170,7 @@ export default function Layout({ children }) {
             </header>
 
             {/* Main Content */}
-            <main className="container mx-auto px-4 lg:px-8 py-8">
+            <main className="container mx-auto px-4 lg:px-8 py-8 bg-slate-50/50 min-h-[calc(100vh-4rem)]">
                 {children}
             </main>
         </div>
