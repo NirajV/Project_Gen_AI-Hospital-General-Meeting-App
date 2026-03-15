@@ -110,65 +110,65 @@ export default function DashboardPage() {
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <Card className="border-slate-200 hover:shadow-lg transition-all duration-200 bg-gradient-to-br from-blue-50 to-white" data-testid="stat-upcoming">
+                    <Card className="border-2 hover:border-[3px] transition-all duration-200 bg-gradient-to-br from-blue-50 to-white hover:shadow-lg" style={{ borderColor: '#484878' }} data-testid="stat-upcoming">
                         <CardContent className="pt-6">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-muted-foreground">Upcoming Meetings</p>
-                                    <p className="text-3xl font-display font-bold text-primary mt-1">
+                                    <p className="text-3xl font-display font-bold mt-1" style={{ color: '#484878' }}>
                                         {stats?.upcoming_meetings || 0}
                                     </p>
                                 </div>
-                                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                                    <Calendar className="w-6 h-6 text-primary" />
+                                <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#484878' + '20' }}>
+                                    <Calendar className="w-6 h-6" style={{ color: '#484878' }} />
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card className="border-slate-200 hover:shadow-lg transition-all duration-200 bg-gradient-to-br from-emerald-50 to-white" data-testid="stat-week">
+                    <Card className="border-2 hover:border-[3px] transition-all duration-200 bg-gradient-to-br from-emerald-50 to-white hover:shadow-lg" style={{ borderColor: '#3b6658' }} data-testid="stat-week">
                         <CardContent className="pt-6">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-muted-foreground">This Week</p>
-                                    <p className="text-3xl font-display font-bold text-emerald-700 mt-1">
+                                    <p className="text-3xl font-display font-bold mt-1" style={{ color: '#3b6658' }}>
                                         {stats?.meetings_this_week || 0}
                                     </p>
                                 </div>
-                                <div className="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center">
-                                    <Clock className="w-6 h-6 text-accent" />
+                                <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#3b6658' + '20' }}>
+                                    <Clock className="w-6 h-6" style={{ color: '#3b6658' }} />
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card className="border-slate-200 hover:shadow-lg transition-all duration-200 bg-gradient-to-br from-amber-50 to-white" data-testid="stat-invites">
+                    <Card className="border-2 hover:border-[3px] transition-all duration-200 bg-gradient-to-br from-amber-50 to-white hover:shadow-lg" style={{ borderColor: '#694e20' }} data-testid="stat-invites">
                         <CardContent className="pt-6">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-muted-foreground">Pending Invites</p>
-                                    <p className="text-3xl font-display font-bold text-amber-700 mt-1">
+                                    <p className="text-3xl font-display font-bold mt-1" style={{ color: '#694e20' }}>
                                         {stats?.pending_invites || 0}
                                     </p>
                                 </div>
-                                <div className="w-12 h-12 rounded-lg bg-amber-100 flex items-center justify-center">
-                                    <UserPlus className="w-6 h-6 text-amber-600" />
+                                <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#694e20' + '20' }}>
+                                    <UserPlus className="w-6 h-6" style={{ color: '#694e20' }} />
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card className="border-slate-200 hover:shadow-lg transition-all duration-200 bg-gradient-to-br from-purple-50 to-white" data-testid="stat-patients">
+                    <Card className="border-2 hover:border-[3px] transition-all duration-200 bg-gradient-to-br from-purple-50 to-white hover:shadow-lg" style={{ borderColor: '#68517d' }} data-testid="stat-patients">
                         <CardContent className="pt-6">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-muted-foreground">Total Patients</p>
-                                    <p className="text-3xl font-display font-bold text-purple-700 mt-1">
+                                    <p className="text-3xl font-display font-bold mt-1" style={{ color: '#68517d' }}>
                                         {stats?.total_patients || 0}
                                     </p>
                                 </div>
-                                <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
-                                    <Users className="w-6 h-6 text-purple-600" />
+                                <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#68517d' + '20' }}>
+                                    <Users className="w-6 h-6" style={{ color: '#68517d' }} />
                                 </div>
                             </div>
                         </CardContent>
