@@ -74,66 +74,84 @@ export default function MeetingsPage() {
         );
     };
 
-    const MeetingCard = ({ meeting, showResponse = false }) => (
-        <div className="flex items-center justify-between p-4 rounded-lg border border-slate-200 hover:border-primary/30 hover:shadow-sm transition-all bg-white" data-testid={`meeting-item-${meeting.id}`}>
-            <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-lg bg-primary/10 flex items-center justify-center">
-                    {meeting.meeting_type === 'video' ? (
-                        <Video className="w-6 h-6 text-primary" />
-                    ) : (
-                        <MapPin className="w-6 h-6 text-primary" />
-                    )}
-                </div>
-                <div>
-                    <h3 className="font-medium text-foreground text-lg">{meeting.title}</h3>
-                    <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                            <Calendar className="w-3.5 h-3.5" />
-                            {format(parseISO(meeting.meeting_date), 'MMM d, yyyy')}
-                        </span>
-                        <span className="flex items-center gap-1">
-                            <Clock className="w-3.5 h-3.5" />
-                            {meeting.start_time?.slice(0, 5)}
-                        </span>
-                        <span className="flex items-center gap-1">
-                            <Users className="w-3.5 h-3.5" />
-                            {meeting.patient_count || 0} patients
-                        </span>
-                    </div>
-                    {meeting.organizer_name && (
-                        <p className="text-xs text-muted-foreground mt-1">Organized by {meeting.organizer_name}</p>
-                    )}
-                </div>
-            </div>
-            <div className="flex items-center gap-3">
-                {showResponse && meeting.response_status && (
-                    <div className="flex items-center gap-2">
-                        {meeting.response_status === 'pending' ? (
-                            <div className="flex gap-2">
-                                <Button size="sm" variant="outline" className="text-green-600 border-green-200 hover:bg-green-50" onClick={(e) => { e.preventDefault(); handleRespond(meeting.id, 'accepted'); }} data-testid={`accept-${meeting.id}`}>
-                                    <CheckCircle2 className="w-4 h-4 mr-1" /> Accept
-                                </Button>
-                                <Button size="sm" variant="outline" className="text-orange-600 border-orange-200 hover:bg-orange-50" onClick={(e) => { e.preventDefault(); handleRespond(meeting.id, 'tentative'); }} data-testid={`tentative-${meeting.id}`}>
-                                    <HelpCircle className="w-4 h-4 mr-1" /> Maybe
-                                </Button>
-                                <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50" onClick={(e) => { e.preventDefault(); handleRespond(meeting.id, 'declined'); }} data-testid={`decline-${meeting.id}`}>
-                                    <XCircle className="w-4 h-4 mr-1" /> Decline
-                                </Button>
-                            </div>
+    const MeetingCard = ({ meeting, showResponse = false, index = 0 }) => {
+        // Rotating colors for meeting cards (same as Dashboard)
+        const cardColors = [
+            { light: '#e8f5f0', dark: '#3b6658', hover: '#2d5047' }, // Meetings color
+            { light: '#f5f0e8', dark: '#694e20', hover: '#523c19' }, // Patients color
+            { light: '#f3edf5', dark: '#68517d', hover: '#523d61' }, // Participants color
+            { light: '#e8e8f5', dark: '#0b0b30', hover: '#070725' }, // Dashboard color
+        ];
+        const colors = cardColors[index % cardColors.length];
+        
+        return (
+            <div 
+                className="flex items-center justify-between p-4 rounded-lg border-0 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group" 
+                style={{ backgroundColor: colors.light }}
+                data-testid={`meeting-item-${meeting.id}`}
+            >
+                <div className="flex items-center gap-4">
+                    <div 
+                        className="w-14 h-14 rounded-lg flex items-center justify-center transition-colors duration-300" 
+                        style={{ backgroundColor: colors.dark }}
+                    >
+                        {meeting.meeting_type === 'video' ? (
+                            <Video className="w-6 h-6 text-white" />
                         ) : (
-                            getResponseBadge(meeting.response_status)
+                            <MapPin className="w-6 h-6 text-white" />
                         )}
                     </div>
-                )}
-                {getStatusBadge(meeting.status)}
-                <Link to={`/meetings/${meeting.id}`}>
-                    <Button variant="ghost" size="icon" data-testid={`view-meeting-${meeting.id}`}>
-                        <ArrowRight className="w-4 h-4" />
-                    </Button>
-                </Link>
+                    <div>
+                        <h3 className="font-semibold text-foreground text-lg group-hover:text-slate-900 transition-colors">{meeting.title}</h3>
+                        <div className="flex items-center gap-3 mt-1 text-sm" style={{ color: colors.dark }}>
+                            <span className="flex items-center gap-1">
+                                <Calendar className="w-3.5 h-3.5" />
+                                {format(parseISO(meeting.meeting_date), 'MMM d, yyyy')}
+                            </span>
+                            <span className="flex items-center gap-1">
+                                <Clock className="w-3.5 h-3.5" />
+                                {meeting.start_time?.slice(0, 5)}
+                            </span>
+                            <span className="flex items-center gap-1">
+                                <Users className="w-3.5 h-3.5" />
+                                {meeting.patient_count || 0} patients
+                            </span>
+                        </div>
+                        {meeting.organizer_name && (
+                            <p className="text-xs mt-1" style={{ color: colors.dark, opacity: 0.7 }}>Organized by {meeting.organizer_name}</p>
+                        )}
+                    </div>
+                </div>
+                <div className="flex items-center gap-3">
+                    {showResponse && meeting.response_status && (
+                        <div className="flex items-center gap-2">
+                            {meeting.response_status === 'pending' ? (
+                                <div className="flex gap-2">
+                                    <Button size="sm" variant="outline" className="text-green-600 border-green-200 hover:bg-green-50" onClick={(e) => { e.preventDefault(); handleRespond(meeting.id, 'accepted'); }} data-testid={`accept-${meeting.id}`}>
+                                        <CheckCircle2 className="w-4 h-4 mr-1" /> Accept
+                                    </Button>
+                                    <Button size="sm" variant="outline" className="text-orange-600 border-orange-200 hover:bg-orange-50" onClick={(e) => { e.preventDefault(); handleRespond(meeting.id, 'tentative'); }} data-testid={`tentative-${meeting.id}`}>
+                                        <HelpCircle className="w-4 h-4 mr-1" /> Maybe
+                                    </Button>
+                                    <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50" onClick={(e) => { e.preventDefault(); handleRespond(meeting.id, 'declined'); }} data-testid={`decline-${meeting.id}`}>
+                                        <XCircle className="w-4 h-4 mr-1" /> Decline
+                                    </Button>
+                                </div>
+                            ) : (
+                                getResponseBadge(meeting.response_status)
+                            )}
+                        </div>
+                    )}
+                    {getStatusBadge(meeting.status)}
+                    <Link to={`/meetings/${meeting.id}`}>
+                        <Button variant="ghost" size="icon" data-testid={`view-meeting-${meeting.id}`}>
+                            <ArrowRight className="w-4 h-4" style={{ color: colors.dark }} />
+                        </Button>
+                    </Link>
+                </div>
             </div>
-        </div>
-    );
+        );
+    };
 
     return (
         <Layout>
@@ -206,8 +224,8 @@ export default function MeetingsPage() {
                                         </CardContent>
                                     </Card>
                                 ) : (
-                                    meetings.map(meeting => (
-                                        <MeetingCard key={meeting.id} meeting={meeting} />
+                                    meetings.map((meeting, idx) => (
+                                        <MeetingCard key={meeting.id} meeting={meeting} index={idx} />
                                     ))
                                 )}
                             </TabsContent>
@@ -221,8 +239,8 @@ export default function MeetingsPage() {
                                         </CardContent>
                                     </Card>
                                 ) : (
-                                    meetings.map(meeting => (
-                                        <MeetingCard key={meeting.id} meeting={meeting} showResponse={true} />
+                                    meetings.map((meeting, idx) => (
+                                        <MeetingCard key={meeting.id} meeting={meeting} showResponse={true} index={idx} />
                                     ))
                                 )}
                             </TabsContent>
@@ -236,8 +254,8 @@ export default function MeetingsPage() {
                                         </CardContent>
                                     </Card>
                                 ) : (
-                                    meetings.map(meeting => (
-                                        <MeetingCard key={meeting.id} meeting={meeting} />
+                                    meetings.map((meeting, idx) => (
+                                        <MeetingCard key={meeting.id} meeting={meeting} index={idx} />
                                     ))
                                 )}
                             </TabsContent>
