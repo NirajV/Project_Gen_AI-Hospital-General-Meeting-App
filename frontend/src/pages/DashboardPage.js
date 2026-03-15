@@ -110,7 +110,7 @@ export default function DashboardPage() {
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <Card className="border-2 hover:border-[3px] transition-all duration-200 bg-gradient-to-br from-blue-50 to-white hover:shadow-lg" style={{ borderColor: '#484878' }} data-testid="stat-upcoming">
+                    <Card className="border-0 shadow-sm hover:shadow-lg transition-all duration-200 bg-gradient-to-br from-blue-50 to-white" data-testid="stat-upcoming">
                         <CardContent className="pt-6">
                             <div className="flex items-center justify-between">
                                 <div>
@@ -126,7 +126,7 @@ export default function DashboardPage() {
                         </CardContent>
                     </Card>
 
-                    <Card className="border-2 hover:border-[3px] transition-all duration-200 bg-gradient-to-br from-emerald-50 to-white hover:shadow-lg" style={{ borderColor: '#3b6658' }} data-testid="stat-week">
+                    <Card className="border-0 shadow-sm hover:shadow-lg transition-all duration-200 bg-gradient-to-br from-emerald-50 to-white" data-testid="stat-week">
                         <CardContent className="pt-6">
                             <div className="flex items-center justify-between">
                                 <div>
@@ -142,7 +142,7 @@ export default function DashboardPage() {
                         </CardContent>
                     </Card>
 
-                    <Card className="border-2 hover:border-[3px] transition-all duration-200 bg-gradient-to-br from-amber-50 to-white hover:shadow-lg" style={{ borderColor: '#694e20' }} data-testid="stat-invites">
+                    <Card className="border-0 shadow-sm hover:shadow-lg transition-all duration-200 bg-gradient-to-br from-amber-50 to-white" data-testid="stat-invites">
                         <CardContent className="pt-6">
                             <div className="flex items-center justify-between">
                                 <div>
@@ -158,7 +158,7 @@ export default function DashboardPage() {
                         </CardContent>
                     </Card>
 
-                    <Card className="border-2 hover:border-[3px] transition-all duration-200 bg-gradient-to-br from-purple-50 to-white hover:shadow-lg" style={{ borderColor: '#68517d' }} data-testid="stat-patients">
+                    <Card className="border-0 shadow-sm hover:shadow-lg transition-all duration-200 bg-gradient-to-br from-purple-50 to-white" data-testid="stat-patients">
                         <CardContent className="pt-6">
                             <div className="flex items-center justify-between">
                                 <div>
