@@ -170,11 +170,22 @@ export default function MeetingDetailPage() {
             // Get the PDF blob
             const blob = await response.blob();
             
+            // Get filename from response header or create default
+            const contentDisposition = response.headers.get('Content-Disposition');
+            let filename = `Summary_${meeting.title.replace(/\s+/g, '_')}_${meeting.meeting_date}_${meeting.start_time?.slice(0, 5).replace(':', '-')}.pdf`;
+            
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                if (filenameMatch && filenameMatch[1]) {
+                    filename = filenameMatch[1].replace(/['"]/g, '');
+                }
+            }
+            
             // Create a download link
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `Meeting_Summary_${meeting.title.replace(/\s+/g, '_')}_${id.slice(0, 8)}.pdf`;
+            a.download = filename;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);

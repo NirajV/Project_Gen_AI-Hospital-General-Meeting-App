@@ -1018,9 +1018,10 @@ async def generate_meeting_summary(meeting_id: str, current_user: dict = Depends
     
     for item in agenda_items:
         if item.get('patient_id'):
-            patient = await db.patients.find_one({"id": item['patient_id']}, {"_id": 0, "first_name": 1, "last_name": 1})
+            patient = await db.patients.find_one({"id": item['patient_id']}, {"_id": 0, "first_name": 1, "last_name": 1, "patient_id_number": 1})
             if patient:
                 item['patient_name'] = f"{patient.get('first_name', '')} {patient.get('last_name', '')}"
+                item['patient_mrn'] = patient.get('patient_id_number', '')
     
     # Get decisions
     decisions_cursor = db.meeting_decisions.find({"meeting_id": meeting_id}, {"_id": 0})
@@ -1039,8 +1040,13 @@ async def generate_meeting_summary(meeting_id: str, current_user: dict = Depends
     try:
         pdf_bytes = generate_meeting_summary_pdf(meeting, participants, patients, agenda_items, decisions)
         
-        # Return PDF as downloadable file
-        filename = f"Meeting_Summary_{meeting.get('title', 'Untitled').replace(' ', '_')}_{meeting_id[:8]}.pdf"
+        # Create filename: Summary_MeetingTitle_Date_Time.pdf
+        # Format: Summary_Weekly_Case_Review_2024-03-25_14-30.pdf
+        meeting_title = meeting.get('title', 'Meeting').replace(' ', '_')
+        meeting_date = meeting.get('meeting_date', datetime.now().strftime('%Y-%m-%d'))
+        meeting_time = meeting.get('start_time', '00:00')[:5].replace(':', '-')  # Convert HH:MM to HH-MM
+        
+        filename = f"Summary_{meeting_title}_{meeting_date}_{meeting_time}.pdf"
         
         return Response(
             content=pdf_bytes,

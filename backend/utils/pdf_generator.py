@@ -164,14 +164,24 @@ def generate_meeting_summary_pdf(meeting_data, participants, patients, agenda_it
         elements.append(Paragraph("<b>Agenda Items & Treatment Plans</b>", heading_style))
         
         for idx, item in enumerate(agenda_items, 1):
-            elements.append(Paragraph(f"<b>{idx}. {item.get('title', 'Untitled')}</b>", subheading_style))
+            # Only show title if it exists
+            if item.get('title'):
+                elements.append(Paragraph(f"<b>{idx}. {item.get('title')}</b>", subheading_style))
+            else:
+                elements.append(Paragraph(f"<b>Agenda Item {idx}</b>", subheading_style))
             
             if item.get('description'):
                 elements.append(Paragraph(f"<i>Description:</i> {item.get('description', '')}", normal_style))
                 elements.append(Spacer(1, 0.1*inch))
             
-            if item.get('patient_name'):
-                elements.append(Paragraph(f"<i>Patient:</i> {item.get('patient_name', '')}", normal_style))
+            # Show patient name and MRN together
+            if item.get('patient_name') or item.get('patient_mrn'):
+                patient_info = []
+                if item.get('patient_name'):
+                    patient_info.append(item.get('patient_name'))
+                if item.get('patient_mrn'):
+                    patient_info.append(f"MRN: {item.get('patient_mrn')}")
+                elements.append(Paragraph(f"<i>Patient:</i> {' - '.join(patient_info)}", normal_style))
                 elements.append(Spacer(1, 0.1*inch))
             
             if item.get('presenter'):
@@ -182,10 +192,21 @@ def generate_meeting_summary_pdf(meeting_data, participants, patients, agenda_it
                 elements.append(Paragraph(f"<i>Duration:</i> {item.get('duration', '')} minutes", normal_style))
                 elements.append(Spacer(1, 0.1*inch))
             
-            # Treatment Plan
+            # Treatment Plan with patient info
             if item.get('treatment_plan'):
                 elements.append(Paragraph("<b><u>Treatment Plan:</u></b>", normal_style))
                 elements.append(Spacer(1, 0.05*inch))
+                
+                # Add patient info in treatment plan section if available
+                if item.get('patient_name') or item.get('patient_mrn'):
+                    patient_header = []
+                    if item.get('patient_name'):
+                        patient_header.append(f"<b>Patient:</b> {item.get('patient_name')}")
+                    if item.get('patient_mrn'):
+                        patient_header.append(f"<b>MRN:</b> {item.get('patient_mrn')}")
+                    elements.append(Paragraph(' | '.join(patient_header), normal_style))
+                    elements.append(Spacer(1, 0.05*inch))
+                
                 treatment_text = item.get('treatment_plan', '').replace('\n', '<br/>')
                 elements.append(Paragraph(treatment_text, normal_style))
             
