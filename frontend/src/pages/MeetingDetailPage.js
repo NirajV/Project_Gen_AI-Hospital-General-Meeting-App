@@ -898,9 +898,9 @@ export default function MeetingDetailPage() {
                                     const colors = cardColors[idx % cardColors.length];
                                     
                                     return (
-                                        <Card key={mp.id} className="border-0 shadow-sm hover:shadow-lg transition-all duration-300" style={{ backgroundColor: colors.light }} data-testid={`meeting-patient-${idx}`}>
-                                            <CardContent className="pt-6">
-                                                <div className="flex items-start gap-4">
+                                        <Card key={mp.id} className="border-0 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden" style={{ backgroundColor: colors.light }} data-testid={`meeting-patient-${idx}`}>
+                                            <CardContent className="pt-6 pb-0">
+                                                <div className="flex items-start gap-4 pb-4">
                                                     <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: colors.dark }}>
                                                         <User className="w-6 h-6 text-white" />
                                                     </div>
@@ -930,14 +930,23 @@ export default function MeetingDetailPage() {
                                                                 <p className="text-sm" style={{ color: colors.dark }}>{mp.clinical_question}</p>
                                                             </div>
                                                         )}
-                                                        <Link to={`/patients/${mp.patient_id}`}>
-                                                            <Button variant="ghost" size="sm" className="mt-2" style={{ color: colors.dark }}>
-                                                                View Full Profile
-                                                            </Button>
-                                                        </Link>
                                                     </div>
                                                 </div>
                                             </CardContent>
+                                            {/* Ribbon-style View Full Profile */}
+                                            <Link to={`/patients/${mp.patient_id}`} className="block">
+                                                <div 
+                                                    className="relative py-3 px-4 text-center font-semibold text-white transition-all duration-300 hover:opacity-90 cursor-pointer"
+                                                    style={{ 
+                                                        backgroundColor: colors.dark,
+                                                        clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%)',
+                                                    }}
+                                                >
+                                                    <span className="relative z-10">View Full Profile →</span>
+                                                    {/* Ribbon shadow effect */}
+                                                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black opacity-10"></div>
+                                                </div>
+                                            </Link>
                                         </Card>
                                     );
                                 })
