@@ -656,39 +656,89 @@ export default function MeetingDetailPage() {
 
                 {/* Tabs */}
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
-                    <TabsList className="bg-slate-100">
-                        <TabsTrigger value="overview" data-testid="tab-overview">Overview</TabsTrigger>
-                        <TabsTrigger value="patients" data-testid="tab-patients">Patients ({meeting.patients?.length || 0})</TabsTrigger>
-                        <TabsTrigger value="agenda" data-testid="tab-agenda">Agenda ({meeting.agenda?.length || 0})</TabsTrigger>
-                        <TabsTrigger value="files" data-testid="tab-files">Files ({meeting.files?.length || 0})</TabsTrigger>
-                        <TabsTrigger value="decisions" data-testid="tab-decisions">Decisions ({meeting.decisions?.length || 0})</TabsTrigger>
+                    <TabsList className="bg-transparent border-0 p-0 gap-2">
+                        <TabsTrigger 
+                            value="overview" 
+                            data-testid="tab-overview"
+                            className="data-[state=active]:shadow-md transition-all duration-200 font-semibold"
+                            style={{
+                                backgroundColor: activeTab === 'overview' ? '#0b0b30' : '#e8e8f5',
+                                color: activeTab === 'overview' ? '#ffffff' : '#0b0b30',
+                            }}
+                        >
+                            Overview
+                        </TabsTrigger>
+                        <TabsTrigger 
+                            value="patients" 
+                            data-testid="tab-patients"
+                            className="data-[state=active]:shadow-md transition-all duration-200 font-semibold"
+                            style={{
+                                backgroundColor: activeTab === 'patients' ? '#694e20' : '#f5f0e8',
+                                color: activeTab === 'patients' ? '#ffffff' : '#694e20',
+                            }}
+                        >
+                            Patients ({meeting.patients?.length || 0})
+                        </TabsTrigger>
+                        <TabsTrigger 
+                            value="agenda" 
+                            data-testid="tab-agenda"
+                            className="data-[state=active]:shadow-md transition-all duration-200 font-semibold"
+                            style={{
+                                backgroundColor: activeTab === 'agenda' ? '#3b6658' : '#e8f5f0',
+                                color: activeTab === 'agenda' ? '#ffffff' : '#3b6658',
+                            }}
+                        >
+                            Agenda ({meeting.agenda?.length || 0})
+                        </TabsTrigger>
+                        <TabsTrigger 
+                            value="files" 
+                            data-testid="tab-files"
+                            className="data-[state=active]:shadow-md transition-all duration-200 font-semibold"
+                            style={{
+                                backgroundColor: activeTab === 'files' ? '#68517d' : '#f3edf5',
+                                color: activeTab === 'files' ? '#ffffff' : '#68517d',
+                            }}
+                        >
+                            Files ({meeting.files?.length || 0})
+                        </TabsTrigger>
+                        <TabsTrigger 
+                            value="decisions" 
+                            data-testid="tab-decisions"
+                            className="data-[state=active]:shadow-md transition-all duration-200 font-semibold"
+                            style={{
+                                backgroundColor: activeTab === 'decisions' ? '#3b6658' : '#e8f5f0',
+                                color: activeTab === 'decisions' ? '#ffffff' : '#3b6658',
+                            }}
+                        >
+                            Decisions ({meeting.decisions?.length || 0})
+                        </TabsTrigger>
                     </TabsList>
 
                     {/* Overview Tab */}
                     <TabsContent value="overview" className="mt-6">
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                             <div className="lg:col-span-2 space-y-6">
-                                <Card className="border-slate-200">
+                                <Card className="border-0 shadow-sm hover:shadow-lg transition-all duration-300" style={{ backgroundColor: '#e8e8f5' }}>
                                     <CardHeader>
-                                        <CardTitle>Meeting Details</CardTitle>
+                                        <CardTitle style={{ color: '#0b0b30' }}>Meeting Details</CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
                                         {meeting.description && (
                                             <div>
                                                 <Label className="text-muted-foreground">Description</Label>
-                                                <p className="mt-1">{meeting.description}</p>
+                                                <p className="mt-1" style={{ color: '#0b0b30' }}>{meeting.description}</p>
                                             </div>
                                         )}
                                         {meeting.location && (
                                             <div>
                                                 <Label className="text-muted-foreground">Location</Label>
-                                                <p className="mt-1">{meeting.location}</p>
+                                                <p className="mt-1" style={{ color: '#0b0b30' }}>{meeting.location}</p>
                                             </div>
                                         )}
                                         {meeting.video_link && (
                                             <div>
                                                 <Label className="text-muted-foreground">Video Link</Label>
-                                                <a href={meeting.video_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 mt-1 text-primary hover:underline">
+                                                <a href={meeting.video_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 mt-1 hover:underline" style={{ color: '#0b0b30' }}>
                                                     {meeting.video_link.slice(0, 50)}... <ExternalLink className="w-3 h-3" />
                                                 </a>
                                             </div>
@@ -696,11 +746,11 @@ export default function MeetingDetailPage() {
                                         <div className="flex gap-4">
                                             <div>
                                                 <Label className="text-muted-foreground">Recurrence</Label>
-                                                <p className="mt-1 capitalize">{meeting.recurrence_type?.replace('_', ' ')}</p>
+                                                <p className="mt-1 capitalize" style={{ color: '#0b0b30' }}>{meeting.recurrence_type?.replace('_', ' ')}</p>
                                             </div>
                                             <div>
                                                 <Label className="text-muted-foreground">Duration</Label>
-                                                <p className="mt-1">{meeting.duration_minutes} minutes</p>
+                                                <p className="mt-1" style={{ color: '#0b0b30' }}>{meeting.duration_minutes} minutes</p>
                                             </div>
                                         </div>
                                     </CardContent>
@@ -763,34 +813,45 @@ export default function MeetingDetailPage() {
                                             </div>
                                         </div>
                                     </div>
-                                    {meeting.participants?.filter(p => p.role !== 'organizer').map((participant, idx) => (
-                                        <div key={participant.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 group" data-testid={`participant-${idx}`}>
-                                            <div className="flex items-center gap-2">
-                                                <Avatar className="w-8 h-8">
-                                                    <AvatarImage src={participant.picture} />
-                                                    <AvatarFallback className="text-xs">{participant.name?.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <div>
-                                                    <p className="text-sm font-medium">{participant.name}</p>
-                                                    <p className="text-xs text-muted-foreground">{participant.specialty || participant.email}</p>
+                                    {meeting.participants?.filter(p => p.role !== 'organizer').map((participant, idx) => {
+                                        // Rotating colors for participant items
+                                        const cardColors = [
+                                            { light: '#e8f5f0', dark: '#3b6658' }, // Teal
+                                            { light: '#f5f0e8', dark: '#694e20' }, // Amber
+                                            { light: '#f3edf5', dark: '#68517d' }, // Purple
+                                            { light: '#e8e8f5', dark: '#0b0b30' }, // Blue
+                                        ];
+                                        const colors = cardColors[idx % cardColors.length];
+                                        
+                                        return (
+                                            <div key={participant.id} className="flex items-center justify-between p-3 rounded-lg group transition-all duration-200 hover:shadow-sm" style={{ backgroundColor: colors.light }} data-testid={`participant-${idx}`}>
+                                                <div className="flex items-center gap-2">
+                                                    <Avatar className="w-8 h-8" style={{ backgroundColor: colors.dark }}>
+                                                        <AvatarImage src={participant.picture} />
+                                                        <AvatarFallback className="text-xs text-white" style={{ backgroundColor: colors.dark }}>{participant.name?.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div>
+                                                        <p className="text-sm font-semibold" style={{ color: colors.dark }}>{participant.name}</p>
+                                                        <p className="text-xs" style={{ color: colors.dark, opacity: 0.7 }}>{participant.specialty || participant.email}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    {getResponseBadge(participant.response_status)}
+                                                    {isOrganizer && meeting.status !== 'completed' && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="w-6 h-6 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
+                                                            onClick={() => handleRemoveParticipant(participant.user_id)}
+                                                            data-testid={`remove-participant-${idx}`}
+                                                        >
+                                                            <XCircle className="w-4 h-4" />
+                                                        </Button>
+                                                    )}
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-2">
-                                                {getResponseBadge(participant.response_status)}
-                                                {isOrganizer && meeting.status !== 'completed' && (
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="w-6 h-6 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
-                                                        onClick={() => handleRemoveParticipant(participant.user_id)}
-                                                        data-testid={`remove-participant-${idx}`}
-                                                    >
-                                                        <XCircle className="w-4 h-4" />
-                                                    </Button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </CardContent>
                             </Card>
                         </div>
@@ -826,49 +887,60 @@ export default function MeetingDetailPage() {
                                     </CardContent>
                                 </Card>
                             ) : (
-                                meeting.patients?.map((mp, idx) => (
-                                    <Card key={mp.id} className="border-slate-200" data-testid={`meeting-patient-${idx}`}>
-                                        <CardContent className="pt-6">
-                                            <div className="flex items-start gap-4">
-                                                <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-between">
-                                                    <User className="w-6 h-6 text-accent" />
-                                                </div>
-                                                <div className="flex-1">
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="flex items-center gap-2">
-                                                            <h3 className="font-medium">{mp.first_name} {mp.last_name}</h3>
-                                                            <Badge variant="outline" className="text-xs capitalize">{mp.status?.replace('_', ' ')}</Badge>
-                                                        </div>
-                                                        {isOrganizer && meeting.status !== 'completed' && (
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                onClick={() => handleRemovePatient(mp.patient_id)}
-                                                                className="text-muted-foreground hover:text-destructive"
-                                                                title="Remove patient"
-                                                            >
-                                                                <Trash2 className="w-4 h-4" />
-                                                            </Button>
-                                                        )}
+                                meeting.patients?.map((mp, idx) => {
+                                    // Rotating colors for patient cards
+                                    const cardColors = [
+                                        { light: '#e8f5f0', dark: '#3b6658' }, // Teal
+                                        { light: '#f5f0e8', dark: '#694e20' }, // Amber
+                                        { light: '#f3edf5', dark: '#68517d' }, // Purple
+                                        { light: '#e8e8f5', dark: '#0b0b30' }, // Blue
+                                    ];
+                                    const colors = cardColors[idx % cardColors.length];
+                                    
+                                    return (
+                                        <Card key={mp.id} className="border-0 shadow-sm hover:shadow-lg transition-all duration-300" style={{ backgroundColor: colors.light }} data-testid={`meeting-patient-${idx}`}>
+                                            <CardContent className="pt-6">
+                                                <div className="flex items-start gap-4">
+                                                    <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: colors.dark }}>
+                                                        <User className="w-6 h-6 text-white" />
                                                     </div>
-                                                    {mp.patient_id_number && <p className="text-xs text-muted-foreground">ID: {mp.patient_id_number}</p>}
-                                                    {mp.primary_diagnosis && <p className="text-sm mt-2">{mp.primary_diagnosis}</p>}
-                                                    {mp.clinical_question && (
-                                                        <div className="mt-3 p-2 rounded bg-slate-50">
-                                                            <p className="text-xs text-muted-foreground">Clinical Question</p>
-                                                            <p className="text-sm">{mp.clinical_question}</p>
+                                                    <div className="flex-1">
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex items-center gap-2">
+                                                                <h3 className="font-semibold" style={{ color: colors.dark }}>{mp.first_name} {mp.last_name}</h3>
+                                                                <Badge variant="outline" className="text-xs capitalize" style={{ borderColor: colors.dark, color: colors.dark }}>{mp.status?.replace('_', ' ')}</Badge>
+                                                            </div>
+                                                            {isOrganizer && meeting.status !== 'completed' && (
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    onClick={() => handleRemovePatient(mp.patient_id)}
+                                                                    className="text-muted-foreground hover:text-destructive"
+                                                                    title="Remove patient"
+                                                                >
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </Button>
+                                                            )}
                                                         </div>
-                                                    )}
-                                                    <Link to={`/patients/${mp.patient_id}`}>
-                                                        <Button variant="ghost" size="sm" className="mt-2">
-                                                            View Full Profile
-                                                        </Button>
-                                                    </Link>
+                                                        {mp.patient_id_number && <p className="text-xs" style={{ color: colors.dark, opacity: 0.7 }}>ID: {mp.patient_id_number}</p>}
+                                                        {mp.primary_diagnosis && <p className="text-sm mt-2" style={{ color: colors.dark }}>{mp.primary_diagnosis}</p>}
+                                                        {mp.clinical_question && (
+                                                            <div className="mt-3 p-2 rounded" style={{ backgroundColor: `${colors.dark}15` }}>
+                                                                <p className="text-xs" style={{ color: colors.dark, opacity: 0.7 }}>Clinical Question</p>
+                                                                <p className="text-sm" style={{ color: colors.dark }}>{mp.clinical_question}</p>
+                                                            </div>
+                                                        )}
+                                                        <Link to={`/patients/${mp.patient_id}`}>
+                                                            <Button variant="ghost" size="sm" className="mt-2" style={{ color: colors.dark }}>
+                                                                View Full Profile
+                                                            </Button>
+                                                        </Link>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                ))
+                                            </CardContent>
+                                        </Card>
+                                    );
+                                })
                             )}
                         </div>
                     </TabsContent>
@@ -909,17 +981,26 @@ export default function MeetingDetailPage() {
                                                 const isEditing = editingTreatmentPlan[item.id];
                                                 const currentTreatmentPlan = treatmentPlanText[item.id] !== undefined ? treatmentPlanText[item.id] : item.treatment_plan;
                                                 
+                                                // Rotating colors for agenda cards
+                                                const cardColors = [
+                                                    { light: '#e8f5f0', dark: '#3b6658' }, // Teal
+                                                    { light: '#f5f0e8', dark: '#694e20' }, // Amber
+                                                    { light: '#f3edf5', dark: '#68517d' }, // Purple
+                                                    { light: '#e8e8f5', dark: '#0b0b30' }, // Blue
+                                                ];
+                                                const colors = cardColors[idx % cardColors.length];
+                                                
                                                 return (
-                                                    <div key={item.id} className="p-6 rounded-lg border-2 border-slate-200 bg-white space-y-4" data-testid={`agenda-item-${idx}`}>
+                                                    <div key={item.id} className="p-6 rounded-lg border-0 shadow-sm hover:shadow-lg transition-all duration-300 space-y-4" style={{ backgroundColor: colors.light }} data-testid={`agenda-item-${idx}`}>
                                                         {/* Header with Patient Name and Actions */}
                                                         <div className="flex items-start justify-between">
                                                             <div className="flex items-center gap-3">
-                                                                <Badge variant="outline" className="text-lg px-3 py-1">{idx + 1}</Badge>
+                                                                <Badge variant="outline" className="text-lg px-3 py-1" style={{ borderColor: colors.dark, color: colors.dark }}>{idx + 1}</Badge>
                                                                 <div>
-                                                                    <h3 className="text-lg font-semibold text-slate-900">
+                                                                    <h3 className="text-lg font-semibold" style={{ color: colors.dark }}>
                                                                         {item.patient_name || 'Unknown Patient'}
                                                                     </h3>
-                                                                    <p className="text-sm text-slate-600">MRN: <span className="font-mono">{item.mrn}</span></p>
+                                                                    <p className="text-sm" style={{ color: colors.dark, opacity: 0.7 }}>MRN: <span className="font-mono">{item.mrn}</span></p>
                                                                 </div>
                                                             </div>
                                                             <div className="flex items-center gap-2">
@@ -938,14 +1019,14 @@ export default function MeetingDetailPage() {
                                                         </div>
 
                                                         {/* Medical Information Grid */}
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4 border-y border-slate-200">
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4" style={{ borderTop: `1px solid ${colors.dark}30`, borderBottom: `1px solid ${colors.dark}30` }}>
                                                             <div>
-                                                                <p className="text-xs font-medium text-slate-500 uppercase mb-1">Requested Provider</p>
-                                                                <p className="text-sm font-medium text-slate-900">{item.requested_provider}</p>
+                                                                <p className="text-xs font-medium uppercase mb-1" style={{ color: colors.dark, opacity: 0.6 }}>Requested Provider</p>
+                                                                <p className="text-sm font-medium" style={{ color: colors.dark }}>{item.requested_provider}</p>
                                                             </div>
                                                             <div>
-                                                                <p className="text-xs font-medium text-slate-500 uppercase mb-1">Diagnosis</p>
-                                                                <p className="text-sm font-medium text-slate-900">{item.diagnosis}</p>
+                                                                <p className="text-xs font-medium uppercase mb-1" style={{ color: colors.dark, opacity: 0.6 }}>Diagnosis</p>
+                                                                <p className="text-sm font-medium" style={{ color: colors.dark }}>{item.diagnosis}</p>
                                                             </div>
                                                         </div>
 
@@ -1082,22 +1163,32 @@ export default function MeetingDetailPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {meeting.files?.map((file, idx) => {
                                     const filePatient = meeting.patients?.find(p => p.patient_id === file.patient_id);
+                                    
+                                    // Rotating colors for file cards
+                                    const cardColors = [
+                                        { light: '#e8f5f0', dark: '#3b6658' }, // Teal
+                                        { light: '#f5f0e8', dark: '#694e20' }, // Amber
+                                        { light: '#f3edf5', dark: '#68517d' }, // Purple
+                                        { light: '#e8e8f5', dark: '#0b0b30' }, // Blue
+                                    ];
+                                    const colors = cardColors[idx % cardColors.length];
+                                    
                                     return (
-                                        <Card key={file.id} className="border-slate-200" data-testid={`file-${idx}`}>
+                                        <Card key={file.id} className="border-0 shadow-sm hover:shadow-lg transition-all duration-300" style={{ backgroundColor: colors.light }} data-testid={`file-${idx}`}>
                                             <CardContent className="pt-6">
                                                 <div className="flex items-start justify-between mb-3">
                                                     <div className="flex items-start gap-3 flex-1">
                                                         <span className="text-2xl">{getFileIcon(file.file_type)}</span>
                                                         <div className="flex-1">
-                                                            <p className="font-medium text-sm truncate">{file.original_name}</p>
-                                                            <p className="text-xs text-muted-foreground capitalize">{file.file_type?.replace('_', ' ')}</p>
-                                                            <p className="text-xs text-muted-foreground mt-1">By {file.uploader_name}</p>
+                                                            <p className="font-semibold text-sm truncate" style={{ color: colors.dark }}>{file.original_name}</p>
+                                                            <p className="text-xs capitalize" style={{ color: colors.dark, opacity: 0.7 }}>{file.file_type?.replace('_', ' ')}</p>
+                                                            <p className="text-xs mt-1" style={{ color: colors.dark, opacity: 0.7 }}>By {file.uploader_name}</p>
                                                         </div>
                                                     </div>
                                                     <div className="flex gap-1">
                                                         <Button variant="ghost" size="icon" asChild>
                                                             <a href={getFileUrl(file.id)} target="_blank" rel="noopener noreferrer">
-                                                                <Download className="w-4 h-4" />
+                                                                <Download className="w-4 h-4" style={{ color: colors.dark }} />
                                                             </a>
                                                         </Button>
                                                         <Button variant="ghost" size="icon" onClick={() => handleDeleteFile(file.id)} className="text-destructive">
@@ -1106,13 +1197,13 @@ export default function MeetingDetailPage() {
                                                     </div>
                                                 </div>
                                                 {filePatient && (
-                                                    <div className="pt-3 border-t border-slate-200">
+                                                    <div className="pt-3" style={{ borderTop: `1px solid ${colors.dark}30` }}>
                                                         <div className="flex items-center gap-2">
-                                                            <Badge variant="outline" className="text-xs">
+                                                            <Badge variant="outline" className="text-xs" style={{ borderColor: colors.dark, color: colors.dark }}>
                                                                 👤 {filePatient.first_name} {filePatient.last_name}
                                                             </Badge>
                                                             {filePatient.patient_id_number && (
-                                                                <Badge variant="secondary" className="text-xs font-mono">
+                                                                <Badge variant="secondary" className="text-xs font-mono" style={{ backgroundColor: `${colors.dark}20`, color: colors.dark }}>
                                                                     MRN: {filePatient.patient_id_number}
                                                                 </Badge>
                                                             )}
@@ -1120,7 +1211,7 @@ export default function MeetingDetailPage() {
                                                     </div>
                                                 )}
                                                 {!filePatient && file.patient_id && (
-                                                    <div className="pt-3 border-t border-slate-200">
+                                                    <div className="pt-3" style={{ borderTop: `1px solid ${colors.dark}30` }}>
                                                         <Badge variant="outline" className="text-xs text-slate-400">
                                                             Patient not found
                                                         </Badge>
@@ -1152,42 +1243,52 @@ export default function MeetingDetailPage() {
                             <div className="space-y-4">
                                 {meeting.decisions?.map((decision, idx) => {
                                     const decisionPatient = meeting.patients?.find(p => p.patient_id === decision.meeting_patient_id);
+                                    
+                                    // Rotating colors for decision cards
+                                    const cardColors = [
+                                        { light: '#e8f5f0', dark: '#3b6658' }, // Teal
+                                        { light: '#f5f0e8', dark: '#694e20' }, // Amber
+                                        { light: '#f3edf5', dark: '#68517d' }, // Purple
+                                        { light: '#e8e8f5', dark: '#0b0b30' }, // Blue
+                                    ];
+                                    const colors = cardColors[idx % cardColors.length];
+                                    
                                     return (
-                                        <Card key={decision.id} className="border-slate-200" data-testid={`decision-${idx}`}>
+                                        <Card key={decision.id} className="border-0 shadow-sm hover:shadow-lg transition-all duration-300" style={{ backgroundColor: colors.light }} data-testid={`decision-${idx}`}>
                                             <CardContent className="pt-6">
                                                 <div className="flex items-start justify-between">
                                                     <div className="flex-1">
                                                         <div className="flex items-center gap-2 flex-wrap">
-                                                            <h3 className="font-medium">{decision.title}</h3>
+                                                            <h3 className="font-semibold" style={{ color: colors.dark }}>{decision.title}</h3>
                                                             <Badge variant="outline" className={`text-xs ${
                                                                 decision.priority === 'high' || decision.priority === 'urgent' ? 'border-red-300 text-red-700' :
                                                                 decision.priority === 'medium' ? 'border-orange-300 text-orange-700' : ''
-                                                            }`}>{decision.priority}</Badge>
+                                                            }`} style={{ borderColor: colors.dark, color: colors.dark }}>{decision.priority}</Badge>
                                                             <Badge className={decision.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}>
                                                                 {decision.status}
                                                             </Badge>
                                                         </div>
                                                         {decisionPatient && (
                                                             <div className="flex items-center gap-2 mt-2">
-                                                                <Badge variant="outline" className="text-xs">
+                                                                <Badge variant="outline" className="text-xs" style={{ borderColor: colors.dark, color: colors.dark }}>
                                                                     👤 {decisionPatient.first_name} {decisionPatient.last_name}
                                                                 </Badge>
                                                                 {decisionPatient.patient_id_number && (
-                                                                    <Badge variant="secondary" className="text-xs font-mono">
+                                                                    <Badge variant="secondary" className="text-xs font-mono" style={{ backgroundColor: `${colors.dark}20`, color: colors.dark }}>
                                                                         MRN: {decisionPatient.patient_id_number}
                                                                     </Badge>
                                                                 )}
                                                             </div>
                                                         )}
-                                                        {decision.description && <p className="text-sm text-muted-foreground mt-2">{decision.description}</p>}
+                                                        {decision.description && <p className="text-sm mt-2" style={{ color: colors.dark, opacity: 0.8 }}>{decision.description}</p>}
                                                         {decision.action_plan && (
-                                                            <div className="mt-3 p-3 rounded bg-slate-50">
-                                                                <p className="text-xs font-medium text-muted-foreground">Action Plan</p>
-                                                                <p className="text-sm mt-1">{decision.action_plan}</p>
+                                                            <div className="mt-3 p-3 rounded" style={{ backgroundColor: `${colors.dark}15` }}>
+                                                                <p className="text-xs font-medium" style={{ color: colors.dark, opacity: 0.7 }}>Action Plan</p>
+                                                                <p className="text-sm mt-1" style={{ color: colors.dark }}>{decision.action_plan}</p>
                                                             </div>
                                                         )}
                                                         {decision.follow_up_date && (
-                                                            <p className="text-xs text-muted-foreground mt-2">Follow-up: {format(parseISO(decision.follow_up_date), 'MMM d, yyyy')}</p>
+                                                            <p className="text-xs mt-2" style={{ color: colors.dark, opacity: 0.7 }}>Follow-up: {format(parseISO(decision.follow_up_date), 'MMM d, yyyy')}</p>
                                                         )}
                                                     </div>
                                                     {isOrganizer && meeting.status !== 'completed' && (
