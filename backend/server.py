@@ -26,6 +26,7 @@ from utils.email import (
     send_combined_account_setup_and_invite,
     send_simple_account_setup_email
 )
+from utils.pdf_generator import generate_meeting_summary_pdf
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -949,6 +950,108 @@ async def delete_meeting(meeting_id: str, current_user: dict = Depends(get_curre
     
     await db.meetings.update_one({"id": meeting_id}, {"$set": {"status": "cancelled"}})
     return {"message": "Meeting cancelled"}
+
+# Generate Meeting Summary PDF
+@api_router.get("/meetings/{meeting_id}/summary")
+async def generate_meeting_summary(meeting_id: str, current_user: dict = Depends(get_current_user)):
+    """
+    Generate a comprehensive PDF summary for a meeting including:
+    - Meeting details
+    - Participants list
+    - Patients discussed
+    - Agenda items with treatment plans
+    - Decisions made
+    """
+    # Get meeting details
+    meeting = await db.meetings.find_one({"id": meeting_id}, {"_id": 0})
+    if not meeting:
+        raise HTTPException(status_code=404, detail="Meeting not found")
+    
+    # Check if user has access to this meeting
+    is_organizer = meeting['organizer_id'] == current_user['id']
+    is_participant = await db.meeting_participants.find_one({
+        "meeting_id": meeting_id,
+        "user_id": current_user['id']
+    })
+    
+    if not is_organizer and not is_participant:
+        raise HTTPException(status_code=403, detail="You don't have access to this meeting")
+    
+    # Get organizer info
+    organizer = await db.users.find_one({"id": meeting['organizer_id']}, {"_id": 0, "name": 1})
+    meeting['organizer_name'] = organizer.get('name', 'Unknown') if organizer else 'Unknown'
+    
+    # Get participants
+    participants_cursor = db.meeting_participants.find({"meeting_id": meeting_id}, {"_id": 0})
+    participants_list = await participants_cursor.to_list(length=None)
+    
+    participants = []
+    for p in participants_list:
+        user = await db.users.find_one({"id": p['user_id']}, {"_id": 0, "name": 1, "role": 1, "specialty": 1})
+        if user:
+            participants.append({
+                "name": user.get('name', 'Unknown'),
+                "role": user.get('role', 'Unknown'),
+                "specialty": user.get('specialty', 'N/A'),
+                "response_status": p.get('response_status', 'pending')
+            })
+    
+    # Get patients
+    patients_cursor = db.meeting_patients.find({"meeting_id": meeting_id}, {"_id": 0})
+    meeting_patients = await patients_cursor.to_list(length=None)
+    
+    patients = []
+    for mp in meeting_patients:
+        patient = await db.patients.find_one({"id": mp['patient_id']}, {"_id": 0})
+        if patient:
+            # Calculate age
+            if patient.get('date_of_birth'):
+                dob = datetime.fromisoformat(patient['date_of_birth'].replace('Z', '+00:00'))
+                today = datetime.now(timezone.utc)
+                age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+                patient['age'] = age
+            patients.append(patient)
+    
+    # Get agenda items with treatment plans
+    agenda_cursor = db.agenda_items.find({"meeting_id": meeting_id}, {"_id": 0}).sort("order", 1)
+    agenda_items = await agenda_cursor.to_list(length=None)
+    
+    for item in agenda_items:
+        if item.get('patient_id'):
+            patient = await db.patients.find_one({"id": item['patient_id']}, {"_id": 0, "first_name": 1, "last_name": 1})
+            if patient:
+                item['patient_name'] = f"{patient.get('first_name', '')} {patient.get('last_name', '')}"
+    
+    # Get decisions
+    decisions_cursor = db.meeting_decisions.find({"meeting_id": meeting_id}, {"_id": 0})
+    decisions = await decisions_cursor.to_list(length=None)
+    
+    for decision in decisions:
+        if decision.get('created_by'):
+            user = await db.users.find_one({"id": decision['created_by']}, {"_id": 0, "name": 1})
+            if user:
+                decision['decision_maker'] = user.get('name', 'Unknown')
+        
+        if decision.get('created_at'):
+            decision['created_at'] = decision['created_at'].strftime('%B %d, %Y at %I:%M %p')
+    
+    # Generate PDF
+    try:
+        pdf_bytes = generate_meeting_summary_pdf(meeting, participants, patients, agenda_items, decisions)
+        
+        # Return PDF as downloadable file
+        filename = f"Meeting_Summary_{meeting.get('title', 'Untitled').replace(' ', '_')}_{meeting_id[:8]}.pdf"
+        
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}"
+            }
+        )
+    except Exception as e:
+        logger.error(f"Error generating PDF: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate PDF: {str(e)}")
 
 # ============== Meeting Participants Routes ==============
 

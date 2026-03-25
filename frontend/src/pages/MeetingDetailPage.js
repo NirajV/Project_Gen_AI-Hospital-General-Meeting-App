@@ -69,6 +69,7 @@ export default function MeetingDetailPage() {
     const [uploadDialog, setUploadDialog] = useState(false);
     const [decisionDialog, setDecisionDialog] = useState(false);
     const [deleteDialog, setDeleteDialog] = useState(false);
+    const [generatingSummary, setGeneratingSummary] = useState(false);
     const [participantDialog, setParticipantDialog] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
@@ -146,6 +147,44 @@ export default function MeetingDetailPage() {
             navigate('/meetings');
         } catch (error) {
             console.error('Failed to delete meeting:', error);
+        }
+    };
+
+    const handleGenerateSummary = async () => {
+        setGeneratingSummary(true);
+        try {
+            const API_URL = process.env.REACT_APP_BACKEND_URL;
+            const token = localStorage.getItem('auth_token');
+            
+            const response = await fetch(`${API_URL}/api/meetings/${id}/summary`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to generate summary');
+            }
+            
+            // Get the PDF blob
+            const blob = await response.blob();
+            
+            // Create a download link
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Meeting_Summary_${meeting.title.replace(/\s+/g, '_')}_${id.slice(0, 8)}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+        } catch (error) {
+            console.error('Failed to generate summary:', error);
+            alert('Failed to generate meeting summary. Please try again.');
+        } finally {
+            setGeneratingSummary(false);
         }
     };
 
@@ -1161,14 +1200,41 @@ export default function MeetingDetailPage() {
                     </TabsContent>
                 </Tabs>
 
-                {/* Delete Meeting Button (Organizer only) */}
-                {isOrganizer && (
-                    <div className="pt-8 border-t">
-                        <Button variant="outline" className="text-destructive border-destructive/30 hover:bg-destructive/10" onClick={() => setDeleteDialog(true)} data-testid="delete-meeting-btn">
+                {/* Action Buttons Section */}
+                <div className="pt-8 border-t space-y-4">
+                    {/* Generate Summary Button - Available to all participants */}
+                    <Button 
+                        variant="outline" 
+                        className="w-full sm:w-auto font-semibold transition-all duration-200 border-2"
+                        style={{ 
+                            backgroundColor: '#e8f5f0', 
+                            borderColor: '#3b6658',
+                            color: '#3b6658'
+                        }}
+                        onClick={handleGenerateSummary}
+                        disabled={generatingSummary}
+                        data-testid="generate-summary-btn"
+                    >
+                        {generatingSummary ? (
+                            <>
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                Generating PDF...
+                            </>
+                        ) : (
+                            <>
+                                <FileText className="w-4 h-4 mr-2" />
+                                Generate Meeting Summary (PDF)
+                            </>
+                        )}
+                    </Button>
+
+                    {/* Delete Meeting Button (Organizer only) */}
+                    {isOrganizer && (
+                        <Button variant="outline" className="text-destructive border-destructive/30 hover:bg-destructive/10 w-full sm:w-auto" onClick={() => setDeleteDialog(true)} data-testid="delete-meeting-btn">
                             <Trash2 className="w-4 h-4 mr-2" /> Cancel Meeting
                         </Button>
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
 
             {/* Upload Dialog */}
