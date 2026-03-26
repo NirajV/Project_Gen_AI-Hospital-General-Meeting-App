@@ -952,7 +952,6 @@ export default function MeetingDetailPage() {
                                     );
                                 })}
                                 </div>
-                            )
                             )}
                         </div>
                     </TabsContent>
