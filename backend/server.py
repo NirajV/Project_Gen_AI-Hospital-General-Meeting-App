@@ -621,9 +621,32 @@ async def get_patient(patient_id: str, current_user: dict = Depends(get_current_
     # Get patient's files
     files = await db.file_attachments.find({"patient_id": patient_id}, {"_id": 0}).sort("created_at", -1).to_list(100)
     
+    # Get patient's treatment plans from agenda items (sorted by meeting date DESC - latest first)
+    treatment_plans = []
+    agenda_items = await db.agenda_items.find({"patient_id": patient_id, "treatment_plan": {"$exists": True, "$ne": ""}}, {"_id": 0}).to_list(1000)
+    
+    for item in agenda_items:
+        # Get the meeting details for this agenda item
+        meeting = await db.meetings.find_one({"id": item['meeting_id']}, {"_id": 0, "title": 1, "meeting_date": 1, "id": 1})
+        if meeting:
+            treatment_plans.append({
+                "id": item.get('id'),
+                "treatment_plan": item.get('treatment_plan'),
+                "diagnosis": item.get('diagnosis'),
+                "requested_provider": item.get('requested_provider'),
+                "created_at": item.get('created_at'),
+                "meeting_id": meeting.get('id'),
+                "meeting_title": meeting.get('title'),
+                "meeting_date": meeting.get('meeting_date'),
+            })
+    
+    # Sort treatment plans by meeting date (descending - latest first)
+    treatment_plans.sort(key=lambda x: x.get('meeting_date', ''), reverse=True)
+    
     result = serialize_doc(patient)
     result['meetings'] = [serialize_doc(m) for m in meetings]
     result['files'] = [serialize_doc(f) for f in files]
+    result['treatment_plans'] = treatment_plans
     
     return result
 
