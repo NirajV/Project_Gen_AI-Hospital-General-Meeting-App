@@ -197,7 +197,7 @@ export default function DashboardPage() {
                                 </Link>
                             </div>
                         ) : (
-                            <div className="space-y-4 p-2">
+                            <div className="space-y-8 p-4 bg-white">
                                 {upcomingMeetings.map((meeting, idx) => {
                                     const isOrganizer = meeting.organizer_id === user.id;
                                     const myParticipation = meeting.participants?.find(p => p.user_id === user.id);

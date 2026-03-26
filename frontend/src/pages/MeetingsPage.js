@@ -212,7 +212,7 @@ export default function MeetingsPage() {
                         </div>
                     ) : (
                         <>
-                            <TabsContent value="upcoming" className="space-y-4 mt-6 p-2">
+                            <TabsContent value="upcoming" className="space-y-8 mt-6 p-4 bg-white">
                                 {meetings.length === 0 ? (
                                     <Card className="border-slate-200">
                                         <CardContent className="py-12 text-center">
@@ -230,7 +230,7 @@ export default function MeetingsPage() {
                                 )}
                             </TabsContent>
 
-                            <TabsContent value="my_invites" className="space-y-4 mt-6 p-2">
+                            <TabsContent value="my_invites" className="space-y-8 mt-6 p-4 bg-white">
                                 {meetings.length === 0 ? (
                                     <Card className="border-slate-200">
                                         <CardContent className="py-12 text-center">
@@ -245,7 +245,7 @@ export default function MeetingsPage() {
                                 )}
                             </TabsContent>
 
-                            <TabsContent value="past" className="space-y-4 mt-6 p-2">
+                            <TabsContent value="past" className="space-y-8 mt-6 p-4 bg-white">
                                 {meetings.length === 0 ? (
                                     <Card className="border-slate-200">
                                         <CardContent className="py-12 text-center">
