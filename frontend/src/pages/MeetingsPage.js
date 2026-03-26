@@ -86,7 +86,7 @@ export default function MeetingsPage() {
         
         return (
             <div 
-                className="flex items-center justify-between p-4 rounded-lg border-0 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group" 
+                className="flex items-center justify-between p-4 rounded-lg border-0 shadow-sm hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.01] transition-all duration-300 group bg-white" 
                 style={{ backgroundColor: colors.light }}
                 data-testid={`meeting-item-${meeting.id}`}
             >
@@ -212,7 +212,7 @@ export default function MeetingsPage() {
                         </div>
                     ) : (
                         <>
-                            <TabsContent value="upcoming" className="space-y-3 mt-6">
+                            <TabsContent value="upcoming" className="space-y-4 mt-6 p-2">
                                 {meetings.length === 0 ? (
                                     <Card className="border-slate-200">
                                         <CardContent className="py-12 text-center">
@@ -230,7 +230,7 @@ export default function MeetingsPage() {
                                 )}
                             </TabsContent>
 
-                            <TabsContent value="my_invites" className="space-y-3 mt-6">
+                            <TabsContent value="my_invites" className="space-y-4 mt-6 p-2">
                                 {meetings.length === 0 ? (
                                     <Card className="border-slate-200">
                                         <CardContent className="py-12 text-center">
@@ -245,7 +245,7 @@ export default function MeetingsPage() {
                                 )}
                             </TabsContent>
 
-                            <TabsContent value="past" className="space-y-3 mt-6">
+                            <TabsContent value="past" className="space-y-4 mt-6 p-2">
                                 {meetings.length === 0 ? (
                                     <Card className="border-slate-200">
                                         <CardContent className="py-12 text-center">

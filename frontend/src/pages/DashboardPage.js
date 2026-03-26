@@ -197,7 +197,7 @@ export default function DashboardPage() {
                                 </Link>
                             </div>
                         ) : (
-                            <div className="space-y-3">
+                            <div className="space-y-4 p-2">
                                 {upcomingMeetings.map((meeting, idx) => {
                                     const isOrganizer = meeting.organizer_id === user.id;
                                     const myParticipation = meeting.participants?.find(p => p.user_id === user.id);
@@ -215,7 +215,7 @@ export default function DashboardPage() {
                                     return (
                                         <div
                                             key={meeting.id}
-                                            className="p-4 rounded-lg border-0 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group"
+                                            className="p-4 rounded-lg border-0 shadow-sm hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.02] transition-all duration-300 group bg-white"
                                             style={{ backgroundColor: colors.light }}
                                             data-testid={`meeting-card-${idx}`}
                                         >

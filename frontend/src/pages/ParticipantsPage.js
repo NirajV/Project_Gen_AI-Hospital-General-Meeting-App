@@ -330,7 +330,7 @@ export default function ParticipantsPage() {
                                 </p>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-2">
                                 {filteredParticipants.map((participant, idx) => {
                                     // Rotating colors for participant cards (same as Dashboard)
                                     const cardColors = [
@@ -344,7 +344,7 @@ export default function ParticipantsPage() {
                                     return (
                                         <div
                                             key={participant.id}
-                                            className="p-4 rounded-lg border-0 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group"
+                                            className="p-4 rounded-lg border-0 shadow-sm hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.02] transition-all duration-300 group bg-white"
                                             style={{ backgroundColor: colors.light }}
                                         >
                                             <div className="flex items-start gap-3">

@@ -117,7 +117,7 @@ export default function PatientsPage() {
                         </CardContent>
                     </Card>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-2">
                         {patients.map((patient, idx) => {
                             // Rotating colors for patient cards (same as Dashboard)
                             const cardColors = [
@@ -131,7 +131,7 @@ export default function PatientsPage() {
                             return (
                                 <Card 
                                     key={patient.id} 
-                                    className="border-0 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 shadow-sm group" 
+                                    className="border-0 hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.02] transition-all duration-300 shadow-sm group bg-white" 
                                     style={{ backgroundColor: colors.light }}
                                     data-testid={`patient-card-${idx}`}
                                 >

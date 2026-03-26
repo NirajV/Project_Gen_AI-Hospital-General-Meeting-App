@@ -283,7 +283,7 @@ export default function PatientDetailPage() {
                                 </CardContent>
                             </Card>
                         ) : (
-                            <div className="space-y-3">
+                            <div className="space-y-4 p-2">
                                 {patient.meetings?.map((meeting, idx) => {
                                     // Rotating colors for meeting cards
                                     const cardColors = [
@@ -296,7 +296,7 @@ export default function PatientDetailPage() {
                                     
                                     return (
                                         <Link key={meeting.id} to={`/meetings/${meeting.id}`}>
-                                            <div className="flex items-center justify-between p-4 rounded-lg border-0 shadow-sm hover:shadow-lg transition-all duration-300" style={{ backgroundColor: colors.light }} data-testid={`patient-meeting-${idx}`}>
+                                            <div className="flex items-center justify-between p-4 rounded-lg border-0 shadow-sm hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.01] transition-all duration-300 bg-white" style={{ backgroundColor: colors.light }} data-testid={`patient-meeting-${idx}`}>
                                                 <div className="flex items-center gap-4">
                                                     <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: colors.dark }}>
                                                         {meeting.meeting_type === 'video' ? (
@@ -345,7 +345,7 @@ export default function PatientDetailPage() {
                                 </CardContent>
                             </Card>
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-2">
                                 {patient.files?.map((file, idx) => {
                                     // Rotating colors for file cards
                                     const cardColors = [
@@ -357,7 +357,7 @@ export default function PatientDetailPage() {
                                     const colors = cardColors[idx % cardColors.length];
                                     
                                     return (
-                                        <Card key={file.id} className="border-0 shadow-sm hover:shadow-lg transition-all duration-300" style={{ backgroundColor: colors.light }} data-testid={`patient-file-${idx}`}>
+                                        <Card key={file.id} className="border-0 shadow-sm hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.02] transition-all duration-300 bg-white" style={{ backgroundColor: colors.light }} data-testid={`patient-file-${idx}`}>
                                             <CardContent className="pt-6">
                                                 <div className="flex items-start justify-between">
                                                     <div className="flex items-start gap-3">

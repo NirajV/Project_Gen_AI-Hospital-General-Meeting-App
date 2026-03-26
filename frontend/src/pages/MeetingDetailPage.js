@@ -887,7 +887,8 @@ export default function MeetingDetailPage() {
                                     </CardContent>
                                 </Card>
                             ) : (
-                                meeting.patients?.map((mp, idx) => {
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-2">
+                                {meeting.patients?.map((mp, idx) => {
                                     // Rotating colors for patient cards
                                     const cardColors = [
                                         { light: '#e8f5f0', dark: '#3b6658' }, // Teal
@@ -898,7 +899,7 @@ export default function MeetingDetailPage() {
                                     const colors = cardColors[idx % cardColors.length];
                                     
                                     return (
-                                        <Card key={mp.id} className="border-0 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden" style={{ backgroundColor: colors.light }} data-testid={`meeting-patient-${idx}`}>
+                                        <Card key={mp.id} className="border-0 shadow-sm hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.02] transition-all duration-300 overflow-hidden bg-white" style={{ backgroundColor: colors.light }} data-testid={`meeting-patient-${idx}`}>
                                             <CardContent className="pt-6 pb-0">
                                                 <div className="flex items-start gap-4 pb-4">
                                                     <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: colors.dark }}>
@@ -949,7 +950,9 @@ export default function MeetingDetailPage() {
                                             </Link>
                                         </Card>
                                     );
-                                })
+                                })}
+                                </div>
+                            )
                             )}
                         </div>
                     </TabsContent>
