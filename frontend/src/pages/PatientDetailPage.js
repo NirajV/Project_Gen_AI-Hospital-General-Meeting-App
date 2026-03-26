@@ -28,6 +28,7 @@ export default function PatientDetailPage() {
     const [patient, setPatient] = useState(null);
     const [loading, setLoading] = useState(true);
     const [editDialog, setEditDialog] = useState(false);
+    const [activeTab, setActiveTab] = useState('overview');
     const [saving, setSaving] = useState(false);
     const [editForm, setEditForm] = useState({});
 
@@ -112,132 +113,159 @@ export default function PatientDetailPage() {
                     </Button>
                 </div>
 
-                <Tabs defaultValue="overview">
-                    <TabsList className="bg-slate-100">
-                        <TabsTrigger value="overview">Overview</TabsTrigger>
-                        <TabsTrigger value="meetings">Meetings ({patient.meetings?.length || 0})</TabsTrigger>
-                        <TabsTrigger value="files">Files ({patient.files?.length || 0})</TabsTrigger>
+                <Tabs value={activeTab} onValueChange={setActiveTab}>
+                    <TabsList className="bg-transparent border-0 p-0 gap-2">
+                        <TabsTrigger 
+                            value="overview" 
+                            className="data-[state=active]:shadow-md transition-all duration-200 font-semibold"
+                            style={{
+                                backgroundColor: activeTab === 'overview' ? '#694e20' : '#f5f0e8',
+                                color: activeTab === 'overview' ? '#ffffff' : '#694e20',
+                            }}
+                        >
+                            Overview
+                        </TabsTrigger>
+                        <TabsTrigger 
+                            value="meetings" 
+                            className="data-[state=active]:shadow-md transition-all duration-200 font-semibold"
+                            style={{
+                                backgroundColor: activeTab === 'meetings' ? '#3b6658' : '#e8f5f0',
+                                color: activeTab === 'meetings' ? '#ffffff' : '#3b6658',
+                            }}
+                        >
+                            Meetings ({patient.meetings?.length || 0})
+                        </TabsTrigger>
+                        <TabsTrigger 
+                            value="files" 
+                            className="data-[state=active]:shadow-md transition-all duration-200 font-semibold"
+                            style={{
+                                backgroundColor: activeTab === 'files' ? '#68517d' : '#f3edf5',
+                                color: activeTab === 'files' ? '#ffffff' : '#68517d',
+                            }}
+                        >
+                            Files ({patient.files?.length || 0})
+                        </TabsTrigger>
                     </TabsList>
 
                     {/* Overview Tab */}
                     <TabsContent value="overview" className="mt-6">
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            {/* Contact Info */}
-                            <Card className="border-slate-200">
+                            {/* Contact Info - Teal */}
+                            <Card className="border-0 shadow-sm hover:shadow-lg transition-all duration-300" style={{ backgroundColor: '#e8f5f0' }}>
                                 <CardHeader>
-                                    <CardTitle className="text-lg">Contact Information</CardTitle>
+                                    <CardTitle className="text-lg" style={{ color: '#3b6658' }}>Contact Information</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     {patient.phone && (
                                         <div className="flex items-center gap-3">
-                                            <Phone className="w-4 h-4 text-muted-foreground" />
-                                            <span>{patient.phone}</span>
+                                            <Phone className="w-4 h-4" style={{ color: '#3b6658' }} />
+                                            <span style={{ color: '#3b6658' }}>{patient.phone}</span>
                                         </div>
                                     )}
                                     {patient.email && (
                                         <div className="flex items-center gap-3">
-                                            <Mail className="w-4 h-4 text-muted-foreground" />
-                                            <span>{patient.email}</span>
+                                            <Mail className="w-4 h-4" style={{ color: '#3b6658' }} />
+                                            <span style={{ color: '#3b6658' }}>{patient.email}</span>
                                         </div>
                                     )}
                                     {patient.address && (
                                         <div className="flex items-start gap-3">
-                                            <MapPin className="w-4 h-4 text-muted-foreground mt-1" />
-                                            <span>{patient.address}</span>
+                                            <MapPin className="w-4 h-4 mt-1" style={{ color: '#3b6658' }} />
+                                            <span style={{ color: '#3b6658' }}>{patient.address}</span>
                                         </div>
                                     )}
                                     {patient.date_of_birth && (
                                         <div className="flex items-center gap-3">
-                                            <Calendar className="w-4 h-4 text-muted-foreground" />
-                                            <span>{format(parseISO(patient.date_of_birth), 'MMMM d, yyyy')}</span>
+                                            <Calendar className="w-4 h-4" style={{ color: '#3b6658' }} />
+                                            <span style={{ color: '#3b6658' }}>{format(parseISO(patient.date_of_birth), 'MMMM d, yyyy')}</span>
                                         </div>
                                     )}
                                     {!patient.phone && !patient.email && !patient.address && (
-                                        <p className="text-muted-foreground text-sm">No contact information</p>
+                                        <p className="text-sm" style={{ color: '#3b6658', opacity: 0.7 }}>No contact information</p>
                                     )}
                                 </CardContent>
                             </Card>
 
-                            {/* Department Info */}
-                            <Card className="border-slate-200">
+                            {/* Department Info - Amber */}
+                            <Card className="border-0 shadow-sm hover:shadow-lg transition-all duration-300" style={{ backgroundColor: '#f5f0e8' }}>
                                 <CardHeader>
-                                    <CardTitle className="text-lg">Department</CardTitle>
+                                    <CardTitle className="text-lg" style={{ color: '#694e20' }}>Department</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     {patient.department_name && (
                                         <div className="flex items-center gap-3">
-                                            <Building className="w-4 h-4 text-muted-foreground" />
-                                            <span>{patient.department_name}</span>
+                                            <Building className="w-4 h-4" style={{ color: '#694e20' }} />
+                                            <span style={{ color: '#694e20' }}>{patient.department_name}</span>
                                         </div>
                                     )}
                                     {patient.department_provider_name && (
                                         <div className="flex items-center gap-3">
-                                            <User className="w-4 h-4 text-muted-foreground" />
-                                            <span>{patient.department_provider_name}</span>
+                                            <User className="w-4 h-4" style={{ color: '#694e20' }} />
+                                            <span style={{ color: '#694e20' }}>{patient.department_provider_name}</span>
                                         </div>
                                     )}
                                     {!patient.department_name && !patient.department_provider_name && (
-                                        <p className="text-muted-foreground text-sm">No department assigned</p>
+                                        <p className="text-sm" style={{ color: '#694e20', opacity: 0.7 }}>No department assigned</p>
                                     )}
                                 </CardContent>
                             </Card>
 
-                            {/* Quick Stats */}
-                            <Card className="border-slate-200">
+                            {/* Quick Stats - Purple */}
+                            <Card className="border-0 shadow-sm hover:shadow-lg transition-all duration-300" style={{ backgroundColor: '#f3edf5' }}>
                                 <CardHeader>
-                                    <CardTitle className="text-lg">Quick Stats</CardTitle>
+                                    <CardTitle className="text-lg" style={{ color: '#68517d' }}>Quick Stats</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
-                                    <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50">
+                                    <div className="flex items-center justify-between p-3 rounded-lg" style={{ backgroundColor: '#68517d20' }}>
                                         <div className="flex items-center gap-2">
-                                            <Calendar className="w-4 h-4 text-primary" />
-                                            <span className="text-sm">Meetings</span>
+                                            <Calendar className="w-4 h-4" style={{ color: '#68517d' }} />
+                                            <span className="text-sm font-semibold" style={{ color: '#68517d' }}>Meetings</span>
                                         </div>
-                                        <span className="text-lg font-semibold">{patient.meetings?.length || 0}</span>
+                                        <span className="text-lg font-bold" style={{ color: '#68517d' }}>{patient.meetings?.length || 0}</span>
                                     </div>
-                                    <div className="flex items-center justify-between p-3 rounded-lg bg-slate-50">
+                                    <div className="flex items-center justify-between p-3 rounded-lg" style={{ backgroundColor: '#68517d20' }}>
                                         <div className="flex items-center gap-2">
-                                            <FileText className="w-4 h-4 text-accent" />
-                                            <span className="text-sm">Documents</span>
+                                            <FileText className="w-4 h-4" style={{ color: '#68517d' }} />
+                                            <span className="text-sm font-semibold" style={{ color: '#68517d' }}>Documents</span>
                                         </div>
-                                        <span className="text-lg font-semibold">{patient.files?.length || 0}</span>
+                                        <span className="text-lg font-bold" style={{ color: '#68517d' }}>{patient.files?.length || 0}</span>
                                     </div>
                                 </CardContent>
                             </Card>
 
-                            {/* Medical Info - Full Width */}
-                            <Card className="border-slate-200 lg:col-span-3">
+                            {/* Medical Info - Full Width - Blue */}
+                            <Card className="border-0 shadow-sm hover:shadow-lg transition-all duration-300 lg:col-span-3" style={{ backgroundColor: '#e8e8f5' }}>
                                 <CardHeader>
-                                    <CardTitle className="text-lg">Medical Information</CardTitle>
+                                    <CardTitle className="text-lg" style={{ color: '#0b0b30' }}>Medical Information</CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                         <div>
                                             <div className="flex items-center gap-2 mb-2">
                                                 <Heart className="w-4 h-4 text-red-500" />
-                                                <Label className="text-muted-foreground">Primary Diagnosis</Label>
+                                                <Label style={{ color: '#0b0b30', opacity: 0.7 }}>Primary Diagnosis</Label>
                                             </div>
-                                            <p className="text-sm">{patient.primary_diagnosis || 'Not specified'}</p>
+                                            <p className="text-sm font-semibold" style={{ color: '#0b0b30' }}>{patient.primary_diagnosis || 'Not specified'}</p>
                                         </div>
                                         <div>
                                             <div className="flex items-center gap-2 mb-2">
                                                 <AlertTriangle className="w-4 h-4 text-orange-500" />
-                                                <Label className="text-muted-foreground">Allergies</Label>
+                                                <Label style={{ color: '#0b0b30', opacity: 0.7 }}>Allergies</Label>
                                             </div>
-                                            <p className="text-sm">{patient.allergies || 'None recorded'}</p>
+                                            <p className="text-sm font-semibold" style={{ color: '#0b0b30' }}>{patient.allergies || 'None recorded'}</p>
                                         </div>
                                         <div>
                                             <div className="flex items-center gap-2 mb-2">
                                                 <Pill className="w-4 h-4 text-blue-500" />
-                                                <Label className="text-muted-foreground">Current Medications</Label>
+                                                <Label style={{ color: '#0b0b30', opacity: 0.7 }}>Current Medications</Label>
                                             </div>
-                                            <p className="text-sm">{patient.current_medications || 'None recorded'}</p>
+                                            <p className="text-sm font-semibold" style={{ color: '#0b0b30' }}>{patient.current_medications || 'None recorded'}</p>
                                         </div>
                                     </div>
                                     {patient.notes && (
-                                        <div className="mt-6 pt-6 border-t">
-                                            <Label className="text-muted-foreground">Additional Notes</Label>
-                                            <p className="text-sm mt-2">{patient.notes}</p>
+                                        <div className="mt-6 pt-6" style={{ borderTop: '1px solid #0b0b3030' }}>
+                                            <Label style={{ color: '#0b0b30', opacity: 0.7 }}>Additional Notes</Label>
+                                            <p className="text-sm mt-2" style={{ color: '#0b0b30' }}>{patient.notes}</p>
                                         </div>
                                     )}
                                 </CardContent>
@@ -256,42 +284,53 @@ export default function PatientDetailPage() {
                             </Card>
                         ) : (
                             <div className="space-y-3">
-                                {patient.meetings?.map((meeting, idx) => (
-                                    <Link key={meeting.id} to={`/meetings/${meeting.id}`}>
-                                        <div className="flex items-center justify-between p-4 rounded-lg border border-slate-200 hover:border-primary/30 hover:bg-slate-50 transition-all" data-testid={`patient-meeting-${idx}`}>
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                                                    {meeting.meeting_type === 'video' ? (
-                                                        <Video className="w-5 h-5 text-primary" />
-                                                    ) : (
-                                                        <MapPin className="w-5 h-5 text-primary" />
-                                                    )}
-                                                </div>
-                                                <div>
-                                                    <h3 className="font-medium">{meeting.title}</h3>
-                                                    <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
-                                                        <span className="flex items-center gap-1">
-                                                            <Calendar className="w-3.5 h-3.5" />
-                                                            {format(parseISO(meeting.meeting_date), 'MMM d, yyyy')}
-                                                        </span>
-                                                        <span className="flex items-center gap-1">
-                                                            <Clock className="w-3.5 h-3.5" />
-                                                            {meeting.start_time?.slice(0, 5)}
-                                                        </span>
+                                {patient.meetings?.map((meeting, idx) => {
+                                    // Rotating colors for meeting cards
+                                    const cardColors = [
+                                        { light: '#e8f5f0', dark: '#3b6658' }, // Teal
+                                        { light: '#f5f0e8', dark: '#694e20' }, // Amber
+                                        { light: '#f3edf5', dark: '#68517d' }, // Purple
+                                        { light: '#e8e8f5', dark: '#0b0b30' }, // Blue
+                                    ];
+                                    const colors = cardColors[idx % cardColors.length];
+                                    
+                                    return (
+                                        <Link key={meeting.id} to={`/meetings/${meeting.id}`}>
+                                            <div className="flex items-center justify-between p-4 rounded-lg border-0 shadow-sm hover:shadow-lg transition-all duration-300" style={{ backgroundColor: colors.light }} data-testid={`patient-meeting-${idx}`}>
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: colors.dark }}>
+                                                        {meeting.meeting_type === 'video' ? (
+                                                            <Video className="w-5 h-5 text-white" />
+                                                        ) : (
+                                                            <MapPin className="w-5 h-5 text-white" />
+                                                        )}
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="font-semibold" style={{ color: colors.dark }}>{meeting.title}</h3>
+                                                        <div className="flex items-center gap-3 mt-1 text-sm" style={{ color: colors.dark, opacity: 0.7 }}>
+                                                            <span className="flex items-center gap-1">
+                                                                <Calendar className="w-3.5 h-3.5" />
+                                                                {format(parseISO(meeting.meeting_date), 'MMM d, yyyy')}
+                                                            </span>
+                                                            <span className="flex items-center gap-1">
+                                                                <Clock className="w-3.5 h-3.5" />
+                                                                {meeting.start_time?.slice(0, 5)}
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                 </div>
+                                                <div className="flex items-center gap-2">
+                                                    {meeting.case_status && (
+                                                        <Badge variant="outline" className="capitalize" style={{ borderColor: colors.dark, color: colors.dark }}>{meeting.case_status.replace('_', ' ')}</Badge>
+                                                    )}
+                                                    <Badge className={meeting.status === 'completed' ? 'bg-slate-100 text-slate-600' : 'bg-blue-100 text-blue-700'}>
+                                                        {meeting.status}
+                                                    </Badge>
+                                                </div>
                                             </div>
-                                            <div className="flex items-center gap-2">
-                                                {meeting.case_status && (
-                                                    <Badge variant="outline" className="capitalize">{meeting.case_status.replace('_', ' ')}</Badge>
-                                                )}
-                                                <Badge className={meeting.status === 'completed' ? 'bg-slate-100 text-slate-600' : 'bg-blue-100 text-blue-700'}>
-                                                    {meeting.status}
-                                                </Badge>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                ))}
+                                        </Link>
+                                    );
+                                })}
                             </div>
                         )}
                     </TabsContent>
@@ -307,31 +346,42 @@ export default function PatientDetailPage() {
                             </Card>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {patient.files?.map((file, idx) => (
-                                    <Card key={file.id} className="border-slate-200" data-testid={`patient-file-${idx}`}>
-                                        <CardContent className="pt-6">
-                                            <div className="flex items-start justify-between">
-                                                <div className="flex items-start gap-3">
-                                                    <span className="text-2xl">{getFileIcon(file.file_type)}</span>
-                                                    <div>
-                                                        <p className="font-medium text-sm truncate max-w-[150px]">{file.original_name}</p>
-                                                        <p className="text-xs text-muted-foreground capitalize">{file.file_type?.replace('_', ' ')}</p>
-                                                        {file.created_at && (
-                                                            <p className="text-xs text-muted-foreground mt-1">
-                                                                {format(parseISO(file.created_at), 'MMM d, yyyy')}
-                                                            </p>
-                                                        )}
+                                {patient.files?.map((file, idx) => {
+                                    // Rotating colors for file cards
+                                    const cardColors = [
+                                        { light: '#e8f5f0', dark: '#3b6658' }, // Teal
+                                        { light: '#f5f0e8', dark: '#694e20' }, // Amber
+                                        { light: '#f3edf5', dark: '#68517d' }, // Purple
+                                        { light: '#e8e8f5', dark: '#0b0b30' }, // Blue
+                                    ];
+                                    const colors = cardColors[idx % cardColors.length];
+                                    
+                                    return (
+                                        <Card key={file.id} className="border-0 shadow-sm hover:shadow-lg transition-all duration-300" style={{ backgroundColor: colors.light }} data-testid={`patient-file-${idx}`}>
+                                            <CardContent className="pt-6">
+                                                <div className="flex items-start justify-between">
+                                                    <div className="flex items-start gap-3">
+                                                        <span className="text-2xl">{getFileIcon(file.file_type)}</span>
+                                                        <div>
+                                                            <p className="font-semibold text-sm truncate max-w-[150px]" style={{ color: colors.dark }}>{file.original_name}</p>
+                                                            <p className="text-xs capitalize" style={{ color: colors.dark, opacity: 0.7 }}>{file.file_type?.replace('_', ' ')}</p>
+                                                            {file.created_at && (
+                                                                <p className="text-xs mt-1" style={{ color: colors.dark, opacity: 0.7 }}>
+                                                                    {format(parseISO(file.created_at), 'MMM d, yyyy')}
+                                                                </p>
+                                                            )}
+                                                        </div>
                                                     </div>
+                                                    <Button variant="ghost" size="icon" asChild>
+                                                        <a href={getFileUrl(file.id)} target="_blank" rel="noopener noreferrer">
+                                                            <Download className="w-4 h-4" style={{ color: colors.dark }} />
+                                                        </a>
+                                                    </Button>
                                                 </div>
-                                                <Button variant="ghost" size="icon" asChild>
-                                                    <a href={getFileUrl(file.id)} target="_blank" rel="noopener noreferrer">
-                                                        <Download className="w-4 h-4" />
-                                                    </a>
-                                                </Button>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                ))}
+                                            </CardContent>
+                                        </Card>
+                                    );
+                                })}
                             </div>
                         )}
                     </TabsContent>
