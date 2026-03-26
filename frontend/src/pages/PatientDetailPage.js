@@ -283,7 +283,7 @@ export default function PatientDetailPage() {
                                 </CardContent>
                             </Card>
                         ) : (
-                            <div className="space-y-4 p-2">
+                            <div className="space-y-6 p-4">
                                 {patient.meetings?.map((meeting, idx) => {
                                     // Rotating colors for meeting cards
                                     const cardColors = [
