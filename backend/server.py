@@ -1512,6 +1512,116 @@ async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
         "meetings_this_week": this_week
     }
 
+# ============== Feedback Routes ==============
+
+@api_router.post("/feedback")
+async def submit_feedback(
+    feedback_type: str,
+    subject: str,
+    message: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Submit feedback to the application owner
+    Types: feature_request, bug_report, enhancement
+    """
+    # Get owner email from environment
+    owner_email = os.environ.get('OWNER_EMAIL', 'Yashaliniraj@gmail.com')
+    
+    # Create feedback record in database
+    feedback_id = str(uuid4())
+    feedback_data = {
+        "id": feedback_id,
+        "user_id": current_user['id'],
+        "user_name": current_user['name'],
+        "user_email": current_user['email'],
+        "user_role": current_user['role'],
+        "feedback_type": feedback_type,
+        "subject": subject,
+        "message": message,
+        "status": "pending",
+        "created_at": datetime.now(timezone.utc),
+    }
+    
+    await db.feedback.insert_one(feedback_data)
+    
+    # Send email to owner
+    try:
+        from utils.email import send_email
+        
+        # Format feedback type for display
+        type_display = feedback_type.replace('_', ' ').title()
+        
+        email_body = f"""
+        <html>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .header {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
+                .content {{ background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }}
+                .feedback-type {{ display: inline-block; padding: 8px 16px; border-radius: 20px; font-weight: bold; margin: 10px 0; }}
+                .feature {{ background: #3b6658; color: white; }}
+                .bug {{ background: #dc2626; color: white; }}
+                .enhancement {{ background: #694e20; color: white; }}
+                .info-box {{ background: white; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #667eea; }}
+                .message-box {{ background: white; padding: 20px; border-radius: 8px; margin: 15px 0; border: 1px solid #ddd; }}
+                .label {{ font-weight: bold; color: #666; font-size: 12px; text-transform: uppercase; margin-bottom: 5px; }}
+                .value {{ font-size: 14px; color: #333; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1 style="margin: 0;">🔔 New Feedback Received</h1>
+                    <p style="margin: 10px 0 0 0; opacity: 0.9;">Hospital Meeting App</p>
+                </div>
+                <div class="content">
+                    <span class="feedback-type {feedback_type.split('_')[0]}">{type_display}</span>
+                    
+                    <div class="info-box">
+                        <div class="label">From</div>
+                        <div class="value">{current_user['name']} ({current_user['role'].title()})</div>
+                        <div class="value" style="color: #666; font-size: 12px; margin-top: 5px;">{current_user['email']}</div>
+                    </div>
+                    
+                    <div class="info-box">
+                        <div class="label">Subject</div>
+                        <div class="value" style="font-size: 16px; font-weight: bold;">{subject}</div>
+                    </div>
+                    
+                    <div class="message-box">
+                        <div class="label">Message</div>
+                        <div class="value" style="white-space: pre-wrap; margin-top: 10px;">{message}</div>
+                    </div>
+                    
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #666; font-size: 12px;">
+                        <p>Submitted on {datetime.now(timezone.utc).strftime('%B %d, %Y at %I:%M %p UTC')}</p>
+                        <p>Feedback ID: {feedback_id}</p>
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        await send_email(
+            to_email=owner_email,
+            subject=f"[{type_display}] {subject}",
+            body=email_body
+        )
+        
+        logger.info(f"Feedback email sent to {owner_email} from {current_user['email']}")
+        
+    except Exception as e:
+        logger.error(f"Failed to send feedback email: {str(e)}")
+        # Don't fail the request if email fails
+    
+    return {
+        "message": "Feedback submitted successfully",
+        "feedback_id": feedback_id
+    }
+
 # ============== Health Check ==============
 
 @api_router.get("/")

@@ -7,8 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Layout from '@/components/Layout';
-import { User, Mail, Building, Stethoscope, Phone, Save, Loader2 } from 'lucide-react';
+import { User, Mail, Building, Stethoscope, Phone, Save, Loader2, MessageSquare, Send } from 'lucide-react';
 
 export default function ProfilePage() {
     const navigate = useNavigate();
@@ -21,8 +24,21 @@ export default function ProfilePage() {
         phone: user?.phone || ''
     });
 
+    // Feedback form state
+    const [feedbackDialog, setFeedbackDialog] = useState(false);
+    const [submittingFeedback, setSubmittingFeedback] = useState(false);
+    const [feedbackData, setFeedbackData] = useState({
+        feedback_type: 'feature_request',
+        subject: '',
+        message: ''
+    });
+
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleFeedbackChange = (e) => {
+        setFeedbackData({ ...feedbackData, [e.target.name]: e.target.value });
     };
 
     const handleSubmit = async (e) => {
@@ -35,6 +51,42 @@ export default function ProfilePage() {
             console.error('Failed to update profile:', error);
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleFeedbackSubmit = async (e) => {
+        e.preventDefault();
+        setSubmittingFeedback(true);
+        
+        try {
+            const API_URL = process.env.REACT_APP_BACKEND_URL;
+            const token = localStorage.getItem('auth_token');
+            
+            const response = await fetch(`${API_URL}/api/feedback`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(feedbackData)
+            });
+            
+            if (response.ok) {
+                alert('✅ Feedback submitted successfully! Thank you for your input.');
+                setFeedbackDialog(false);
+                setFeedbackData({
+                    feedback_type: 'feature_request',
+                    subject: '',
+                    message: ''
+                });
+            } else {
+                throw new Error('Failed to submit feedback');
+            }
+        } catch (error) {
+            console.error('Failed to submit feedback:', error);
+            alert('❌ Failed to submit feedback. Please try again.');
+        } finally {
+            setSubmittingFeedback(false);
         }
     };
 
@@ -174,6 +226,109 @@ export default function ProfilePage() {
                         <ChangePasswordForm />
                     </CardContent>
                 </Card>
+
+                {/* Feedback Card */}
+                <Card className="border-l-4 border-l-accent">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <MessageSquare className="w-5 h-5 text-accent" /> Send Feedback
+                        </CardTitle>
+                        <CardDescription>
+                            Help us improve the app by sharing your ideas, reporting bugs, or suggesting enhancements
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Button
+                            onClick={() => setFeedbackDialog(true)}
+                            className="w-full h-11 bg-accent hover:bg-accent/90"
+                            data-testid="feedback-btn"
+                        >
+                            <Send className="w-4 h-4 mr-2" /> Submit Feedback
+                        </Button>
+                    </CardContent>
+                </Card>
+
+                {/* Feedback Dialog */}
+                <Dialog open={feedbackDialog} onOpenChange={setFeedbackDialog}>
+                    <DialogContent className="sm:max-w-[600px]">
+                        <DialogHeader>
+                            <DialogTitle className="flex items-center gap-2">
+                                <MessageSquare className="w-5 h-5 text-accent" /> Send Feedback
+                            </DialogTitle>
+                            <DialogDescription>
+                                We value your feedback! Let us know about new features you'd like, bugs you've encountered, or improvements you'd suggest.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <form onSubmit={handleFeedbackSubmit} className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="feedback_type">Feedback Type</Label>
+                                <Select 
+                                    value={feedbackData.feedback_type} 
+                                    onValueChange={(value) => setFeedbackData({...feedbackData, feedback_type: value})}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="feature_request">🚀 Feature Request</SelectItem>
+                                        <SelectItem value="bug_report">🐛 Bug Report</SelectItem>
+                                        <SelectItem value="enhancement">✨ Enhancement</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="subject">Subject</Label>
+                                <Input
+                                    id="subject"
+                                    name="subject"
+                                    value={feedbackData.subject}
+                                    onChange={handleFeedbackChange}
+                                    placeholder="Brief description of your feedback"
+                                    required
+                                    className="h-11"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="message">Message</Label>
+                                <Textarea
+                                    id="message"
+                                    name="message"
+                                    value={feedbackData.message}
+                                    onChange={handleFeedbackChange}
+                                    placeholder="Please provide detailed information..."
+                                    required
+                                    rows={6}
+                                    className="resize-none"
+                                />
+                            </div>
+
+                            <div className="flex gap-3">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setFeedbackDialog(false)}
+                                    className="flex-1"
+                                    disabled={submittingFeedback}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    className="flex-1 bg-accent hover:bg-accent/90"
+                                    disabled={submittingFeedback}
+                                >
+                                    {submittingFeedback ? (
+                                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Sending...</>
+                                    ) : (
+                                        <><Send className="w-4 h-4 mr-2" /> Send Feedback</>
+                                    )}
+                                </Button>
+                            </div>
+                        </form>
+                    </DialogContent>
+                </Dialog>
             </div>
         </Layout>
     );
