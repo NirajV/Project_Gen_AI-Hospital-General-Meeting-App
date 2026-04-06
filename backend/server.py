@@ -1526,7 +1526,7 @@ async def submit_feedback(
     Types: feature_request, bug_report, enhancement
     """
     # Get owner email from environment
-    owner_email = os.environ.get('OWNER_EMAIL', 'Yashaliniraj@gmail.com')
+    owner_email = os.environ.get('OWNER_EMAIL', 'Niraj.K.Vishwakarma@gmail.com')
     
     # Create feedback record in database
     feedback_id = str(uuid4())
@@ -1663,7 +1663,7 @@ app.include_router(api_router)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_origins=os.environ.get('CORS_ORIGINS', 'http://localhost:3000').split(','),
     allow_methods=["*"],
     allow_headers=["*"],
 )
