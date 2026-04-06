@@ -1,401 +1,365 @@
-# ⚡ Quick Start Guide - Local Development
+# 🚀 Quick Start Guide
 
-## 🎯 30-Second Setup
+Get MedMeet up and running in 5 minutes!
 
-### Step 1: Start MySQL
-```cmd
-net start MySQL80
+---
+
+## 🎯 Prerequisites
+
+Choose one of the following setups:
+
+### Option A: Docker (Recommended) ⭐
+- Docker Desktop installed
+- Git (for cloning)
+
+### Option B: Manual Setup
+- Python 3.11+
+- Node.js 18+
+- MongoDB 7.0+
+- Yarn package manager
+
+---
+
+## 🐳 Option A: Docker Setup (Fastest)
+
+### Step 1: Clone the Repository
+
+```bash
+git clone https://github.com/yourusername/hospital-meeting-scheduler.git
+cd hospital-meeting-scheduler
 ```
 
-### Step 2: Initialize Database
-```cmd
-cd database
-mysql -u root -p12345678 < ddl.sql
+### Step 2: Start All Services
+
+```bash
+# Make script executable (Linux/Mac)
+chmod +x start-docker.sh
+
+# Start everything
+./start-docker.sh
 ```
 
-### Step 3: Start Backend (Terminal 1)
-```cmd
+**Services Starting:**
+- 🗄️ MongoDB on port 27017
+- 🚀 Backend API on port 8001
+- 💻 Frontend on port 3000
+
+### Step 3: Access the Application
+
+Wait ~30 seconds for services to start, then open:
+
+```
+🌐 Frontend: http://localhost:3000
+📚 API Docs: http://localhost:8001/docs
+❤️ Health Check: http://localhost:8001/api/health
+```
+
+### Step 4: Login
+
+**Test Account:**
+- Email: `organizer@hospital.com`
+- Password: `password123`
+
+**Or use Google OAuth:**
+- Click "Continue with Google" on login page
+
+---
+
+## 💻 Option B: Manual Setup
+
+### Step 1: Clone Repository
+
+```bash
+git clone https://github.com/yourusername/hospital-meeting-scheduler.git
+cd hospital-meeting-scheduler
+```
+
+### Step 2: Setup MongoDB
+
+**Using Docker for MongoDB only:**
+```bash
+docker run -d \
+  --name mongodb \
+  -p 27017:27017 \
+  -e MONGO_INITDB_ROOT_USERNAME=admin \
+  -e MONGO_INITDB_ROOT_PASSWORD=password \
+  mongo:7.0
+```
+
+**Or install MongoDB locally:**
+- See [docs/MONGODB_SETUP.md](./docs/MONGODB_SETUP.md) for detailed instructions
+
+### Step 3: Setup Backend
+
+```bash
 cd backend
+
+# Create virtual environment
 python -m venv venv
-venv\Scripts\activate
+
+# Activate virtual environment
+# Linux/Mac:
+source venv/bin/activate
+# Windows:
+# venv\Scripts\activate
+
+# Install dependencies
 pip install -r requirements.txt
-python -m uvicorn server:app --reload --host 0.0.0.0 --port 8001
+
+# Create .env file
+cp .env.example .env
 ```
 
-### Step 4: Configure Frontend
-Edit `frontend/.env`:
+**Edit `backend/.env`:**
 ```env
-REACT_APP_BACKEND_URL=http://localhost:8001
+MONGO_URL=mongodb://admin:password@localhost:27017
+DB_NAME=hospital_meeting_scheduler
+JWT_SECRET=your-secret-key-change-in-production
+CORS_ORIGINS=http://localhost:3000
+
+# Email configuration (optional)
+EMAIL_ENABLED=false
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
+
+# Owner email for feedback
+OWNER_EMAIL=Niraj.K.Vishwakarma@gmail.com
 ```
 
-### Step 5: Start Frontend (Terminal 2)
-```cmd
+**Start backend:**
+```bash
+uvicorn server:app --reload --host 0.0.0.0 --port 8001
+```
+
+Backend will be running at: http://localhost:8001
+
+### Step 4: Setup Frontend
+
+**Open a new terminal:**
+
+```bash
 cd frontend
-npm install
-npm start
+
+# Install dependencies
+yarn install
+
+# Create .env file
+cp .env.example .env
 ```
 
-### Step 6: Open Browser
-```
-http://localhost:3000
-```
-
----
-
-## 🔗 How Frontend Connects to Backend
-
-### Architecture Overview
-
-```
-Browser (localhost:3000)
-    ↓
-React Frontend
-    ↓
-    API Calls via Axios (frontend/src/lib/api.js)
-    ↓
-    Uses REACT_APP_BACKEND_URL from .env
-    ↓
-Backend API (localhost:8001/api/*)
-    ↓
-MySQL Database (localhost:3306)
-```
-
-### API Configuration
-
-**File**: `/app/frontend/src/lib/api.js`
-
-```javascript
-import axios from 'axios';
-
-const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
-
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  withCredentials: true,
-});
-
-// Token is automatically added to all requests
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-```
-
-### Environment Variable Setup
-
-**Local Development** (frontend/.env):
+**Edit `frontend/.env`:**
 ```env
 REACT_APP_BACKEND_URL=http://localhost:8001
 ```
 
-**Production/Remote** (frontend/.env):
-```env
-REACT_APP_BACKEND_URL=https://your-backend-domain.com
+**Start frontend:**
+```bash
+yarn start
 ```
 
-### Example API Calls
-
-#### 1. Authentication
-```javascript
-// frontend/src/pages/LoginPage.js
-import api from '../lib/api';
-
-// Login
-const response = await api.post('/api/auth/login', {
-  email: 'doctor@hospital.com',
-  password: 'password123'
-});
-
-// Save token
-localStorage.setItem('token', response.data.access_token);
-```
-
-#### 2. Fetch Patients
-```javascript
-// frontend/src/pages/PatientsPage.js
-const response = await api.get('/api/patients');
-const patients = response.data;
-```
-
-#### 3. Create Meeting
-```javascript
-// frontend/src/pages/MeetingWizardPage.js
-const response = await api.post('/api/meetings', {
-  title: 'Cardiology Review',
-  meeting_date: '2026-03-01',
-  start_time: '10:00:00',
-  end_time: '11:00:00',
-  participant_ids: ['user-id-1', 'user-id-2'],
-  patient_ids: ['patient-id-1']
-});
-```
+Frontend will automatically open at: http://localhost:3000
 
 ---
 
-## 🔧 Troubleshooting Connection Issues
+## ✅ Verify Installation
 
-### Issue 1: CORS Errors
+### 1. Check Backend Health
 
-**Symptom**: Browser console shows CORS policy errors
+```bash
+curl http://localhost:8001/api/health
+```
 
-**Solution**: Verify `backend/.env` has:
+Expected response:
+```json
+{
+  "status": "healthy",
+  "database": "connected",
+  "timestamp": "2026-04-06T12:00:00Z"
+}
+```
+
+### 2. Check Frontend
+
+Open http://localhost:3000 - you should see the login page.
+
+### 3. Test Login
+
+Use these credentials:
+- Email: `organizer@hospital.com`
+- Password: `password123`
+
+You should be redirected to the dashboard.
+
+---
+
+## 🎨 What's Next?
+
+### Explore the Application
+
+1. **Dashboard** - View statistics and upcoming meetings
+2. **Meetings** - Create your first meeting using the wizard
+3. **Patients** - Add patient records
+4. **Participants** - Manage hospital staff
+5. **Profile** - Update your information
+
+### Create Your First Meeting
+
+1. Click **"New Meeting"** from dashboard
+2. Follow the 4-step wizard:
+   - Step 1: Basic details (title, date, time)
+   - Step 2: Add participants
+   - Step 3: Add patients
+   - Step 4: Create agenda
+3. Click **"Create Meeting"**
+
+### Configure Email Notifications (Optional)
+
+1. Get Gmail App Password:
+   - Go to Google Account → Security
+   - Enable 2-Step Verification
+   - Generate App Password
+
+2. Update `backend/.env`:
+   ```env
+   EMAIL_ENABLED=true
+   SMTP_USER=your-email@gmail.com
+   SMTP_PASSWORD=your-16-digit-app-password
+   ```
+
+3. Restart backend
+
+---
+
+## 🛠️ Common Issues & Solutions
+
+### Issue: "Connection refused" on http://localhost:3000
+
+**Solution:**
+```bash
+# Check if frontend is running
+lsof -i :3000
+
+# If not running, start it
+cd frontend
+yarn start
+```
+
+### Issue: Backend shows "Database connection failed"
+
+**Solution:**
+```bash
+# Check if MongoDB is running
+docker ps | grep mongo
+
+# Or check MongoDB status
+# Linux: sudo systemctl status mongod
+# Mac: brew services list
+# Windows: Check Services app
+
+# Restart MongoDB
+docker restart mongodb
+```
+
+### Issue: "Module not found" errors
+
+**Solution:**
+```bash
+# Backend
+cd backend
+pip install -r requirements.txt
+
+# Frontend
+cd frontend
+rm -rf node_modules
+yarn install
+```
+
+### Issue: CORS errors in browser console
+
+**Solution:**
+
+Check `backend/.env`:
 ```env
 CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
 ```
 
-Restart backend after changing .env
+Check `frontend/.env`:
+```env
+REACT_APP_BACKEND_URL=http://localhost:8001
+```
 
-### Issue 2: Network Error
+Restart both services after changes.
 
-**Symptom**: "Network Error" in browser console
+### Issue: "Port already in use"
 
-**Check**:
-1. Backend is running: `http://localhost:8001/api/health`
-2. Frontend .env has correct URL
-3. No firewall blocking port 8001
+**Solution:**
+```bash
+# Find process using port (Linux/Mac)
+lsof -i :8001  # Backend
+lsof -i :3000  # Frontend
 
-### Issue 3: 401 Unauthorized
+# Kill process
+kill -9 <PID>
 
-**Symptom**: API returns 401 for authenticated routes
-
-**Check**:
-1. Token is saved in localStorage
-2. Token hasn't expired (24 hour expiry)
-3. JWT_SECRET matches between requests
-
-### Issue 4: Backend Not Found
-
-**Symptom**: `ERR_CONNECTION_REFUSED`
-
-**Solutions**:
-```cmd
-# Check if backend is running
-netstat -ano | findstr :8001
-
-# If not running, start it
-cd backend
-python -m uvicorn server:app --reload --host 0.0.0.0 --port 8001
+# Or use different ports
+# Backend: uvicorn server:app --port 8002
+# Frontend: PORT=3001 yarn start
 ```
 
 ---
 
-## 📍 Important URLs
+## 🔄 Stopping Services
 
-| Service | Local URL | Purpose |
-|---------|-----------|---------|
-| Frontend | http://localhost:3000 | React UI |
-| Backend API | http://localhost:8001 | FastAPI Server |
-| API Health | http://localhost:8001/api/health | Health Check |
-| API Docs | http://localhost:8001/docs | Swagger UI |
-| MySQL | localhost:3306 | Database |
+### Docker Setup
 
----
+```bash
+# Stop all services
+docker-compose down
 
-## 🔐 Authentication Flow
-
-### 1. User Logs In
-```javascript
-// POST /api/auth/login
-const response = await api.post('/api/auth/login', credentials);
+# Stop and remove data
+docker-compose down -v
 ```
 
-### 2. Token Received & Stored
-```javascript
-localStorage.setItem('token', response.data.access_token);
-localStorage.setItem('user', JSON.stringify(response.data.user));
-```
+### Manual Setup
 
-### 3. Token Added to All Requests
-```javascript
-// Automatically done by axios interceptor
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-```
+```bash
+# Stop backend: Ctrl+C in backend terminal
+# Stop frontend: Ctrl+C in frontend terminal
 
-### 4. Backend Validates Token
-```python
-# backend/server.py
-async def get_current_user(request: Request):
-    token = request.headers.get("Authorization").split(" ")[1]
-    payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-    user = await execute_query("SELECT * FROM users WHERE id = %s", 
-                                (payload['sub'],), fetch_one=True)
-    return serialize_row(user)
+# Stop MongoDB (Docker)
+docker stop mongodb
 ```
 
 ---
 
-## 🎨 Frontend Structure
+## 📚 Additional Resources
 
-```
-frontend/src/
-├── components/          # Reusable components
-│   ├── ui/             # Shadcn UI components
-│   └── ...
-├── context/
-│   └── AuthContext.js  # Auth state management
-├── lib/
-│   └── api.js          # ⭐ Axios instance & config
-├── pages/              # Page components
-│   ├── LoginPage.js
-│   ├── DashboardPage.js
-│   ├── PatientsPage.js
-│   ├── MeetingsPage.js
-│   ├── MeetingWizardPage.js
-│   └── MeetingDetailPage.js
-├── App.js              # Routes & AuthProvider
-└── index.js            # Entry point
-```
+- **Full Documentation:** [README.md](../README.md)
+- **Features Guide:** [docs/FEATURES.md](./docs/FEATURES.md)
+- **API Reference:** [docs/API_REFERENCE.md](./docs/API_REFERENCE.md)
+- **Deployment Guide:** [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md)
+- **Contributing:** [docs/CONTRIBUTING.md](./docs/CONTRIBUTING.md)
 
 ---
 
-## 🔗 Key Frontend Files
+## 🆘 Need Help?
 
-### 1. API Client: `/frontend/src/lib/api.js`
-- Axios instance with base URL
-- Request interceptor (adds token)
-- Response interceptor (handles errors)
-
-### 2. Auth Context: `/frontend/src/context/AuthContext.js`
-- User state management
-- Login/logout functions
-- Token management
-
-### 3. App Router: `/frontend/src/App.js`
-- Route definitions
-- Protected routes
-- Auth provider wrapper
-
-### 4. Environment: `/frontend/.env`
-- `REACT_APP_BACKEND_URL` - ⭐ Most important
-- Other React app configs
+- **GitHub Issues:** [Create an issue](https://github.com/yourusername/repo/issues)
+- **Email:** Niraj.K.Vishwakarma@gmail.com
+- **In-App Feedback:** Use the feedback form in Profile page
 
 ---
 
-## ✅ Verification Checklist
+## 🎉 Success!
 
-Before starting development, verify:
+You're all set! Explore MedMeet and start managing your hospital meetings efficiently.
 
-- [ ] MySQL service is running
-- [ ] Database `Hospital_General_Meeting_Scheduler_DB` exists
-- [ ] Backend starts without errors on port 8001
-- [ ] Backend .env has correct MySQL credentials
-- [ ] Frontend .env points to `http://localhost:8001`
-- [ ] Frontend starts on port 3000
-- [ ] Can access http://localhost:3000 in browser
-- [ ] Can access http://localhost:8001/api/health
-- [ ] Login page loads correctly
-- [ ] Can register/login successfully
+**Default Test Users:**
+- `organizer@hospital.com` / `password123` (Full access)
+- `doctor@hospital.com` / `password123` (Doctor access)
 
 ---
 
-## 🚀 Daily Development Workflow
-
-### Morning Startup
-```cmd
-# Terminal 1: Backend
-cd backend
-venv\Scripts\activate
-python -m uvicorn server:app --reload --host 0.0.0.0 --port 8001
-
-# Terminal 2: Frontend
-cd frontend
-npm start
-```
-
-### During Development
-- Backend auto-reloads on file changes
-- Frontend auto-reloads on file changes
-- Check browser console for errors
-- Check backend terminal for API errors
-
-### End of Day
-- `Ctrl+C` in both terminals to stop servers
-- MySQL can keep running or `net stop MySQL80`
-
----
-
-## 📊 Testing Local Connection
-
-### Quick Test Script
-
-Create `test_connection.cmd`:
-```cmd
-@echo off
-echo Testing Backend Connection...
-curl http://localhost:8001/api/health
-echo.
-echo.
-echo Testing Frontend...
-curl http://localhost:3000
-echo.
-echo.
-echo Done!
-pause
-```
-
-Run: `test_connection.cmd`
-
-Expected output:
-```json
-{"status": "healthy", "database": "MySQL connected"}
-<!DOCTYPE html><html lang="en">...
-```
-
----
-
-## 💡 Pro Tips
-
-1. **Keep terminals organized**
-   - Terminal 1: Backend (uvicorn logs)
-   - Terminal 2: Frontend (React logs)
-   - Terminal 3: MySQL client or testing
-
-2. **Use browser DevTools**
-   - F12 → Network tab to see API calls
-   - Check request/response details
-   - Monitor console for errors
-
-3. **Test API independently**
-   - Use Postman or curl before testing frontend
-   - Verify backend works before debugging frontend
-
-4. **Watch the logs**
-   - Backend errors appear in uvicorn terminal
-   - Frontend errors in browser console
-   - Database errors in both places
-
----
-
-## 📞 Need Help?
-
-1. **Backend not connecting to MySQL?**
-   → Check `LOCAL_SETUP_GUIDE.md` Section "Troubleshooting"
-
-2. **Frontend not calling backend?**
-   → Check browser console Network tab
-   → Verify `REACT_APP_BACKEND_URL` in frontend/.env
-
-3. **Authentication issues?**
-   → Clear browser localStorage
-   → Re-register or re-login
-
-4. **Database issues?**
-   → Verify DDL script ran successfully
-   → Check MySQL logs
-
----
-
-**Last Updated**: February 21, 2026  
-**Version**: 2.0 (MySQL)
+**Last Updated:** April 6, 2026 | MedMeet v2.0.0

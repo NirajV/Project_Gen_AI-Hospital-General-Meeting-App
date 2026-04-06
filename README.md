@@ -1,363 +1,376 @@
-# 🏥 Hospital General Meeting Scheduler
+# 🏥 MedMeet - Hospital Case Meeting Scheduler
 
-A comprehensive web-based application for managing hospital meetings, patient cases, and clinical decision-making.
+> A comprehensive web application for managing hospital case meetings, patient records, and medical team collaboration.
 
-## 📋 Overview
-
-This application enables hospitals to:
-- Schedule and manage multi-disciplinary team meetings
-- Review patient cases with attached medical records
-- Log clinical decisions and action plans
-- Invite doctors and manage meeting participants
-- Track meeting agendas and outcomes
-
-**Tech Stack:**
-- **Frontend**: React 18, TailwindCSS, Shadcn UI
-- **Backend**: Python FastAPI, SQLAlchemy
-- **Database**: MySQL 8.0
-- **Authentication**: JWT + Google OAuth
+![Version](https://img.shields.io/badge/version-2.0.0-blue)
+![Tech Stack](https://img.shields.io/badge/stack-React%20%7C%20FastAPI%20%7C%20MongoDB-green)
+![Status](https://img.shields.io/badge/status-Production%20Ready-brightgreen)
 
 ---
 
-## 🚀 Quick Start for Local Development
+## 📋 Table of Contents
+
+- [Overview](#overview)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Quick Start](#quick-start)
+- [Demo Credentials](#demo-credentials)
+- [Documentation](#documentation)
+- [Project Structure](#project-structure)
+- [API Overview](#api-overview)
+- [Contributing](#contributing)
+- [License](#license)
+
+---
+
+## 🎯 Overview
+
+**MedMeet** is a modern, full-stack web application designed for healthcare professionals to efficiently manage hospital case meetings, coordinate medical teams, and maintain comprehensive patient records. Built with a focus on user experience and clinical workflows.
+
+### Key Highlights
+
+- **🎨 Clinical Zen UI** - Color-coded interface (Teal for Meetings, Amber for Patients, Purple for Participants, Blue for Dashboard)
+- **📧 Automated Notifications** - Meeting invites, reminders, and response alerts via email
+- **📄 PDF Generation** - Auto-generate post-meeting summaries with treatment plans
+- **👥 Role-Based Access** - Organizer, Doctor, Nurse, Admin roles with granular permissions
+- **🔐 Dual Authentication** - Email/password login + Google OAuth integration
+- **📱 Responsive Design** - Mobile-friendly interface built with Tailwind CSS and Shadcn UI
+- **🐳 Docker Ready** - One-command deployment with Docker Compose
+
+---
+
+## ✨ Features
+
+### Meeting Management
+- ✅ **Meeting Creation Wizard** - Multi-step form for creating structured meetings
+- ✅ **Participant Invitations** - Invite existing staff or new external participants via email
+- ✅ **Patient Association** - Link patients to meetings with clinical questions
+- ✅ **Agenda Builder** - Create detailed agendas with time estimates
+- ✅ **File Uploads** - Attach medical records, images, and documents
+- ✅ **Decision Logging** - Record treatment decisions with follow-up tracking
+- ✅ **Response System** - Accept/Maybe/Decline responses from dashboard
+- ✅ **Meeting Status Tracking** - Scheduled → In Progress → Completed → Cancelled
+
+### Patient Management
+- ✅ **Comprehensive Patient Records** - Full demographic and medical history
+- ✅ **Treatment Plans** - Track treatment recommendations by meeting
+- ✅ **Document Management** - Upload and organize patient files
+- ✅ **Meeting History** - View all meetings associated with a patient
+- ✅ **Search & Filter** - Quick patient lookup by name, MRN, or diagnosis
+
+### Team Collaboration
+- ✅ **Participants Directory** - View and manage all hospital staff
+- ✅ **Role Management** - Change user roles (Organizer/Admin only)
+- ✅ **Create Participants** - Add new staff members to the system
+- ✅ **Response Tracking** - Monitor meeting attendance and responses
+
+### Automation & Notifications
+- ✅ **Email Notifications** - Automated meeting invites and reminders
+- ✅ **PDF Summaries** - Generate post-meeting summary documents
+- ✅ **Treatment Plan Tracking** - 7-day edit window for treatment plans
+- ✅ **Dashboard Analytics** - Real-time stats and upcoming meetings
+
+### Security & Access Control
+- ✅ **JWT Authentication** - Secure token-based authentication
+- ✅ **Google OAuth** - Emergent-managed social login
+- ✅ **Password Management** - Change password, reset functionality
+- ✅ **Role-Based Permissions** - Granular access control by user role
+- ✅ **User Feedback System** - Submit feedback to application owner
+
+---
+
+## 🛠️ Tech Stack
+
+### Frontend
+- **React 18** - Modern UI library
+- **Tailwind CSS** - Utility-first CSS framework
+- **Shadcn UI** - High-quality accessible component library
+- **React Router** - Client-side routing
+- **Axios** - HTTP client
+- **Lucide Icons** - Icon library
+
+### Backend
+- **FastAPI** - High-performance Python web framework
+- **MongoDB** - NoSQL document database
+- **Motor** - Async MongoDB driver
+- **Pydantic** - Data validation
+- **JWT** - JSON Web Token authentication
+- **Bcrypt** - Password hashing
+- **ReportLab** - PDF generation
+- **SMTP** - Email notifications
+
+### DevOps
+- **Docker & Docker Compose** - Containerization
+- **Supervisor** - Process management
+- **Nginx** - Reverse proxy (production)
+- **Git** - Version control
+
+---
+
+## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.8+
-- Node.js 16+
-- MySQL Server 8.0
-- Git
+- Docker & Docker Compose installed
+- Git (for cloning)
 
-### 30-Second Setup
+### Installation
 
 ```bash
-# 1. Start MySQL
-net start MySQL80
+# Clone the repository
+git clone https://github.com/yourusername/hospital-meeting-scheduler.git
+cd hospital-meeting-scheduler
 
-# 2. Initialize Database
-cd database
-mysql -u root -p < ddl.sql
+# Start all services (Frontend, Backend, MongoDB)
+./start-docker.sh
 
-# 3. Start Backend (Terminal 1)
-cd backend
-python -m venv venv
-venv\Scripts\activate  # On Windows
-# source venv/bin/activate  # On Mac/Linux
-pip install -r requirements.txt
-python -m uvicorn server:app --reload --host 0.0.0.0 --port 8001
-
-# 4. Configure Frontend
-# Edit frontend/.env:
-# REACT_APP_BACKEND_URL=http://localhost:8001
-
-# 5. Start Frontend (Terminal 2)
-cd frontend
-npm install
-npm start
+# Wait for services to start (~30 seconds)
+# Access the application at: http://localhost:3000
 ```
 
-**Open**: http://localhost:3000
+### Manual Setup (Without Docker)
+
+See [QUICK_START.md](./QUICK_START.md) for detailed manual setup instructions.
+
+---
+
+## 🔑 Demo Credentials
+
+### Production URL
+```
+https://hospital-case-room.preview.emergentagent.com
+```
+
+### Test Accounts
+
+**Organizer Account (Full Access):**
+- **Email:** `organizer@hospital.com`
+- **Password:** `password123`
+- **Role:** Organizer
+- **Permissions:** Create meetings, manage participants, change roles
+
+**Doctor Account:**
+- **Email:** `doctor@hospital.com`
+- **Password:** `password123`
+- **Role:** Doctor
+- **Permissions:** View meetings, respond to invites, add patients
+
+**Google OAuth:**
+- Click "Continue with Google" on login page
+- Use any Google account (Emergent-managed authentication)
 
 ---
 
 ## 📚 Documentation
 
-| Document | Purpose |
-|----------|---------|
-| **[LOCAL_SETUP_GUIDE.md](LOCAL_SETUP_GUIDE.md)** | Complete step-by-step setup instructions for Windows |
-| **[QUICK_START.md](QUICK_START.md)** | Quick reference for daily development workflow |
-| **[test_local_mysql.md](test_local_mysql.md)** | Comprehensive testing guide with all test cases |
-| **[memory/PRD.md](memory/PRD.md)** | Product Requirements Document |
+### User Guides
+- [Quick Start Guide](./QUICK_START.md) - Get started in 5 minutes
+- [Features Documentation](./docs/FEATURES.md) - Complete feature list
+- [API Reference](./docs/API_REFERENCE.md) - REST API documentation
 
----
+### Developer Guides
+- [Deployment Guide](./docs/DEPLOYMENT.md) - Docker & production deployment
+- [Database Schema](./docs/DATABASE.md) - MongoDB collections and relationships
+- [Contributing Guide](./docs/CONTRIBUTING.md) - Development workflow
 
-## 🗄️ Database Setup
+### Integration Guides
+- [Email Integration](./docs/EMAIL_INTEGRATION.md) - SMTP setup
+- [PDF Generation](./docs/PDF_GENERATION.md) - Post-meeting summaries
+- [Teams Integration](./docs/TEAMS_INTEGRATION.md) - Microsoft Teams integration (planned)
 
-### Method 1: Automated (Recommended)
-The database schema is automatically created when the backend starts (if tables don't exist).
-
-### Method 2: Manual
-```bash
-mysql -u root -p
-# Enter password: 12345678
-
-CREATE DATABASE Hospital_General_Meeting_Scheduler_DB;
-USE Hospital_General_Meeting_Scheduler_DB;
-source database/ddl.sql;
-```
-
-### Verify Database
-```sql
-SHOW TABLES;
--- Expected: users, patients, meetings, meeting_participants, 
---           meeting_patients, agenda_items, decision_logs, 
---           file_attachments, user_sessions
-```
-
----
-
-## 🔧 Configuration
-
-### Backend Configuration (`backend/.env`)
-```env
-MYSQL_HOST=127.0.0.1
-MYSQL_PORT=3306
-MYSQL_USER=root
-MYSQL_PASSWORD=12345678
-MYSQL_DATABASE=Hospital_General_Meeting_Scheduler_DB
-JWT_SECRET=hospital_meeting_scheduler_secret_key_2025
-JWT_ALGORITHM=HS256
-JWT_EXPIRATION_HOURS=24
-UPLOAD_DIR=./uploads
-CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
-```
-
-### Frontend Configuration (`frontend/.env`)
-```env
-REACT_APP_BACKEND_URL=http://localhost:8001
-```
-
----
-
-## 🎯 Key Features
-
-### ✅ User Management
-- Email/password authentication with JWT
-- Google OAuth social login
-- Role-based access (Organizer, Doctor, Admin)
-
-### ✅ Patient Management
-- Complete patient CRUD operations
-- Patient history tracking
-- Search and filter capabilities
-- Clinical information storage
-
-### ✅ Meeting Management
-- 4-step meeting creation wizard
-- Schedule with date, time, location
-- Video meeting link integration (MS Teams)
-- Add participants and patients
-- Agenda item planning
-
-### ✅ Case Room (Meeting Detail Page)
-- **Overview**: Meeting details and participant list
-- **Patients**: Patient information and clinical questions
-- **Agenda**: Meeting agenda with estimated durations
-- **Files**: Upload/download medical records (PDF, images)
-- **Decisions**: Log clinical decisions and action plans
-
-### ✅ Participant Management
-- Add registered doctors to meetings
-- Invite new doctors by email
-- Remove participants
-- Track response status (pending/accepted/declined)
-
-### ✅ Dashboard
-- Upcoming meetings overview
-- Pending invitations count
-- Total active patients
-- This week's meeting count
-
----
-
-## 🧪 Testing
-
-### Quick Health Check
-```bash
-# Backend
-curl http://localhost:8001/api/health
-# Expected: {"status": "healthy", "database": "MySQL connected"}
-
-# Frontend
-curl http://localhost:3000
-# Expected: HTML response
-```
-
-### Comprehensive Testing
-See **[test_local_mysql.md](test_local_mysql.md)** for:
-- Complete API test suite
-- Database verification queries
-- Frontend manual testing checklist
-- Success criteria
-
-### Test Credentials
-```
-Email: test@test.com
-Password: password
-```
+### Design & Architecture
+- [UI Guidelines](./docs/UI_GUIDELINES.md) - Design system and color scheme
+- [Roadmap](./docs/ROADMAP.md) - Future enhancements
 
 ---
 
 ## 📁 Project Structure
 
 ```
-/app
-├── backend/
-│   ├── server.py              # FastAPI app with all routes
-│   ├── .env                   # Backend configuration
-│   ├── requirements.txt       # Python dependencies
-│   └── uploads/               # File storage
-├── frontend/
+/app/
+├── backend/                # FastAPI backend
+│   ├── server.py          # Main API server (1,690 lines)
+│   ├── scheduler.py       # Background task scheduler
+│   ├── requirements.txt   # Python dependencies
+│   ├── .env              # Environment variables
+│   ├── utils/            # Utility modules
+│   │   ├── email.py      # Email sending
+│   │   └── pdf_generator.py  # PDF generation
+│   ├── templates/        # Email templates
+│   ├── tests/           # Backend tests
+│   └── uploads/         # File storage
+│
+├── frontend/             # React frontend
 │   ├── src/
-│   │   ├── components/        # Reusable UI components
-│   │   │   └── ui/           # Shadcn components
-│   │   ├── context/          # React context providers
-│   │   │   └── AuthContext.js
-│   │   ├── lib/
-│   │   │   └── api.js        # Axios API client
-│   │   ├── pages/            # Page components
-│   │   │   ├── LoginPage.js
+│   │   ├── pages/       # Page components
 │   │   │   ├── DashboardPage.js
-│   │   │   ├── PatientsPage.js
 │   │   │   ├── MeetingsPage.js
-│   │   │   ├── MeetingWizardPage.js
-│   │   │   └── MeetingDetailPage.js
-│   │   ├── App.js            # Routes
-│   │   └── index.js          # Entry point
-│   ├── .env                   # Frontend configuration
-│   └── package.json
-├── database/
-│   └── ddl.sql               # MySQL schema
-└── memory/
-    └── PRD.md                # Product requirements
+│   │   │   ├── MeetingDetailPage.js (2,100+ lines)
+│   │   │   ├── PatientsPage.js
+│   │   │   ├── PatientDetailPage.js
+│   │   │   ├── ParticipantsPage.js
+│   │   │   └── ProfilePage.js
+│   │   ├── components/  # Reusable components
+│   │   │   ├── Layout.js
+│   │   │   └── ui/      # Shadcn UI components
+│   │   ├── context/     # React context
+│   │   │   └── AuthContext.js
+│   │   └── lib/         # Utilities
+│   │       └── api.js   # API client
+│   ├── package.json     # Node dependencies
+│   └── .env            # Frontend environment
+│
+├── docs/                # Documentation
+│   ├── FEATURES.md
+│   ├── API_REFERENCE.md
+│   ├── DEPLOYMENT.md
+│   ├── DATABASE.md
+│   ├── CONTRIBUTING.md
+│   └── ...
+│
+├── test_reports/        # Test results
+├── memory/             # Agent memory (PRD)
+├── docker-compose.yml  # Docker orchestration
+├── start-docker.sh    # Startup script
+├── README.md          # This file
+└── QUICK_START.md     # Quick start guide
 ```
 
 ---
 
-## 🔌 API Endpoints
+## 🔌 API Overview
 
-### Authentication
+### Base URL
+```
+Production: https://hospital-case-room.preview.emergentagent.com/api
+Local: http://localhost:8001/api
+```
+
+### Key Endpoints
+
+#### Authentication
 - `POST /api/auth/register` - Register new user
 - `POST /api/auth/login` - Login with email/password
-- `POST /api/auth/google` - Google OAuth callback
+- `POST /api/auth/session` - Process OAuth session
+- `GET /api/auth/me` - Get current user
+- `POST /api/auth/change-password` - Change password
+- `POST /api/feedback` - Submit user feedback
 
-### Users
-- `GET /api/users` - Get all users (for adding participants)
-
-### Patients
-- `GET /api/patients` - Get all patients
-- `POST /api/patients` - Create patient
-- `GET /api/patients/{id}` - Get patient details
-- `PUT /api/patients/{id}` - Update patient
-- `DELETE /api/patients/{id}` - Soft delete patient
-
-### Meetings
-- `GET /api/meetings` - Get all meetings
-- `POST /api/meetings` - Create meeting
+#### Meetings
+- `GET /api/meetings` - List all meetings
+- `POST /api/meetings` - Create new meeting
 - `GET /api/meetings/{id}` - Get meeting details
 - `PUT /api/meetings/{id}` - Update meeting
+- `DELETE /api/meetings/{id}` - Delete meeting
+- `POST /api/meetings/{id}/summary` - Generate PDF summary
 
-### Participants
-- `POST /api/meetings/{id}/participants` - Add participant
-- `DELETE /api/meetings/{id}/participants/{user_id}` - Remove participant
-- `POST /api/meetings/{id}/invite` - Invite by email
+#### Patients
+- `GET /api/patients` - List all patients
+- `POST /api/patients` - Create new patient
+- `GET /api/patients/{id}` - Get patient details
+- `PUT /api/patients/{id}` - Update patient
+- `DELETE /api/patients/{id}` - Delete patient
 
-### Files & Decisions
-- `POST /api/meetings/{id}/files` - Upload file
-- `GET /api/files/{id}` - Download file
-- `POST /api/meetings/{id}/decisions` - Log decision
-- `PUT /api/meetings/{id}/decisions/{id}` - Update decision
+#### Participants
+- `GET /api/users` - List all users
+- `PUT /api/users/{id}/role` - Change user role (Organizer only)
+- `POST /api/meetings/{id}/participants` - Add participant to meeting
+- `PUT /api/meetings/{id}/participants/{user_id}/response` - Update response
 
-### Dashboard
+#### Dashboard
 - `GET /api/dashboard/stats` - Get dashboard statistics
 
-### Health
-- `GET /api/health` - Health check
+### API Documentation
+Full interactive API documentation available at:
+```
+http://localhost:8001/docs (Swagger UI)
+http://localhost:8001/redoc (ReDoc)
+```
 
 ---
 
-## 🚨 Troubleshooting
+## 🤝 Contributing
 
-### Backend Connection Issues
-**Problem**: `Can't connect to MySQL server`
+We welcome contributions! Please see [CONTRIBUTING.md](./docs/CONTRIBUTING.md) for:
+- Development setup
+- Code style guidelines
+- Pull request process
+- Testing requirements
 
-**Solution**:
-1. Verify MySQL is running: `net start MySQL80`
-2. Test connection: `mysql -u root -p -h 127.0.0.1`
-3. Check credentials in `backend/.env`
+### Quick Development Setup
 
-### Frontend Can't Connect to Backend
-**Problem**: Network errors in browser console
-
-**Solution**:
-1. Verify backend is running on port 8001
-2. Check `frontend/.env` has `REACT_APP_BACKEND_URL=http://localhost:8001`
-3. Restart frontend after .env changes
-
-### Module Not Found
-**Problem**: `ModuleNotFoundError` when starting backend
-
-**Solution**:
 ```bash
+# Backend
 cd backend
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
-```
+uvicorn server:app --reload --port 8001
 
-### Port Already in Use
-**Problem**: `Address already in use: 8001`
-
-**Solution**:
-```bash
-# Windows
-netstat -ano | findstr :8001
-taskkill /PID <PID> /F
-
-# Mac/Linux
-lsof -ti:8001 | xargs kill -9
+# Frontend
+cd frontend
+yarn install
+yarn start
 ```
 
 ---
 
-## 🔐 Security Features
+## 🐛 Known Issues & Future Enhancements
 
-- ✅ Password hashing with bcrypt
-- ✅ JWT token authentication
-- ✅ Token expiration (24 hours)
-- ✅ SQL injection protection (parameterized queries)
-- ✅ CORS configuration
-- ✅ No password hash exposure in API responses
+### Current Limitations
+- **Large Component Files** - `MeetingDetailPage.js` (2,100+ lines) needs refactoring
+- **Monolithic Backend** - `server.py` (1,690 lines) should be split into modules
+- **No Real-time Updates** - Manual refresh needed to see updates
+- **Local File Storage** - Files stored locally, should migrate to cloud storage (S3)
 
----
+### Planned Features (v2.1)
+- 🔄 **Code Refactoring** - Break down large files into smaller modules
+- 📧 **Email Scheduler** - Activate automated reminder system
+- 👨‍💼 **Admin Dashboard** - Dedicated admin panel
+- 📅 **Calendar Integration** - Google Calendar & Outlook sync
+- 🔔 **Real-time Notifications** - WebSocket support
+- ☁️ **Cloud Storage** - Migrate to AWS S3/Cloudinary
 
-## 🚀 Future Enhancements
-
-### Planned Features
-- [ ] **Email Notifications** - SMTP integration for meeting invites
-- [ ] **Auto-generated Summaries** - Post-meeting summary generation
-- [ ] **Admin Staff Role** - Additional user role with permissions
-- [ ] **Calendar Integration** - Sync with Google Calendar
-- [ ] **Cloud Storage** - Move files to S3/Cloudinary
-- [ ] **Real-time Updates** - WebSocket support for live updates
-- [ ] **Notifications** - In-app notification system
-- [ ] **Advanced Search** - Full-text search for patients and meetings
-- [ ] **Reporting** - Meeting analytics and reports
-
-### Code Improvements
-- [ ] **Refactor Backend** - Split monolithic `server.py` into:
-  - `models/` - Database models
-  - `routes/` - API endpoints
-  - `schemas/` - Pydantic schemas
-  - `services/` - Business logic
-  - `database.py` - DB connection
-- [ ] **Add Tests** - Unit and integration tests
-- [ ] **API Documentation** - Enhanced Swagger docs
-- [ ] **Type Hints** - Complete type annotations
+See [ROADMAP.md](./docs/ROADMAP.md) for complete future plans.
 
 ---
 
-## 📞 Support
+## 📊 Stats
 
-For detailed setup and testing instructions, please refer to:
-- **Setup**: [LOCAL_SETUP_GUIDE.md](LOCAL_SETUP_GUIDE.md)
-- **Testing**: [test_local_mysql.md](test_local_mysql.md)
-- **Quick Reference**: [QUICK_START.md](QUICK_START.md)
+- **Total Files:** ~150
+- **Backend Lines:** ~2,000
+- **Frontend Lines:** ~8,000
+- **API Endpoints:** 30+
+- **Database Collections:** 8
+- **Test Coverage:** Backend tests available
+
+---
+
+## 📧 Support
+
+For issues, questions, or feedback:
+
+- **Submit Feedback:** Use the feedback form in Profile page (sends to `Niraj.K.Vishwakarma@gmail.com`)
+- **GitHub Issues:** [Create an issue](https://github.com/yourusername/repo/issues)
+- **Documentation:** Check `/docs` folder for detailed guides
 
 ---
 
 ## 📄 License
 
-This is a proprietary application for hospital use.
+This project is private and proprietary. All rights reserved.
 
 ---
 
-**Version**: 2.0 (MySQL Migration Complete)  
-**Last Updated**: February 21, 2026
+## 🙏 Acknowledgments
+
+- **Shadcn UI** - Beautiful component library
+- **Tailwind CSS** - Utility-first CSS framework
+- **FastAPI** - High-performance Python framework
+- **MongoDB** - Flexible NoSQL database
+- **Emergent Labs** - Google OAuth integration provider
+
+---
+
+**Built with ❤️ for Healthcare Professionals**
+
+Last Updated: April 2026 | Version 2.0.0
