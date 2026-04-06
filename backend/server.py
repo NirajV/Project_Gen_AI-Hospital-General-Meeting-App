@@ -1514,11 +1514,14 @@ async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
 
 # ============== Feedback Routes ==============
 
+class FeedbackRequest(BaseModel):
+    feedback_type: str
+    subject: str
+    message: str
+
 @api_router.post("/feedback")
 async def submit_feedback(
-    feedback_type: str,
-    subject: str,
-    message: str,
+    feedback: FeedbackRequest,
     current_user: dict = Depends(get_current_user)
 ):
     """
@@ -1529,16 +1532,16 @@ async def submit_feedback(
     owner_email = os.environ.get('OWNER_EMAIL', 'Niraj.K.Vishwakarma@gmail.com')
     
     # Create feedback record in database
-    feedback_id = str(uuid4())
+    feedback_id = str(uuid.uuid4())
     feedback_data = {
         "id": feedback_id,
         "user_id": current_user['id'],
         "user_name": current_user['name'],
         "user_email": current_user['email'],
         "user_role": current_user['role'],
-        "feedback_type": feedback_type,
-        "subject": subject,
-        "message": message,
+        "feedback_type": feedback.feedback_type,
+        "subject": feedback.subject,
+        "message": feedback.message,
         "status": "pending",
         "created_at": datetime.now(timezone.utc),
     }
@@ -1550,7 +1553,7 @@ async def submit_feedback(
         from utils.email import send_email
         
         # Format feedback type for display
-        type_display = feedback_type.replace('_', ' ').title()
+        type_display = feedback.feedback_type.replace('_', ' ').title()
         
         email_body = f"""
         <html>
@@ -1577,7 +1580,7 @@ async def submit_feedback(
                     <p style="margin: 10px 0 0 0; opacity: 0.9;">Hospital Meeting App</p>
                 </div>
                 <div class="content">
-                    <span class="feedback-type {feedback_type.split('_')[0]}">{type_display}</span>
+                    <span class="feedback-type {feedback.feedback_type.split('_')[0]}">{type_display}</span>
                     
                     <div class="info-box">
                         <div class="label">From</div>
@@ -1587,12 +1590,12 @@ async def submit_feedback(
                     
                     <div class="info-box">
                         <div class="label">Subject</div>
-                        <div class="value" style="font-size: 16px; font-weight: bold;">{subject}</div>
+                        <div class="value" style="font-size: 16px; font-weight: bold;">{feedback.subject}</div>
                     </div>
                     
                     <div class="message-box">
                         <div class="label">Message</div>
-                        <div class="value" style="white-space: pre-wrap; margin-top: 10px;">{message}</div>
+                        <div class="value" style="white-space: pre-wrap; margin-top: 10px;">{feedback.message}</div>
                     </div>
                     
                     <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #666; font-size: 12px;">
@@ -1605,10 +1608,10 @@ async def submit_feedback(
         </html>
         """
         
-        await send_email(
+        send_email(
             to_email=owner_email,
-            subject=f"[{type_display}] {subject}",
-            body=email_body
+            subject=f"[{type_display}] {feedback.subject}",
+            html_content=email_body
         )
         
         logger.info(f"Feedback email sent to {owner_email} from {current_user['email']}")
