@@ -1,85 +1,120 @@
 version: '3.8'
 
 services:
-  # MongoDB Database
-  mongodb:
-    image: mongo:7.0
-    container_name: hospital-mongodb
-    restart: unless-stopped
-    ports:
-      - "27017:27017"
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: hospital_mysql
+    restart: always
     environment:
-      MONGO_INITDB_DATABASE: hospital_meetings
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-hospital_meeting_scheduler}
+      MYSQL_USER: ${MYSQL_USER:-hospital_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-hospital_pass}
+      TZ: UTC
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
     volumes:
-      - mongodb_data:/data/db
-      - mongodb_config:/data/configdb
-    networks:
-      - hospital-network
+      - mysql_data:/var/lib/mysql
+      - ./database/ddl.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    command:
+      - --default-authentication-plugin=mysql_native_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --max-connections=200
+      - --default-time-zone=+00:00
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/hospital_meetings --quiet
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-rootpassword}"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 30s
+    networks:
+      - hospital_network
 
-  # Backend API
+  # Backend API (FastAPI)
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: hospital-backend
-    restart: unless-stopped
-    ports:
-      - "8001:8001"
+    container_name: hospital_backend
+    restart: always
     environment:
-      - MONGO_URL=mongodb://mongodb:27017
-      - DB_NAME=hospital_meetings
-      - JWT_SECRET=${JWT_SECRET:-your-secret-key-change-in-production}
+      # Database Configuration
+      - DATABASE_TYPE=mysql
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-hospital_meeting_scheduler}
+      - MYSQL_USER=${MYSQL_USER:-hospital_user}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-hospital_pass}
+      
+      # JWT Configuration
+      - JWT_SECRET=${JWT_SECRET:-change-this-secret-in-production}
       - JWT_ALGORITHM=HS256
-      - ACCESS_TOKEN_EXPIRE_MINUTES=1440
-    volumes:
-      - ./backend:/app
-      - ./backend/uploads:/app/uploads
+      - ACCESS_TOKEN_EXPIRE_HOURS=24
+      
+      # CORS Configuration
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
+      
+      # Email Configuration
+      - EMAIL_ENABLED=${EMAIL_ENABLED:-false}
+      - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      
+      # Application Configuration
+      - OWNER_EMAIL=${OWNER_EMAIL:-Niraj.K.Vishwakarma@gmail.com}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+    ports:
+      - "${BACKEND_PORT:-8001}:8001"
     depends_on:
-      mongodb:
+      mysql:
         condition: service_healthy
-    networks:
-      - hospital-network
+    volumes:
+      - ./backend/uploads:/app/uploads
+      - ./backend/templates:/app/templates:ro
     healthcheck:
-      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8001/api/health', timeout=5)"]
+      test: ["CMD", "curl", "-f", "http://localhost:8001/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
+    networks:
+      - hospital_network
 
-  # Frontend React App
+  # Frontend (React)
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: hospital-frontend
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
+      args:
+        - REACT_APP_BACKEND_URL=${REACT_APP_BACKEND_URL:-http://localhost:8001}
+    container_name: hospital_frontend
+    restart: always
     environment:
-      - REACT_APP_BACKEND_URL=http://localhost:8001
-      - CHOKIDAR_USEPOLLING=true
-      - WDS_SOCKET_PORT=0
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
+      - REACT_APP_BACKEND_URL=${REACT_APP_BACKEND_URL:-http://localhost:8001}
+      - NODE_ENV=${NODE_ENV:-production}
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     networks:
-      - hospital-network
-    stdin_open: true
-    tty: true
-
-networks:
-  hospital-network:
-    driver: bridge
+      - hospital_network
 
 volumes:
-  mongodb_data:
+  mysql_data:
     driver: local
-  mongodb_config:
-    driver: local
+    name: hospital_mysql_data
+
+networks:
+  hospital_network:
+    driver: bridge
+    name: hospital_network
