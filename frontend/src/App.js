@@ -1,6 +1,7 @@
 import React from 'react';
 import "@/App.css";
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { Toaster } from 'sonner';
 import { AuthProvider } from "@/context/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import LoginPage from "@/pages/LoginPage";
@@ -72,6 +73,18 @@ function App() {
                     <AppRouter />
                 </BrowserRouter>
             </AuthProvider>
+            <Toaster 
+                position="top-right" 
+                expand={false}
+                richColors
+                closeButton
+                toastOptions={{
+                    style: {
+                        borderRadius: '8px',
+                    },
+                    className: 'animate-slide-up',
+                }}
+            />
         </div>
     );
 }
