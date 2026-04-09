@@ -27,6 +27,7 @@ from utils.email import (
     send_simple_account_setup_email
 )
 from utils.pdf_generator import generate_meeting_summary_pdf
+from utils.holiday_checker import get_holiday_checker, validate_meeting_date
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -722,6 +723,23 @@ async def list_meetings(filter_type: Optional[str] = None, status: Optional[str]
 @api_router.post("/meetings")
 async def create_meeting(meeting: MeetingCreate, current_user: dict = Depends(get_current_user)):
     meeting_id = str(uuid.uuid4())
+    
+    # Validate meeting date against holidays
+    try:
+        meeting_date_obj = datetime.strptime(meeting.meeting_date, '%Y-%m-%d').date()
+        holiday_validation = validate_meeting_date(meeting_date_obj)
+        
+        if not holiday_validation['valid']:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Cannot schedule meeting on {holiday_validation['holiday_name']}. Please choose a different date."
+            )
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid meeting date format")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.warning(f"Holiday validation error (proceeding anyway): {str(e)}")
     
     # Calculate duration
     try:
@@ -1624,6 +1642,186 @@ async def submit_feedback(
         "message": "Feedback submitted successfully",
         "feedback_id": feedback_id
     }
+
+# ============== Holiday Calendar Endpoints ==============
+
+@api_router.get("/holidays/countries")
+async def get_available_countries():
+    """Get list of available countries in holiday calendar"""
+    try:
+        checker = get_holiday_checker()
+        countries = checker.get_available_countries()
+        active = checker.active_country
+        
+        # Get country details
+        countries_info = []
+        for country_code in countries:
+            info = checker.get_country_info(country_code)
+            countries_info.append({
+                "code": country_code,
+                "name": info.get("country_name", country_code),
+                "timezone": info.get("timezone", ""),
+                "is_active": country_code == active
+            })
+        
+        return {
+            "countries": countries_info,
+            "active_country": active
+        }
+    except Exception as e:
+        logger.error(f"Error getting countries: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error loading country list: {str(e)}")
+
+
+@api_router.get("/holidays/{country_code}")
+async def get_country_holidays(country_code: str, year: Optional[int] = None):
+    """Get holidays for a specific country and year"""
+    try:
+        checker = get_holiday_checker()
+        
+        # Validate country exists
+        if country_code not in checker.get_available_countries():
+            raise HTTPException(status_code=404, detail=f"Country '{country_code}' not found in holiday calendar")
+        
+        country_info = checker.get_country_info(country_code)
+        
+        # If year not provided, use current year
+        if year is None:
+            year = datetime.now().year
+        
+        holidays = country_info.get('holidays', {}).get(str(year), [])
+        
+        return {
+            "country_code": country_code,
+            "country_name": country_info.get('country_name', country_code),
+            "year": year,
+            "holidays": holidays,
+            "total_count": len(holidays)
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting holidays: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error loading holidays: {str(e)}")
+
+
+@api_router.post("/holidays/validate")
+async def validate_date(
+    meeting_date: str,
+    country_code: Optional[str] = None
+):
+    """
+    Validate if a date is available for scheduling (not a holiday)
+    
+    Args:
+        meeting_date: Date in YYYY-MM-DD format
+        country_code: Optional country code (uses active country if not provided)
+    
+    Returns:
+        Validation result with holiday information if applicable
+    """
+    try:
+        # Parse date
+        try:
+            check_date = datetime.strptime(meeting_date, '%Y-%m-%d').date()
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+        
+        # Validate against holidays
+        result = validate_meeting_date(check_date, country_code)
+        
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error validating date: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error validating date: {str(e)}")
+
+
+@api_router.get("/holidays/upcoming")
+async def get_upcoming_holidays(
+    days: int = 30,
+    country_code: Optional[str] = None
+):
+    """
+    Get holidays in the next N days
+    
+    Args:
+        days: Number of days to look ahead (default 30, max 365)
+        country_code: Optional country code (uses active country if not provided)
+    """
+    try:
+        # Validate days parameter
+        if days < 1 or days > 365:
+            raise HTTPException(status_code=400, detail="Days must be between 1 and 365")
+        
+        checker = get_holiday_checker()
+        
+        # Use provided country or active country
+        if country_code and country_code not in checker.get_available_countries():
+            raise HTTPException(status_code=404, detail=f"Country '{country_code}' not found")
+        
+        holidays = checker.get_upcoming_holidays(days, country_code)
+        
+        return {
+            "country": country_code or checker.active_country,
+            "days_ahead": days,
+            "holidays": holidays,
+            "count": len(holidays)
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting upcoming holidays: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error getting upcoming holidays: {str(e)}")
+
+
+@api_router.put("/holidays/set-country")
+async def set_active_country(
+    country_code: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Change the active country for holiday checking (Organizer/Admin only)
+    
+    Args:
+        country_code: Country code to set as active
+    """
+    # Check if user is organizer or admin
+    if current_user['role'] not in ['organizer', 'admin']:
+        raise HTTPException(status_code=403, detail="Only organizers and admins can change holiday settings")
+    
+    try:
+        checker = get_holiday_checker()
+        
+        if country_code not in checker.get_available_countries():
+            raise HTTPException(status_code=404, detail=f"Country '{country_code}' not found")
+        
+        # Update config file
+        import json
+        with open(checker.config_path, 'r') as f:
+            config = json.load(f)
+        
+        config['active_country'] = country_code
+        
+        with open(checker.config_path, 'w') as f:
+            json.dump(config, f, indent=2)
+        
+        # Reload checker
+        checker.reload_config()
+        
+        logger.info(f"Active country changed to {country_code} by {current_user['email']}")
+        
+        return {
+            "message": f"Active country set to {country_code}",
+            "active_country": country_code
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error setting active country: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error setting active country: {str(e)}")
+
 
 # ============== Health Check ==============
 
