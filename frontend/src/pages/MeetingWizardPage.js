@@ -299,7 +299,17 @@ export default function MeetingWizardPage() {
             navigate(`/meetings/${res.data.id}`);
         } catch (error) {
             console.error('Failed to create meeting:', error);
-            alert('Failed to create meeting. Please try again.');
+            
+            // Get the actual error message from backend
+            let errorMessage = 'Failed to create meeting. Please try again.';
+            
+            if (error.response && error.response.data && error.response.data.detail) {
+                errorMessage = error.response.data.detail;
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            
+            alert(errorMessage);
         } finally {
             setLoading(false);
         }
