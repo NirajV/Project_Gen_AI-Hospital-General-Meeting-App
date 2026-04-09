@@ -730,9 +730,21 @@ async def create_meeting(meeting: MeetingCreate, current_user: dict = Depends(ge
         holiday_validation = validate_meeting_date(meeting_date_obj)
         
         if not holiday_validation['valid']:
+            holiday_name = holiday_validation['holiday_name']
+            country = holiday_validation.get('country', 'USA')
+            
+            # Format country name for display
+            country_display = {
+                'USA': 'USA Federal',
+                'India': 'Indian National',
+                'UK': 'UK Public'
+            }.get(country, country)
+            
+            error_message = f"{country_display} Holiday - No Meeting Schedule. {holiday_name} falls on this date. Please choose a different date."
+            
             raise HTTPException(
                 status_code=400, 
-                detail=f"Cannot schedule meeting on {holiday_validation['holiday_name']}. Please choose a different date."
+                detail=error_message
             )
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid meeting date format")
