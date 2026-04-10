@@ -1,7 +1,7 @@
 {
   "holiday_calendar_version": "1.0",
   "last_updated": "2026-04-09",
-  "holiday_enforcement_enabled": false,
+  "holiday_enforcement_enabled": true,
   "active_country": "USA",
   "countries": {
     "USA": {
