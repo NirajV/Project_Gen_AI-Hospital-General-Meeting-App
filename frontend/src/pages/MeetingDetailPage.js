@@ -922,19 +922,19 @@ export default function MeetingDetailPage() {
                                             className="border-0 shadow-sm hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.02] transition-all duration-300 overflow-hidden bg-white flex flex-col" 
                                             style={{ 
                                                 backgroundColor: colors.light,
-                                                minHeight: '450px'
+                                                minHeight: '380px'
                                             }} 
                                             data-testid={`meeting-patient-${idx}`}
                                         >
-                                            <CardContent className="pt-6 pb-4 flex-1 flex flex-col">
-                                                <div className="flex items-start gap-4">
-                                                    <div className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: colors.dark }}>
-                                                        <User className="w-7 h-7 text-white" />
+                                            <CardContent className="pt-4 pb-3 flex-1 flex flex-col">
+                                                <div className="flex items-start gap-3">
+                                                    <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: colors.dark }}>
+                                                        <User className="w-6 h-6 text-white" />
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <div className="flex items-start justify-between gap-2 mb-3">
+                                                        <div className="flex items-start justify-between gap-2 mb-2">
                                                             <div className="flex-1 min-w-0">
-                                                                <h3 className="font-semibold text-lg mb-2" style={{ color: colors.dark }}>
+                                                                <h3 className="font-semibold text-base mb-1.5" style={{ color: colors.dark }}>
                                                                     {mp.first_name} {mp.last_name}
                                                                 </h3>
                                                                 <div className="flex items-center gap-2 flex-wrap">
@@ -943,7 +943,7 @@ export default function MeetingDetailPage() {
                                                                     </Badge>
                                                                     {isPending && (
                                                                         <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-800 border-amber-300">
-                                                                            ⏳ Pending Approval
+                                                                            ⏳ Pending
                                                                         </Badge>
                                                                     )}
                                                                 </div>
@@ -953,7 +953,7 @@ export default function MeetingDetailPage() {
                                                                     variant="ghost"
                                                                     size="icon"
                                                                     onClick={() => handleRemovePatient(mp.patient_id)}
-                                                                    className="text-muted-foreground hover:text-destructive flex-shrink-0"
+                                                                    className="text-muted-foreground hover:text-destructive flex-shrink-0 h-8 w-8"
                                                                     title="Remove patient"
                                                                 >
                                                                     <Trash2 className="w-4 h-4" />
@@ -962,37 +962,37 @@ export default function MeetingDetailPage() {
                                                         </div>
                                                         
                                                         {mp.patient_id_number && (
-                                                            <p className="text-sm mb-2 font-medium" style={{ color: colors.dark, opacity: 0.7 }}>
+                                                            <p className="text-xs mb-1.5" style={{ color: colors.dark, opacity: 0.7 }}>
                                                                 ID: {mp.patient_id_number}
                                                             </p>
                                                         )}
                                                         
                                                         {/* Show who added the patient */}
                                                         {mp.added_by_name && (
-                                                            <p className="text-sm mb-2" style={{ color: colors.dark, opacity: 0.6 }}>
+                                                            <p className="text-xs mb-1.5" style={{ color: colors.dark, opacity: 0.6 }}>
                                                                 Added by: {mp.added_by_name}
                                                             </p>
                                                         )}
                                                         
                                                         {/* Approval info */}
                                                         {mp.approval_status === 'approved' && mp.approved_by_name && (
-                                                            <p className="text-sm mb-3 text-green-700 font-medium">
+                                                            <p className="text-xs mb-2 text-green-700 font-medium">
                                                                 ✓ Approved by {mp.approved_by_name}
                                                             </p>
                                                         )}
                                                         
                                                         {mp.primary_diagnosis && (
-                                                            <p className="text-base mt-3 mb-3 font-semibold" style={{ color: colors.dark }}>
+                                                            <p className="text-sm mt-1.5 mb-1.5 font-semibold" style={{ color: colors.dark }}>
                                                                 {mp.primary_diagnosis}
                                                             </p>
                                                         )}
                                                         
                                                         {mp.clinical_question && (
-                                                            <div className="mt-3 mb-3 p-3 rounded-lg" style={{ backgroundColor: `${colors.dark}15` }}>
-                                                                <p className="text-sm mb-1 font-semibold" style={{ color: colors.dark, opacity: 0.7 }}>
+                                                            <div className="mt-2 mb-2 p-2.5 rounded-lg" style={{ backgroundColor: `${colors.dark}15` }}>
+                                                                <p className="text-xs mb-1 font-semibold" style={{ color: colors.dark, opacity: 0.7 }}>
                                                                     Clinical Question
                                                                 </p>
-                                                                <p className="text-sm leading-relaxed" style={{ color: colors.dark }}>
+                                                                <p className="text-xs leading-relaxed" style={{ color: colors.dark }}>
                                                                     {mp.clinical_question}
                                                                 </p>
                                                             </div>
@@ -1007,10 +1007,10 @@ export default function MeetingDetailPage() {
                                                 {isOrganizer && isPending && meeting.status !== 'completed' && (
                                                     <Button
                                                         onClick={() => handleApprovePatient(mp.patient_id)}
-                                                        className="mt-4 w-full bg-green-600 hover:bg-green-700 text-base py-5"
-                                                        size="lg"
+                                                        className="mt-3 w-full bg-green-600 hover:bg-green-700 py-2"
+                                                        size="sm"
                                                     >
-                                                        <Check className="w-5 h-5 mr-2" />
+                                                        <Check className="w-4 h-4 mr-2" />
                                                         Approve Patient
                                                     </Button>
                                                 )}
@@ -1019,7 +1019,7 @@ export default function MeetingDetailPage() {
                                             {/* Ribbon-style View Full Profile */}
                                             <Link to={`/patients/${mp.patient_id}`} className="block mt-auto">
                                                 <div 
-                                                    className="relative py-4 px-4 text-center font-semibold text-white transition-all duration-300 hover:opacity-90 cursor-pointer text-base"
+                                                    className="relative py-2.5 px-4 text-center font-semibold text-white transition-all duration-300 hover:opacity-90 cursor-pointer text-sm"
                                                     style={{ 
                                                         backgroundColor: colors.dark,
                                                         clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%)',
