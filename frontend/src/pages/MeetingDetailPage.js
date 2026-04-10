@@ -917,75 +917,107 @@ export default function MeetingDetailPage() {
                                     const isPending = mp.approval_status === 'pending';
                                     
                                     return (
-                                        <Card key={mp.id} className="border-0 shadow-sm hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.02] transition-all duration-300 overflow-hidden bg-white" style={{ backgroundColor: colors.light }} data-testid={`meeting-patient-${idx}`}>
-                                            <CardContent className="pt-6 pb-0">
-                                                <div className="flex items-start gap-4 pb-4">
-                                                    <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: colors.dark }}>
+                                        <Card 
+                                            key={mp.id} 
+                                            className="border-0 shadow-sm hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.02] transition-all duration-300 overflow-hidden bg-white flex flex-col" 
+                                            style={{ 
+                                                backgroundColor: colors.light,
+                                                minHeight: '420px'
+                                            }} 
+                                            data-testid={`meeting-patient-${idx}`}
+                                        >
+                                            <CardContent className="pt-6 pb-4 flex-1 flex flex-col">
+                                                <div className="flex items-start gap-4">
+                                                    <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: colors.dark }}>
                                                         <User className="w-6 h-6 text-white" />
                                                     </div>
-                                                    <div className="flex-1">
-                                                        <div className="flex items-center justify-between">
-                                                            <div className="flex items-center gap-2 flex-wrap">
-                                                                <h3 className="font-semibold" style={{ color: colors.dark }}>{mp.first_name} {mp.last_name}</h3>
-                                                                <Badge variant="outline" className="text-xs capitalize" style={{ borderColor: colors.dark, color: colors.dark }}>{mp.status?.replace('_', ' ')}</Badge>
-                                                                {isPending && (
-                                                                    <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-800 border-amber-300">
-                                                                        ⏳ Pending Approval
-                                                                    </Badge>
-                                                                )}
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-start justify-between gap-2 mb-2">
+                                                            <div className="flex items-center gap-2 flex-wrap min-w-0">
+                                                                <h3 className="font-semibold text-base truncate" style={{ color: colors.dark }}>
+                                                                    {mp.first_name} {mp.last_name}
+                                                                </h3>
+                                                                <Badge variant="outline" className="text-xs capitalize flex-shrink-0" style={{ borderColor: colors.dark, color: colors.dark }}>
+                                                                    {mp.status?.replace('_', ' ')}
+                                                                </Badge>
                                                             </div>
                                                             {isOrganizer && meeting.status !== 'completed' && (
                                                                 <Button
                                                                     variant="ghost"
                                                                     size="icon"
                                                                     onClick={() => handleRemovePatient(mp.patient_id)}
-                                                                    className="text-muted-foreground hover:text-destructive"
+                                                                    className="text-muted-foreground hover:text-destructive flex-shrink-0"
                                                                     title="Remove patient"
                                                                 >
                                                                     <Trash2 className="w-4 h-4" />
                                                                 </Button>
                                                             )}
                                                         </div>
-                                                        {mp.patient_id_number && <p className="text-xs" style={{ color: colors.dark, opacity: 0.7 }}>ID: {mp.patient_id_number}</p>}
+                                                        
+                                                        {/* Pending badge on separate line for better visibility */}
+                                                        {isPending && (
+                                                            <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-800 border-amber-300 mb-2">
+                                                                ⏳ Pending Approval
+                                                            </Badge>
+                                                        )}
+                                                        
+                                                        {mp.patient_id_number && (
+                                                            <p className="text-xs mb-1" style={{ color: colors.dark, opacity: 0.7 }}>
+                                                                ID: {mp.patient_id_number}
+                                                            </p>
+                                                        )}
                                                         
                                                         {/* Show who added the patient */}
                                                         {mp.added_by_name && (
-                                                            <p className="text-xs mt-1" style={{ color: colors.dark, opacity: 0.6 }}>
+                                                            <p className="text-xs mb-1" style={{ color: colors.dark, opacity: 0.6 }}>
                                                                 Added by: {mp.added_by_name}
                                                             </p>
                                                         )}
                                                         
                                                         {/* Approval info */}
                                                         {mp.approval_status === 'approved' && mp.approved_by_name && (
-                                                            <p className="text-xs mt-1 text-green-700">
+                                                            <p className="text-xs mb-2 text-green-700 font-medium">
                                                                 ✓ Approved by {mp.approved_by_name}
                                                             </p>
                                                         )}
                                                         
-                                                        {mp.primary_diagnosis && <p className="text-sm mt-2" style={{ color: colors.dark }}>{mp.primary_diagnosis}</p>}
-                                                        {mp.clinical_question && (
-                                                            <div className="mt-3 p-2 rounded" style={{ backgroundColor: `${colors.dark}15` }}>
-                                                                <p className="text-xs" style={{ color: colors.dark, opacity: 0.7 }}>Clinical Question</p>
-                                                                <p className="text-sm" style={{ color: colors.dark }}>{mp.clinical_question}</p>
-                                                            </div>
+                                                        {mp.primary_diagnosis && (
+                                                            <p className="text-sm mt-2 mb-2 font-medium" style={{ color: colors.dark }}>
+                                                                {mp.primary_diagnosis}
+                                                            </p>
                                                         )}
                                                         
-                                                        {/* Approve button for organizer */}
-                                                        {isOrganizer && isPending && meeting.status !== 'completed' && (
-                                                            <Button
-                                                                onClick={() => handleApprovePatient(mp.patient_id)}
-                                                                className="mt-3 w-full bg-green-600 hover:bg-green-700"
-                                                                size="sm"
-                                                            >
-                                                                <Check className="w-4 h-4 mr-2" />
-                                                                Approve Patient
-                                                            </Button>
+                                                        {mp.clinical_question && (
+                                                            <div className="mt-2 mb-3 p-3 rounded" style={{ backgroundColor: `${colors.dark}15` }}>
+                                                                <p className="text-xs mb-1 font-semibold" style={{ color: colors.dark, opacity: 0.7 }}>
+                                                                    Clinical Question
+                                                                </p>
+                                                                <p className="text-sm leading-relaxed" style={{ color: colors.dark }}>
+                                                                    {mp.clinical_question}
+                                                                </p>
+                                                            </div>
                                                         )}
                                                     </div>
                                                 </div>
+                                                
+                                                {/* Spacer to push button to bottom */}
+                                                <div className="flex-1"></div>
+                                                
+                                                {/* Approve button for organizer - at bottom of card content */}
+                                                {isOrganizer && isPending && meeting.status !== 'completed' && (
+                                                    <Button
+                                                        onClick={() => handleApprovePatient(mp.patient_id)}
+                                                        className="mt-4 w-full bg-green-600 hover:bg-green-700"
+                                                        size="sm"
+                                                    >
+                                                        <Check className="w-4 h-4 mr-2" />
+                                                        Approve Patient
+                                                    </Button>
+                                                )}
                                             </CardContent>
+                                            
                                             {/* Ribbon-style View Full Profile */}
-                                            <Link to={`/patients/${mp.patient_id}`} className="block">
+                                            <Link to={`/patients/${mp.patient_id}`} className="block mt-auto">
                                                 <div 
                                                     className="relative py-3 px-4 text-center font-semibold text-white transition-all duration-300 hover:opacity-90 cursor-pointer"
                                                     style={{ 
