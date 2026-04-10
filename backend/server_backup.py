@@ -1,34 +1,20 @@
 from fastapi import FastAPI, APIRouter, HTTPException, Depends, UploadFile, File, Form, Request, Response
+from fastapi.security import HTTPBearer
+from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
+from motor.motor_asyncio import AsyncIOMotorClient
+import os
 import logging
-from typing import List, Optional
 from pathlib import Path
+from pydantic import BaseModel, Field, EmailStr
+from typing import List, Optional
 import uuid
 from datetime import datetime, timezone, timedelta, date, time
 import secrets
 import aiofiles
+import jwt
+import bcrypt
 import httpx
-import os
-
-# Core imports (refactored modules)
-from core import (
-    db, client, serialize_doc,
-    hash_password, verify_password, create_jwt_token, get_current_user, generate_secure_password,
-    JWT_SECRET, JWT_ALGORITHM, JWT_EXPIRATION_HOURS,
-    UPLOAD_DIR, FRONTEND_URL, CORS_ORIGINS, security
-)
-
-# Model imports (refactored schemas)
-from models import (
-    UserCreate, UserLogin, UserResponse, TokenResponse,
-    PatientCreate, PatientBase,
-    MeetingCreate, MeetingBase,
-    ParticipantInvite, ParticipantResponse,
-    MeetingPatientCreate, AgendaItemCreate, DecisionLogCreate,
-    FeedbackRequest
-)
-
-# Utility imports
 from utils.email import (
     send_meeting_invite,
     send_response_alert,
@@ -43,12 +29,230 @@ from utils.email import (
 from utils.pdf_generator import generate_meeting_summary_pdf
 from utils.holiday_checker import get_holiday_checker, validate_meeting_date
 
+ROOT_DIR = Path(__file__).parent
+load_dotenv(ROOT_DIR / '.env')
+
+# MongoDB Configuration
+mongo_url = os.environ['MONGO_URL']
+client = AsyncIOMotorClient(mongo_url)
+db = client[os.environ['DB_NAME']]
+
+JWT_SECRET = os.environ.get('JWT_SECRET', 'hospital_meeting_scheduler_secret_key_2025')
+JWT_ALGORITHM = os.environ.get('JWT_ALGORITHM', 'HS256')
+JWT_EXPIRATION_HOURS = int(os.environ.get('JWT_EXPIRATION_HOURS', 24))
+UPLOAD_DIR = Path(os.environ.get('UPLOAD_DIR', '/app/uploads'))
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+# Get frontend URL for email links
+FRONTEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'http://localhost:3000').replace(':8001', ':3000')
+
 app = FastAPI(title="Hospital Meeting Scheduler API")
 api_router = APIRouter(prefix="/api")
+security = HTTPBearer(auto_error=False)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+# ============== Pydantic Models ==============
+
+class UserBase(BaseModel):
+    email: EmailStr
+    name: str
+    specialty: Optional[str] = None
+    organization: Optional[str] = None
+    phone: Optional[str] = None
+    role: Optional[str] = "doctor"
+
+class UserCreate(UserBase):
+    password: Optional[str] = None
+    meeting_id: Optional[str] = None  # Optional: for sending account setup email with meeting context
+
+class UserResponse(UserBase):
+    id: str
+    picture: Optional[str] = None
+    is_active: bool = True
+    created_at: Optional[str] = None
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: UserResponse
+    requires_password_change: bool = False
+
+class PatientBase(BaseModel):
+    patient_id_number: Optional[str] = None
+    first_name: str
+    last_name: str
+    date_of_birth: Optional[str] = None
+    gender: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    primary_diagnosis: Optional[str] = None
+    allergies: Optional[str] = None
+    current_medications: Optional[str] = None
+    department_name: Optional[str] = None
+    department_provider_name: Optional[str] = None
+    notes: Optional[str] = None
+
+class PatientCreate(PatientBase):
+    pass
+
+class MeetingBase(BaseModel):
+    title: str
+    description: Optional[str] = None
+    meeting_date: str
+    start_time: str
+    end_time: str
+    duration_minutes: Optional[int] = None
+    meeting_type: Optional[str] = "video"
+    location: Optional[str] = None
+    video_link: Optional[str] = None
+    recurrence_type: Optional[str] = "one_time"
+    recurrence_end_date: Optional[str] = None
+    recurrence_pattern: Optional[str] = None
+    recurrence_week_of_month: Optional[str] = None
+    recurrence_day_of_week: Optional[str] = None
+    recurrence_day_of_month: Optional[int] = None
+    completed_at: Optional[str] = None  # Timestamp when meeting was marked as completed
+
+class MeetingCreate(MeetingBase):
+    participant_ids: Optional[List[str]] = []
+    patient_ids: Optional[List[str]] = []
+    agenda_items: Optional[List[dict]] = []
+
+class ParticipantInvite(BaseModel):
+    user_id: str
+    role: Optional[str] = "attendee"
+
+class ParticipantResponse(BaseModel):
+    response_status: str
+
+class MeetingPatientCreate(BaseModel):
+    patient_id: str
+    clinical_question: Optional[str] = None
+    reason_for_discussion: Optional[str] = None
+    status: Optional[str] = "new_case"
+
+class AgendaItemCreate(BaseModel):
+    patient_id: str
+    mrn: str
+    requested_provider: str
+    diagnosis: str
+    reason_for_discussion: str
+    pathology_required: bool
+    radiology_required: bool
+    treatment_plan: Optional[str] = None
+
+class DecisionLogCreate(BaseModel):
+    meeting_patient_id: Optional[str] = None
+    agenda_item_id: Optional[str] = None
+    decision_type: Optional[str] = "other"
+    title: str
+    description: Optional[str] = None
+    final_assessment: Optional[str] = None
+    action_plan: Optional[str] = None
+    responsible_doctor_id: Optional[str] = None
+    follow_up_date: Optional[str] = None
+    priority: Optional[str] = "medium"
+
+# ============== Helpers ==============
+
+def serialize_doc(doc: dict) -> dict:
+    """Remove MongoDB _id and convert dates to strings"""
+    if doc is None:
+        return None
+    result = {k: v for k, v in doc.items() if k != '_id'}
+    for key, value in result.items():
+        if isinstance(value, datetime):
+            result[key] = value.isoformat()
+    return result
+
+def hash_password(password: str) -> str:
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+def verify_password(password: str, hashed: str) -> bool:
+    return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+
+def create_jwt_token(user_id: str, email: str) -> str:
+    payload = {
+        "sub": user_id,
+        "email": email,
+        "exp": datetime.now(timezone.utc) + timedelta(hours=JWT_EXPIRATION_HOURS),
+        "iat": datetime.now(timezone.utc)
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+async def get_current_user(request: Request, credentials = Depends(security)) -> dict:
+    """Get current user from JWT token or session token"""
+    token = None
+    
+    # Check cookies first
+    session_token = request.cookies.get("session_token")
+    if session_token:
+        session = await db.user_sessions.find_one(
+            {"session_token": session_token, "expires_at": {"$gt": datetime.now(timezone.utc).isoformat()}},
+            {"_id": 0}
+        )
+        if session:
+            user = await db.users.find_one({"id": session['user_id']}, {"_id": 0})
+            if user:
+                return serialize_doc(user)
+    
+    # Check Authorization header
+    if credentials:
+        token = credentials.credentials
+    else:
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+    
+    if token:
+        try:
+            payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+            user = await db.users.find_one({"id": payload['sub']}, {"_id": 0})
+            if user:
+                return serialize_doc(user)
+        except jwt.ExpiredSignatureError:
+            raise HTTPException(status_code=401, detail="Token expired")
+        except jwt.InvalidTokenError:
+            pass
+    
+    raise HTTPException(status_code=401, detail="Not authenticated")
+
+
+def generate_secure_password(length: int = 12) -> str:
+    """Generate a random secure password with letters, numbers, and special characters"""
+    import string
+    import random
+    
+    # Define character sets
+    lowercase = string.ascii_lowercase
+    uppercase = string.ascii_uppercase
+    digits = string.digits
+    special = "!@#$%&*"
+    
+    # Ensure at least one of each type
+    password = [
+        random.choice(lowercase),
+        random.choice(uppercase),
+        random.choice(digits),
+        random.choice(special)
+    ]
+    
+    # Fill the rest with random characters from all sets
+    all_chars = lowercase + uppercase + digits + special
+    password += [random.choice(all_chars) for _ in range(length - 4)]
+    
+    # Shuffle to avoid predictable patterns
+    random.shuffle(password)
+    
+    return ''.join(password)
 
 # ============== Auth Routes ==============
 
@@ -556,7 +760,7 @@ async def create_meeting(meeting: MeetingCreate, current_user: dict = Depends(ge
         start_minutes = int(start_parts[0]) * 60 + int(start_parts[1])
         end_minutes = int(end_parts[0]) * 60 + int(end_parts[1])
         duration = end_minutes - start_minutes
-    except (ValueError, IndexError):
+    except:
         duration = 60
     
     meeting_doc = {
@@ -1292,7 +1496,7 @@ async def delete_file(file_id: str, current_user: dict = Depends(get_current_use
     # Delete physical file
     try:
         os.remove(file_record['file_path'])
-    except (FileNotFoundError, OSError):
+    except:
         pass
     
     await db.file_attachments.delete_one({"id": file_id})
@@ -1339,6 +1543,11 @@ async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
     }
 
 # ============== Feedback Routes ==============
+
+class FeedbackRequest(BaseModel):
+    feedback_type: str
+    subject: str
+    message: str
 
 @api_router.post("/feedback")
 async def submit_feedback(
@@ -1687,11 +1896,11 @@ async def root():
     return {"message": "Hospital Meeting Scheduler API", "status": "running"}
 
 @api_router.get("/health")
-async def health_check_api():
+async def health_check():
     try:
         await db.command('ping')
         return {"status": "healthy", "database": "connected"}
-    except Exception:
+    except:
         return {"status": "unhealthy", "database": "disconnected"}
 
 # Include router and configure middleware
@@ -1721,7 +1930,7 @@ app.include_router(api_router)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=CORS_ORIGINS,
+    allow_origins=os.environ.get('CORS_ORIGINS', 'http://localhost:3000').split(','),
     allow_methods=["*"],
     allow_headers=["*"],
 )
