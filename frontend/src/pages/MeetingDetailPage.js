@@ -904,7 +904,7 @@ export default function MeetingDetailPage() {
                                     </CardContent>
                                 </Card>
                             ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-2">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-2">
                                 {meeting.patients?.map((mp, idx) => {
                                     // Rotating colors for patient cards
                                     const cardColors = [
@@ -922,24 +922,31 @@ export default function MeetingDetailPage() {
                                             className="border-0 shadow-sm hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.02] transition-all duration-300 overflow-hidden bg-white flex flex-col" 
                                             style={{ 
                                                 backgroundColor: colors.light,
-                                                minHeight: '420px'
+                                                minHeight: '450px'
                                             }} 
                                             data-testid={`meeting-patient-${idx}`}
                                         >
                                             <CardContent className="pt-6 pb-4 flex-1 flex flex-col">
                                                 <div className="flex items-start gap-4">
-                                                    <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: colors.dark }}>
-                                                        <User className="w-6 h-6 text-white" />
+                                                    <div className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: colors.dark }}>
+                                                        <User className="w-7 h-7 text-white" />
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <div className="flex items-start justify-between gap-2 mb-2">
-                                                            <div className="flex items-center gap-2 flex-wrap min-w-0">
-                                                                <h3 className="font-semibold text-base truncate" style={{ color: colors.dark }}>
+                                                        <div className="flex items-start justify-between gap-2 mb-3">
+                                                            <div className="flex-1 min-w-0">
+                                                                <h3 className="font-semibold text-lg mb-2" style={{ color: colors.dark }}>
                                                                     {mp.first_name} {mp.last_name}
                                                                 </h3>
-                                                                <Badge variant="outline" className="text-xs capitalize flex-shrink-0" style={{ borderColor: colors.dark, color: colors.dark }}>
-                                                                    {mp.status?.replace('_', ' ')}
-                                                                </Badge>
+                                                                <div className="flex items-center gap-2 flex-wrap">
+                                                                    <Badge variant="outline" className="text-xs capitalize" style={{ borderColor: colors.dark, color: colors.dark }}>
+                                                                        {mp.status?.replace('_', ' ')}
+                                                                    </Badge>
+                                                                    {isPending && (
+                                                                        <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-800 border-amber-300">
+                                                                            ⏳ Pending Approval
+                                                                        </Badge>
+                                                                    )}
+                                                                </div>
                                                             </div>
                                                             {isOrganizer && meeting.status !== 'completed' && (
                                                                 <Button
@@ -954,42 +961,35 @@ export default function MeetingDetailPage() {
                                                             )}
                                                         </div>
                                                         
-                                                        {/* Pending badge on separate line for better visibility */}
-                                                        {isPending && (
-                                                            <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-800 border-amber-300 mb-2">
-                                                                ⏳ Pending Approval
-                                                            </Badge>
-                                                        )}
-                                                        
                                                         {mp.patient_id_number && (
-                                                            <p className="text-xs mb-1" style={{ color: colors.dark, opacity: 0.7 }}>
+                                                            <p className="text-sm mb-2 font-medium" style={{ color: colors.dark, opacity: 0.7 }}>
                                                                 ID: {mp.patient_id_number}
                                                             </p>
                                                         )}
                                                         
                                                         {/* Show who added the patient */}
                                                         {mp.added_by_name && (
-                                                            <p className="text-xs mb-1" style={{ color: colors.dark, opacity: 0.6 }}>
+                                                            <p className="text-sm mb-2" style={{ color: colors.dark, opacity: 0.6 }}>
                                                                 Added by: {mp.added_by_name}
                                                             </p>
                                                         )}
                                                         
                                                         {/* Approval info */}
                                                         {mp.approval_status === 'approved' && mp.approved_by_name && (
-                                                            <p className="text-xs mb-2 text-green-700 font-medium">
+                                                            <p className="text-sm mb-3 text-green-700 font-medium">
                                                                 ✓ Approved by {mp.approved_by_name}
                                                             </p>
                                                         )}
                                                         
                                                         {mp.primary_diagnosis && (
-                                                            <p className="text-sm mt-2 mb-2 font-medium" style={{ color: colors.dark }}>
+                                                            <p className="text-base mt-3 mb-3 font-semibold" style={{ color: colors.dark }}>
                                                                 {mp.primary_diagnosis}
                                                             </p>
                                                         )}
                                                         
                                                         {mp.clinical_question && (
-                                                            <div className="mt-2 mb-3 p-3 rounded" style={{ backgroundColor: `${colors.dark}15` }}>
-                                                                <p className="text-xs mb-1 font-semibold" style={{ color: colors.dark, opacity: 0.7 }}>
+                                                            <div className="mt-3 mb-3 p-3 rounded-lg" style={{ backgroundColor: `${colors.dark}15` }}>
+                                                                <p className="text-sm mb-1 font-semibold" style={{ color: colors.dark, opacity: 0.7 }}>
                                                                     Clinical Question
                                                                 </p>
                                                                 <p className="text-sm leading-relaxed" style={{ color: colors.dark }}>
@@ -1007,10 +1007,10 @@ export default function MeetingDetailPage() {
                                                 {isOrganizer && isPending && meeting.status !== 'completed' && (
                                                     <Button
                                                         onClick={() => handleApprovePatient(mp.patient_id)}
-                                                        className="mt-4 w-full bg-green-600 hover:bg-green-700"
-                                                        size="sm"
+                                                        className="mt-4 w-full bg-green-600 hover:bg-green-700 text-base py-5"
+                                                        size="lg"
                                                     >
-                                                        <Check className="w-4 h-4 mr-2" />
+                                                        <Check className="w-5 h-5 mr-2" />
                                                         Approve Patient
                                                     </Button>
                                                 )}
@@ -1019,7 +1019,7 @@ export default function MeetingDetailPage() {
                                             {/* Ribbon-style View Full Profile */}
                                             <Link to={`/patients/${mp.patient_id}`} className="block mt-auto">
                                                 <div 
-                                                    className="relative py-3 px-4 text-center font-semibold text-white transition-all duration-300 hover:opacity-90 cursor-pointer"
+                                                    className="relative py-4 px-4 text-center font-semibold text-white transition-all duration-300 hover:opacity-90 cursor-pointer text-base"
                                                     style={{ 
                                                         backgroundColor: colors.dark,
                                                         clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%)',
