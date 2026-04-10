@@ -59,6 +59,7 @@ export const removeParticipant = (meetingId, userId) => api.delete(`/meetings/${
 // Meeting Patients
 export const addPatientToMeeting = (meetingId, data) => api.post(`/meetings/${meetingId}/patients`, data);
 export const removePatientFromMeeting = (meetingId, patientId) => api.delete(`/meetings/${meetingId}/patients/${patientId}`);
+export const approvePatientAddition = (meetingId, patientId) => api.post(`/meetings/${meetingId}/patients/${patientId}/approve`);
 
 // Agenda
 export const addAgendaItem = (meetingId, data) => api.post(`/meetings/${meetingId}/agenda`, data);

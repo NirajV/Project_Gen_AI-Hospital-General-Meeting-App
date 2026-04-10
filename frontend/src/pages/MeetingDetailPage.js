@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { getMeeting, updateMeeting, deleteMeeting, uploadFile, deleteFile, createDecision, updateAgendaItem, getFileUrl, getUsers, addParticipant, removeParticipant, addPatientToMeeting, addAgendaItem, getPatients, removePatientFromMeeting, deleteAgendaItem, deleteDecision, updateTreatmentPlan } from '@/lib/api';
+import { getMeeting, updateMeeting, deleteMeeting, uploadFile, deleteFile, createDecision, updateAgendaItem, getFileUrl, getUsers, addParticipant, removeParticipant, addPatientToMeeting, addAgendaItem, getPatients, removePatientFromMeeting, deleteAgendaItem, deleteDecision, updateTreatmentPlan, approvePatientAddition } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -21,10 +21,11 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import Layout from '@/components/Layout';
+import { toast } from '@/components/ui/sonner';
 import { 
     ArrowLeft, Calendar, Clock, Video, MapPin, Users, User, FileText,
     CheckCircle2, XCircle, HelpCircle, Play, Upload, Trash2, Download,
-    Plus, ExternalLink, Loader2, AlertCircle, Clipboard, UserPlus, Mail, Edit
+    Plus, ExternalLink, Loader2, AlertCircle, Clipboard, UserPlus, Mail, Edit, Check
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 
@@ -419,6 +420,17 @@ export default function MeetingDetailPage() {
         }
     };
 
+    const handleApprovePatient = async (patientId) => {
+        try {
+            await approvePatientAddition(id, patientId);
+            toast.success('Patient approved successfully');
+            loadMeeting();
+        } catch (error) {
+            console.error('Failed to approve patient:', error);
+            toast.error('Failed to approve patient');
+        }
+    };
+
     const handleDeleteAgenda = async (itemId) => {
         if (!window.confirm('Delete this agenda item?')) return;
         try {
@@ -678,6 +690,11 @@ export default function MeetingDetailPage() {
                             }}
                         >
                             Patients ({meeting.patients?.length || 0})
+                            {isOrganizer && meeting.patients?.some(p => p.approval_status === 'pending') && (
+                                <Badge className="ml-2 bg-amber-500 text-white text-xs">
+                                    {meeting.patients.filter(p => p.approval_status === 'pending').length} Pending
+                                </Badge>
+                            )}
                         </TabsTrigger>
                         <TabsTrigger 
                             value="agenda" 
@@ -897,6 +914,7 @@ export default function MeetingDetailPage() {
                                         { light: '#e8e8f5', dark: '#0b0b30' }, // Blue
                                     ];
                                     const colors = cardColors[idx % cardColors.length];
+                                    const isPending = mp.approval_status === 'pending';
                                     
                                     return (
                                         <Card key={mp.id} className="border-0 shadow-sm hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.02] transition-all duration-300 overflow-hidden bg-white" style={{ backgroundColor: colors.light }} data-testid={`meeting-patient-${idx}`}>
@@ -907,9 +925,14 @@ export default function MeetingDetailPage() {
                                                     </div>
                                                     <div className="flex-1">
                                                         <div className="flex items-center justify-between">
-                                                            <div className="flex items-center gap-2">
+                                                            <div className="flex items-center gap-2 flex-wrap">
                                                                 <h3 className="font-semibold" style={{ color: colors.dark }}>{mp.first_name} {mp.last_name}</h3>
                                                                 <Badge variant="outline" className="text-xs capitalize" style={{ borderColor: colors.dark, color: colors.dark }}>{mp.status?.replace('_', ' ')}</Badge>
+                                                                {isPending && (
+                                                                    <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-800 border-amber-300">
+                                                                        ⏳ Pending Approval
+                                                                    </Badge>
+                                                                )}
                                                             </div>
                                                             {isOrganizer && meeting.status !== 'completed' && (
                                                                 <Button
@@ -924,12 +947,39 @@ export default function MeetingDetailPage() {
                                                             )}
                                                         </div>
                                                         {mp.patient_id_number && <p className="text-xs" style={{ color: colors.dark, opacity: 0.7 }}>ID: {mp.patient_id_number}</p>}
+                                                        
+                                                        {/* Show who added the patient */}
+                                                        {mp.added_by_name && (
+                                                            <p className="text-xs mt-1" style={{ color: colors.dark, opacity: 0.6 }}>
+                                                                Added by: {mp.added_by_name}
+                                                            </p>
+                                                        )}
+                                                        
+                                                        {/* Approval info */}
+                                                        {mp.approval_status === 'approved' && mp.approved_by_name && (
+                                                            <p className="text-xs mt-1 text-green-700">
+                                                                ✓ Approved by {mp.approved_by_name}
+                                                            </p>
+                                                        )}
+                                                        
                                                         {mp.primary_diagnosis && <p className="text-sm mt-2" style={{ color: colors.dark }}>{mp.primary_diagnosis}</p>}
                                                         {mp.clinical_question && (
                                                             <div className="mt-3 p-2 rounded" style={{ backgroundColor: `${colors.dark}15` }}>
                                                                 <p className="text-xs" style={{ color: colors.dark, opacity: 0.7 }}>Clinical Question</p>
                                                                 <p className="text-sm" style={{ color: colors.dark }}>{mp.clinical_question}</p>
                                                             </div>
+                                                        )}
+                                                        
+                                                        {/* Approve button for organizer */}
+                                                        {isOrganizer && isPending && meeting.status !== 'completed' && (
+                                                            <Button
+                                                                onClick={() => handleApprovePatient(mp.patient_id)}
+                                                                className="mt-3 w-full bg-green-600 hover:bg-green-700"
+                                                                size="sm"
+                                                            >
+                                                                <Check className="w-4 h-4 mr-2" />
+                                                                Approve Patient
+                                                            </Button>
                                                         )}
                                                     </div>
                                                 </div>

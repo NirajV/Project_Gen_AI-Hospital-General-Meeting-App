@@ -681,7 +681,7 @@ async def get_meeting_detail(meeting_id: str, current_user: dict):
                 p['responded_at'] = responded_at
     meeting['participants'] = [serialize_doc(p) for p in participants]
     
-    # Get patients with patient info
+    # Get patients with patient info and approval status
     meeting_patients = await db.meeting_patients.find({"meeting_id": meeting_id}, {"_id": 0}).to_list(100)
     for mp in meeting_patients:
         patient = await db.patients.find_one({"id": mp['patient_id']}, {"_id": 0})
@@ -695,6 +695,19 @@ async def get_meeting_detail(meeting_id: str, current_user: dict):
                 "date_of_birth": patient.get('date_of_birth'),
                 "gender": patient.get('gender')
             })
+        
+        # Add "added by" user info
+        if mp.get('added_by'):
+            added_by_user = await db.users.find_one({"id": mp['added_by']}, {"_id": 0, "name": 1})
+            if added_by_user:
+                mp['added_by_name'] = added_by_user.get('name')
+        
+        # Add "approved by" user info
+        if mp.get('approved_by'):
+            approved_by_user = await db.users.find_one({"id": mp['approved_by']}, {"_id": 0, "name": 1})
+            if approved_by_user:
+                mp['approved_by_name'] = approved_by_user.get('name')
+    
     meeting['patients'] = [serialize_doc(mp) for mp in meeting_patients]
     
     # Get agenda items
@@ -1059,8 +1072,12 @@ async def add_patient_to_meeting(meeting_id: str, patient_data: MeetingPatientCr
     if existing:
         raise HTTPException(status_code=400, detail="Patient already in meeting")
     
+    # Determine approval status
+    # Organizer's additions are auto-approved, others are pending
+    approval_status = "approved" if is_organizer else "pending"
+    
     mp_id = str(uuid.uuid4())
-    await db.meeting_patients.insert_one({
+    meeting_patient_doc = {
         "id": mp_id,
         "meeting_id": meeting_id,
         "patient_id": patient_data.patient_id,
@@ -1068,15 +1085,172 @@ async def add_patient_to_meeting(meeting_id: str, patient_data: MeetingPatientCr
         "reason_for_discussion": patient_data.reason_for_discussion,
         "status": patient_data.status,
         "added_by": current_user['id'],
+        "added_by_name": current_user['name'],
+        "approval_status": approval_status,
         "created_at": datetime.now(timezone.utc).isoformat()
-    })
+    }
     
-    return {"id": mp_id, "message": "Patient added to meeting"}
+    # Add approval fields if auto-approved
+    if approval_status == "approved":
+        meeting_patient_doc["approved_by"] = current_user['id']
+        meeting_patient_doc["approved_by_name"] = current_user['name']
+        meeting_patient_doc["approved_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.meeting_patients.insert_one(meeting_patient_doc)
+    
+    # Send notification to organizer if added by participant
+    if not is_organizer:
+        try:
+            # Get organizer details
+            organizer = await db.users.find_one({"id": meeting['organizer_id']}, {"_id": 0})
+            patient = await db.patients.find_one({"id": patient_data.patient_id}, {"_id": 0})
+            
+            if organizer and patient:
+                # Send email notification
+                from utils.email import send_email
+                
+                patient_name = f"{patient.get('first_name', '')} {patient.get('last_name', '')}".strip()
+                
+                email_body = f"""
+                <h2>New Patient Added to Meeting - Approval Required</h2>
+                <p>Hello {organizer['name']},</p>
+                <p><strong>{current_user['name']}</strong> has added a patient to the meeting: <strong>{meeting['title']}</strong></p>
+                
+                <h3>Patient Details:</h3>
+                <ul>
+                    <li><strong>Patient Name:</strong> {patient_name}</li>
+                    <li><strong>Patient ID:</strong> {patient.get('patient_id_number', 'N/A')}</li>
+                    <li><strong>Reason for Discussion:</strong> {patient_data.reason_for_discussion or 'N/A'}</li>
+                </ul>
+                
+                <h3>Meeting Details:</h3>
+                <ul>
+                    <li><strong>Meeting:</strong> {meeting['title']}</li>
+                    <li><strong>Date:</strong> {meeting['meeting_date']}</li>
+                    <li><strong>Time:</strong> {meeting['start_time']}</li>
+                </ul>
+                
+                <p><strong>Action Required:</strong> Please review and approve this patient addition before the meeting starts.</p>
+                <p><a href="{FRONTEND_URL}/meetings/{meeting_id}" style="background-color: #4F46E5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">View Meeting & Approve</a></p>
+                
+                <p>Best regards,<br>Hospital Meeting Scheduler</p>
+                """
+                
+                send_email(
+                    to_email=organizer['email'],
+                    subject=f"Patient Approval Required - {meeting['title']}",
+                    body=email_body
+                )
+                logger.info(f"Sent patient approval notification to organizer: {organizer['email']}")
+        except Exception as e:
+            logger.error(f"Failed to send patient approval notification: {str(e)}")
+    
+    response_data = {
+        "id": mp_id,
+        "message": "Patient added to meeting",
+        "approval_status": approval_status
+    }
+    
+    if approval_status == "pending":
+        response_data["message"] = "Patient added to meeting. Awaiting organizer approval."
+    
+    return response_data
 
 @api_router.delete("/meetings/{meeting_id}/patients/{patient_id}")
 async def remove_patient_from_meeting(meeting_id: str, patient_id: str, current_user: dict = Depends(get_current_user)):
     await db.meeting_patients.delete_one({"meeting_id": meeting_id, "patient_id": patient_id})
     return {"message": "Patient removed from meeting"}
+
+
+@api_router.post("/meetings/{meeting_id}/patients/{patient_id}/approve")
+async def approve_patient_addition(meeting_id: str, patient_id: str, current_user: dict = Depends(get_current_user)):
+    """
+    Approve a pending patient addition (organizer only)
+    """
+    # Check if meeting exists
+    meeting = await db.meetings.find_one({"id": meeting_id}, {"_id": 0})
+    if not meeting:
+        raise HTTPException(status_code=404, detail="Meeting not found")
+    
+    # Only organizer can approve
+    if meeting['organizer_id'] != current_user['id']:
+        raise HTTPException(status_code=403, detail="Only organizer can approve patient additions")
+    
+    # Find the meeting patient record
+    meeting_patient = await db.meeting_patients.find_one({
+        "meeting_id": meeting_id,
+        "patient_id": patient_id
+    }, {"_id": 0})
+    
+    if not meeting_patient:
+        raise HTTPException(status_code=404, detail="Patient not found in this meeting")
+    
+    # Check if already approved
+    if meeting_patient.get('approval_status') == 'approved':
+        return {"message": "Patient already approved"}
+    
+    # Update approval status
+    await db.meeting_patients.update_one(
+        {"meeting_id": meeting_id, "patient_id": patient_id},
+        {"$set": {
+            "approval_status": "approved",
+            "approved_by": current_user['id'],
+            "approved_by_name": current_user['name'],
+            "approved_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    # Send notification to the person who added the patient
+    try:
+        added_by_id = meeting_patient.get('added_by')
+        if added_by_id and added_by_id != current_user['id']:
+            added_by_user = await db.users.find_one({"id": added_by_id}, {"_id": 0})
+            patient = await db.patients.find_one({"id": patient_id}, {"_id": 0})
+            
+            if added_by_user and patient:
+                from utils.email import send_email
+                
+                patient_name = f"{patient.get('first_name', '')} {patient.get('last_name', '')}".strip()
+                
+                email_body = f"""
+                <h2>Patient Addition Approved</h2>
+                <p>Hello {added_by_user['name']},</p>
+                <p><strong>{current_user['name']}</strong> (Organizer) has approved the patient you added to the meeting.</p>
+                
+                <h3>Patient Details:</h3>
+                <ul>
+                    <li><strong>Patient Name:</strong> {patient_name}</li>
+                    <li><strong>Patient ID:</strong> {patient.get('patient_id_number', 'N/A')}</li>
+                </ul>
+                
+                <h3>Meeting Details:</h3>
+                <ul>
+                    <li><strong>Meeting:</strong> {meeting['title']}</li>
+                    <li><strong>Date:</strong> {meeting['meeting_date']}</li>
+                    <li><strong>Time:</strong> {meeting['start_time']}</li>
+                </ul>
+                
+                <p>The patient can now be fully discussed in the meeting.</p>
+                <p><a href="{FRONTEND_URL}/meetings/{meeting_id}" style="background-color: #4F46E5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">View Meeting</a></p>
+                
+                <p>Best regards,<br>Hospital Meeting Scheduler</p>
+                """
+                
+                send_email(
+                    to_email=added_by_user['email'],
+                    subject=f"Patient Approved - {meeting['title']}",
+                    body=email_body
+                )
+                logger.info(f"Sent approval confirmation to {added_by_user['email']}")
+    except Exception as e:
+        logger.error(f"Failed to send approval confirmation: {str(e)}")
+    
+    return {
+        "message": "Patient approved successfully",
+        "approved_by": current_user['name'],
+        "approved_at": datetime.now(timezone.utc).isoformat()
+    }
+
 
 # ============== Agenda Routes ==============
 
