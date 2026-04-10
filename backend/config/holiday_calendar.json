@@ -1,6 +1,7 @@
 {
   "holiday_calendar_version": "1.0",
-  "last_updated": "2026-04-06",
+  "last_updated": "2026-04-09",
+  "holiday_enforcement_enabled": true,
   "active_country": "USA",
   "countries": {
     "USA": {
@@ -361,6 +362,8 @@
     }
   },
   "instructions": {
+    "how_to_disable_holidays": "Set 'holiday_enforcement_enabled' to false to completely disable holiday calendar enforcement. Meetings can then be scheduled on any date.",
+    "how_to_enable_holidays": "Set 'holiday_enforcement_enabled' to true to enable holiday calendar enforcement. Meetings will be blocked on configured holidays.",
     "how_to_add_country": "Add a new country key under 'countries' object with country code (e.g., 'Canada', 'Germany')",
     "how_to_add_holiday": "Add holiday objects to the year array with format: {date: YYYY-MM-DD, name: string, type: public/optional, observed: YYYY-MM-DD}",
     "how_to_change_active": "Update 'active_country' field to the country code you want to use (e.g., 'USA', 'India', 'UK')",

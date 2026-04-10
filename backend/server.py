@@ -1655,6 +1655,60 @@ async def submit_feedback(
         "feedback_id": feedback_id
     }
 
+@api_router.get("/holidays/status")
+async def get_holiday_status():
+    """Get current holiday enforcement status"""
+    try:
+        checker = get_holiday_checker()
+        
+        return {
+            "enforcement_enabled": checker.is_enforcement_enabled(),
+            "active_country": checker.active_country,
+            "config_version": checker.config.get('holiday_calendar_version', '1.0'),
+            "message": "Holiday enforcement is currently " + ("enabled" if checker.is_enforcement_enabled() else "disabled")
+        }
+    except Exception as e:
+        logger.error(f"Error getting holiday status: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error getting holiday status: {str(e)}")
+
+
+@api_router.put("/holidays/toggle-enforcement")
+async def toggle_holiday_enforcement(
+    enabled: bool,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Enable or disable holiday enforcement (Organizer/Admin only)
+    
+    Args:
+        enabled: True to enable holiday enforcement, False to disable
+    """
+    # Check if user is organizer or admin
+    if current_user['role'] not in ['organizer', 'admin']:
+        raise HTTPException(status_code=403, detail="Only organizers and admins can change holiday settings")
+    
+    try:
+        checker = get_holiday_checker()
+        success = checker.set_enforcement_enabled(enabled)
+        
+        if not success:
+            raise HTTPException(status_code=500, detail="Failed to update holiday enforcement setting")
+        
+        status = "enabled" if enabled else "disabled"
+        logger.info(f"Holiday enforcement {status} by {current_user['email']}")
+        
+        return {
+            "message": f"Holiday enforcement has been {status}",
+            "enforcement_enabled": enabled,
+            "changed_by": current_user['email']
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error toggling holiday enforcement: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error toggling holiday enforcement: {str(e)}")
+
+
 # ============== Holiday Calendar Endpoints ==============
 
 @api_router.get("/holidays/countries")

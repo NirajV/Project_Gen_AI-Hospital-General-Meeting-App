@@ -24,6 +24,7 @@ class HolidayChecker:
         self.config_path = config_path
         self.config = self._load_config()
         self.active_country = self.config.get('active_country', 'USA')
+        self.enforcement_enabled = self.config.get('holiday_enforcement_enabled', True)
     
     def _load_config(self) -> dict:
         """Load holiday calendar configuration from JSON file"""
@@ -41,6 +42,29 @@ class HolidayChecker:
         """Reload configuration from file (useful after updates)"""
         self.config = self._load_config()
         self.active_country = self.config.get('active_country', 'USA')
+        self.enforcement_enabled = self.config.get('holiday_enforcement_enabled', True)
+    
+    def is_enforcement_enabled(self) -> bool:
+        """Check if holiday enforcement is enabled"""
+        return self.enforcement_enabled
+    
+    def set_enforcement_enabled(self, enabled: bool) -> bool:
+        """Enable or disable holiday enforcement"""
+        try:
+            import json
+            with open(self.config_path, 'r') as f:
+                config = json.load(f)
+            
+            config['holiday_enforcement_enabled'] = enabled
+            
+            with open(self.config_path, 'w') as f:
+                json.dump(config, f, indent=2)
+            
+            self.reload_config()
+            return True
+        except Exception as e:
+            print(f"Error setting enforcement: {e}")
+            return False
     
     def set_active_country(self, country_code: str) -> bool:
         """Change the active country for holiday checking"""
@@ -173,9 +197,22 @@ class HolidayChecker:
                 'is_holiday': bool,
                 'holiday_name': str or None,
                 'message': str,
-                'holiday_info': dict or None
+                'holiday_info': dict or None,
+                'enforcement_enabled': bool
             }
         """
+        # If enforcement is disabled, always return valid
+        if not self.enforcement_enabled:
+            return {
+                'valid': True,
+                'is_holiday': False,
+                'holiday_name': None,
+                'message': 'Meeting date is available (Holiday enforcement disabled)',
+                'holiday_info': None,
+                'country': country_code or self.active_country,
+                'enforcement_enabled': False
+            }
+        
         is_holiday, holiday_info = self.is_holiday(meeting_date, country_code)
         
         if is_holiday:
@@ -192,7 +229,8 @@ class HolidayChecker:
                 'holiday_name': holiday_name,
                 'message': message,
                 'holiday_info': holiday_info,
-                'country': country_code or self.active_country
+                'country': country_code or self.active_country,
+                'enforcement_enabled': True
             }
         
         return {
@@ -201,7 +239,8 @@ class HolidayChecker:
             'holiday_name': None,
             'message': 'Meeting date is available',
             'holiday_info': None,
-            'country': country_code or self.active_country
+            'country': country_code or self.active_country,
+            'enforcement_enabled': True
         }
 
 
