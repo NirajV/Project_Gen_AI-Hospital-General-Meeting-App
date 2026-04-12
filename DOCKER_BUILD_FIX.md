@@ -1,14 +1,26 @@
-# 🔧 Docker Build Error Fix - yarn.lock Not Found
+# 🔧 Docker Build Error Fix - Node Version & yarn.lock Issues
 
-## Problem
-```
-ERROR [frontend 3/5] COPY package.json yarn.lock ./
-"/yarn.lock": not found
+## Problems Addressed
+1. **Node Version Mismatch:** Host machine Node v18 incompatible with `react-router-dom@7.x` (requires Node >=20)
+2. **Missing yarn.lock:** yarn.lock not found or cannot be generated on host
+
+## ✅ FIXED (December 2025)
+
+**The Dockerfile has been updated to:**
+- ✅ Use Node 20 (supports react-router-dom v7+)
+- ✅ Generate yarn.lock internally (no host dependency)
+- ✅ Multi-stage build with Nginx for production
+- ✅ No need to run `yarn install` on your host machine
+
+**You can now build directly:**
+```bash
+cd ~/hospital-meeting-app/Project_Gen_AI-Hospital-General-Meeting-App
+sudo docker compose -f docker-compose.mongodb.yml build
 ```
 
 ---
 
-## ✅ Solution (3 Options)
+## 📋 Previous Solutions (For Reference)
 
 ### Option 1: Generate yarn.lock (Recommended)
 
