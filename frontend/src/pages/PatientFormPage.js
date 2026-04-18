@@ -109,7 +109,7 @@ export default function PatientFormPage() {
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="patient_id_number">Patient ID</Label>
+                                        <Label htmlFor="patient_id_number">MRN (Medical Record Number)</Label>
                                         <Input
                                             id="patient_id_number"
                                             name="patient_id_number"

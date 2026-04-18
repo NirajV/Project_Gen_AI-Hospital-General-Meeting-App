@@ -391,7 +391,8 @@ export default function MeetingDetailPage() {
     };
 
     const handleAgendaPatientSelect = (patientId) => {
-        const selectedPatient = allPatients.find(p => p.id === patientId);
+        // Find patient in meeting.patients array (not allPatients)
+        const selectedPatient = meeting?.patients?.find(p => p.patient_id === patientId);
         setNewAgenda({
             ...newAgenda,
             patient_id: patientId,
@@ -963,7 +964,7 @@ export default function MeetingDetailPage() {
                                                         
                                                         {mp.patient_id_number && (
                                                             <p className="text-xs mb-1.5" style={{ color: colors.dark, opacity: 0.7 }}>
-                                                                ID: {mp.patient_id_number}
+                                                                MRN: {mp.patient_id_number}
                                                             </p>
                                                         )}
                                                         
@@ -2032,12 +2033,29 @@ export default function MeetingDetailPage() {
                         {/* Requested Provider */}
                         <div className="space-y-2">
                             <Label htmlFor="agenda-provider">Requested Provider *</Label>
-                            <Input
-                                id="agenda-provider"
-                                value={newAgenda.requested_provider}
-                                onChange={(e) => setNewAgenda({ ...newAgenda, requested_provider: e.target.value })}
-                                placeholder="e.g., Dr. John Smith"
-                            />
+                            <Select 
+                                value={newAgenda.requested_provider} 
+                                onValueChange={(value) => setNewAgenda({ ...newAgenda, requested_provider: value })}
+                            >
+                                <SelectTrigger id="agenda-provider">
+                                    <SelectValue placeholder="Select a provider from meeting participants" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {meeting?.participants?.filter(p => p.role !== 'organizer').length === 0 ? (
+                                        <SelectItem value="no-participants" disabled>
+                                            No participants in this meeting
+                                        </SelectItem>
+                                    ) : (
+                                        meeting?.participants?.filter(p => p.role !== 'organizer').map((participant) => (
+                                            <SelectItem key={participant.user_id} value={participant.name}>
+                                                {participant.name}
+                                                {participant.specialty ? ` - ${participant.specialty}` : ''}
+                                            </SelectItem>
+                                        ))
+                                    )}
+                                </SelectContent>
+                            </Select>
+                            <p className="text-xs text-slate-500">Select from invited doctors/participants</p>
                         </div>
 
                         {/* Diagnosis */}
