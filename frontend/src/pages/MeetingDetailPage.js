@@ -316,13 +316,23 @@ export default function MeetingDetailPage() {
 
         setCreatingPatient(true);
         try {
+            // Map frontend field names to backend schema
+            const patientPayload = {
+                first_name: newPatient.first_name,
+                last_name: newPatient.last_name,
+                patient_id_number: newPatient.mrn,  // Frontend uses 'mrn', backend expects 'patient_id_number'
+                date_of_birth: newPatient.date_of_birth,
+                primary_diagnosis: newPatient.diagnosis,
+                phone: newPatient.phone
+            };
+
             const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/patients`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
                 },
-                body: JSON.stringify(newPatient)
+                body: JSON.stringify(patientPayload)
             });
 
             const data = await response.json();

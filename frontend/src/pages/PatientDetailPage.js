@@ -102,7 +102,7 @@ export default function PatientDetailPage() {
                                 {patient.first_name} {patient.last_name}
                             </h1>
                             <div className="flex items-center gap-4 mt-1 text-muted-foreground">
-                                {patient.patient_id_number && <span>ID: {patient.patient_id_number}</span>}
+                                {patient.patient_id_number && <span>MRN: {patient.patient_id_number}</span>}
                                 <span>{calculateAge(patient.date_of_birth)} years old</span>
                                 {patient.gender && <Badge variant="outline" className="capitalize">{patient.gender}</Badge>}
                             </div>

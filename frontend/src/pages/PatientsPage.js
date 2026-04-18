@@ -149,7 +149,7 @@ export default function PatientsPage() {
                                                         {patient.first_name} {patient.last_name}
                                                     </h3>
                                                     {patient.patient_id_number && (
-                                                        <p className="text-xs" style={{ color: colors.dark }}>ID: {patient.patient_id_number}</p>
+                                                        <p className="text-xs" style={{ color: colors.dark }}>MRN: {patient.patient_id_number}</p>
                                                     )}
                                                 </div>
                                             </div>
