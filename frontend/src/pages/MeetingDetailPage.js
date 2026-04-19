@@ -97,6 +97,7 @@ export default function MeetingDetailPage() {
         last_name: '', 
         mrn: '', 
         date_of_birth: '', 
+        gender: '',
         diagnosis: '', 
         phone: '' 
     });
@@ -322,6 +323,7 @@ export default function MeetingDetailPage() {
                 last_name: newPatient.last_name,
                 patient_id_number: newPatient.mrn,  // Frontend uses 'mrn', backend expects 'patient_id_number'
                 date_of_birth: newPatient.date_of_birth,
+                gender: newPatient.gender,
                 primary_diagnosis: newPatient.diagnosis,
                 phone: newPatient.phone
             };
@@ -342,7 +344,7 @@ export default function MeetingDetailPage() {
             await loadMeeting();
             await loadAllPatients();
 
-            setNewPatient({ first_name: '', last_name: '', mrn: '', date_of_birth: '', diagnosis: '', phone: '' });
+            setNewPatient({ first_name: '', last_name: '', mrn: '', date_of_birth: '', gender: '', diagnosis: '', phone: '' });
             setPatientTab('existing');
             setPatientDialog(false);
             alert(`✅ Patient "${newPatient.first_name} ${newPatient.last_name}" created and added!`);
@@ -1795,7 +1797,7 @@ export default function MeetingDetailPage() {
                 setPatientDialog(open);
                 if (!open) {
                     setPatientTab('existing');
-                    setNewPatient({ first_name: '', last_name: '', mrn: '', date_of_birth: '', diagnosis: '', phone: '' });
+                    setNewPatient({ first_name: '', last_name: '', mrn: '', date_of_birth: '', gender: '', diagnosis: '', phone: '' });
                     setSelectedPatients([]);
                 }
             }}>
@@ -1935,12 +1937,38 @@ export default function MeetingDetailPage() {
                                     />
                                 </div>
                                 <div className="space-y-2">
+                                    <Label>Gender</Label>
+                                    <Select 
+                                        value={newPatient.gender} 
+                                        onValueChange={(value) => setNewPatient({ ...newPatient, gender: value })}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select gender" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="male">Male</SelectItem>
+                                            <SelectItem value="female">Female</SelectItem>
+                                            <SelectItem value="other">Other</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
                                     <Label>Date of Birth *</Label>
                                     <Input
                                         type="date"
                                         max={new Date().toISOString().split('T')[0]}
                                         value={newPatient.date_of_birth}
                                         onChange={(e) => setNewPatient({ ...newPatient, date_of_birth: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Phone Number</Label>
+                                    <Input
+                                        placeholder="+1 (555) 123-4567"
+                                        value={newPatient.phone}
+                                        onChange={(e) => setNewPatient({ ...newPatient, phone: e.target.value })}
                                     />
                                 </div>
                             </div>
@@ -1952,14 +1980,6 @@ export default function MeetingDetailPage() {
                                     onChange={(e) => setNewPatient({ ...newPatient, diagnosis: e.target.value })}
                                 />
                             </div>
-                            <div className="space-y-2">
-                                <Label>Phone Number</Label>
-                                <Input
-                                    placeholder="+1 (555) 123-4567"
-                                    value={newPatient.phone}
-                                    onChange={(e) => setNewPatient({ ...newPatient, phone: e.target.value })}
-                                />
-                            </div>
                             <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800">
                                 <AlertCircle className="w-4 h-4" />
                                 <span>Patient will be created in the system and added to this meeting</span>
@@ -1968,7 +1988,7 @@ export default function MeetingDetailPage() {
                                 <Button
                                     variant="outline"
                                     onClick={() => {
-                                        setNewPatient({ first_name: '', last_name: '', mrn: '', date_of_birth: '', diagnosis: '', phone: '' });
+                                        setNewPatient({ first_name: '', last_name: '', mrn: '', date_of_birth: '', gender: '', diagnosis: '', phone: '' });
                                         setPatientTab('existing');
                                     }}
                                 >
