@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
     Dialog,
@@ -499,34 +500,74 @@ export default function PatientDetailPage() {
 
             {/* Edit Dialog */}
             <Dialog open={editDialog} onOpenChange={setEditDialog}>
-                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Edit Patient Profile</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label>First Name</Label>
-                                <Input
-                                    value={editForm.first_name || ''}
-                                    onChange={(e) => setEditForm({ ...editForm, first_name: e.target.value })}
-                                />
+                        {/* Basic Information Section */}
+                        <div className="space-y-4">
+                            <h4 className="text-sm font-semibold text-slate-700 border-b pb-2">Basic Information</h4>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label>First Name</Label>
+                                    <Input
+                                        value={editForm.first_name || ''}
+                                        onChange={(e) => setEditForm({ ...editForm, first_name: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Last Name</Label>
+                                    <Input
+                                        value={editForm.last_name || ''}
+                                        onChange={(e) => setEditForm({ ...editForm, last_name: e.target.value })}
+                                    />
+                                </div>
                             </div>
-                            <div className="space-y-2">
-                                <Label>Last Name</Label>
-                                <Input
-                                    value={editForm.last_name || ''}
-                                    onChange={(e) => setEditForm({ ...editForm, last_name: e.target.value })}
-                                />
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label>MRN (Medical Record Number)</Label>
+                                    <Input
+                                        value={editForm.patient_id_number || ''}
+                                        onChange={(e) => setEditForm({ ...editForm, patient_id_number: e.target.value })}
+                                        placeholder="e.g., P-12345"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Gender</Label>
+                                    <Select 
+                                        value={editForm.gender || ''} 
+                                        onValueChange={(value) => setEditForm({ ...editForm, gender: value })}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select gender" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="male">Male</SelectItem>
+                                            <SelectItem value="female">Female</SelectItem>
+                                            <SelectItem value="other">Other</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                             </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label>Phone</Label>
-                                <Input
-                                    value={editForm.phone || ''}
-                                    onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                                />
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label>Date of Birth</Label>
+                                    <Input
+                                        type="date"
+                                        value={editForm.date_of_birth || ''}
+                                        onChange={(e) => setEditForm({ ...editForm, date_of_birth: e.target.value })}
+                                        max={new Date().toISOString().split('T')[0]}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Phone</Label>
+                                    <Input
+                                        value={editForm.phone || ''}
+                                        onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                                        placeholder="+1 234 567 8900"
+                                    />
+                                </div>
                             </div>
                             <div className="space-y-2">
                                 <Label>Email</Label>
@@ -534,52 +575,77 @@ export default function PatientDetailPage() {
                                     type="email"
                                     value={editForm.email || ''}
                                     onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                                />
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label>Department</Label>
-                                <Input
-                                    value={editForm.department_name || ''}
-                                    onChange={(e) => setEditForm({ ...editForm, department_name: e.target.value })}
+                                    placeholder="patient@email.com"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label>Provider Name</Label>
-                                <Input
-                                    value={editForm.department_provider_name || ''}
-                                    onChange={(e) => setEditForm({ ...editForm, department_provider_name: e.target.value })}
+                                <Label>Address</Label>
+                                <Textarea
+                                    value={editForm.address || ''}
+                                    onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                                    placeholder="Full address"
+                                    rows={2}
                                 />
                             </div>
                         </div>
-                        <div className="space-y-2">
-                            <Label>Primary Diagnosis</Label>
-                            <Textarea
-                                value={editForm.primary_diagnosis || ''}
-                                onChange={(e) => setEditForm({ ...editForm, primary_diagnosis: e.target.value })}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Allergies</Label>
-                            <Textarea
-                                value={editForm.allergies || ''}
-                                onChange={(e) => setEditForm({ ...editForm, allergies: e.target.value })}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Current Medications</Label>
-                            <Textarea
-                                value={editForm.current_medications || ''}
-                                onChange={(e) => setEditForm({ ...editForm, current_medications: e.target.value })}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Notes</Label>
-                            <Textarea
-                                value={editForm.notes || ''}
-                                onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
-                            />
+
+                        {/* Medical Information Section */}
+                        <div className="space-y-4">
+                            <h4 className="text-sm font-semibold text-slate-700 border-b pb-2">Medical Information</h4>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label>Department</Label>
+                                    <Input
+                                        value={editForm.department_name || ''}
+                                        onChange={(e) => setEditForm({ ...editForm, department_name: e.target.value })}
+                                        placeholder="e.g., Oncology"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Provider Name</Label>
+                                    <Input
+                                        value={editForm.department_provider_name || ''}
+                                        onChange={(e) => setEditForm({ ...editForm, department_provider_name: e.target.value })}
+                                        placeholder="e.g., Dr. Smith"
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Primary Diagnosis</Label>
+                                <Textarea
+                                    value={editForm.primary_diagnosis || ''}
+                                    onChange={(e) => setEditForm({ ...editForm, primary_diagnosis: e.target.value })}
+                                    placeholder="Enter primary diagnosis"
+                                    rows={2}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Allergies</Label>
+                                <Textarea
+                                    value={editForm.allergies || ''}
+                                    onChange={(e) => setEditForm({ ...editForm, allergies: e.target.value })}
+                                    placeholder="List any known allergies"
+                                    rows={2}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Current Medications</Label>
+                                <Textarea
+                                    value={editForm.current_medications || ''}
+                                    onChange={(e) => setEditForm({ ...editForm, current_medications: e.target.value })}
+                                    placeholder="List current medications"
+                                    rows={2}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Additional Notes</Label>
+                                <Textarea
+                                    value={editForm.notes || ''}
+                                    onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
+                                    placeholder="Any additional notes"
+                                    rows={2}
+                                />
+                            </div>
                         </div>
                     </div>
                     <DialogFooter>
