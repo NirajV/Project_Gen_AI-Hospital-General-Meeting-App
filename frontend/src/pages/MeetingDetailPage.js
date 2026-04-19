@@ -771,6 +771,17 @@ export default function MeetingDetailPage() {
                         >
                             Decisions ({meeting.decisions?.length || 0})
                         </TabsTrigger>
+                        <TabsTrigger 
+                            value="participants" 
+                            data-testid="tab-participants"
+                            className="data-[state=active]:shadow-md transition-all duration-200 font-semibold"
+                            style={{
+                                backgroundColor: activeTab === 'participants' ? '#0b0b30' : '#e8e8f5',
+                                color: activeTab === 'participants' ? '#ffffff' : '#0b0b30',
+                            }}
+                        >
+                            Participants ({(meeting.participants?.length || 0) + 1})
+                        </TabsTrigger>
                     </TabsList>
 
                     {/* Overview Tab */}
@@ -850,8 +861,14 @@ export default function MeetingDetailPage() {
                                         </CardTitle>
                                         {/* Allow both organizer AND participants to add new participants */}
                                         {meeting.status !== 'completed' && (
-                                            <Button variant="outline" size="sm" onClick={openParticipantDialog} data-testid="add-participant-btn">
-                                                <UserPlus className="w-4 h-4 mr-1" /> Add
+                                            <Button 
+                                                variant="default" 
+                                                size="sm" 
+                                                onClick={openParticipantDialog} 
+                                                data-testid="add-participant-btn"
+                                                className="bg-primary hover:bg-primary/90"
+                                            >
+                                                <UserPlus className="w-4 h-4 mr-1" /> Add Participant
                                             </Button>
                                         )}
                                     </div>
@@ -1444,6 +1461,127 @@ export default function MeetingDetailPage() {
                                 })}
                             </div>
                         )}
+                    </TabsContent>
+
+                    {/* Participants Tab */}
+                    <TabsContent value="participants" className="mt-6">
+                        <div className="flex justify-end mb-4">
+                            {meeting.status !== 'completed' && (
+                                <Button 
+                                    onClick={openParticipantDialog} 
+                                    className="bg-primary hover:bg-primary/90" 
+                                    data-testid="add-participant-tab-btn"
+                                >
+                                    <UserPlus className="w-4 h-4 mr-2" /> Add Participant
+                                </Button>
+                            )}
+                        </div>
+                        
+                        <div className="space-y-4">
+                            {/* Organizer Card */}
+                            <Card className="border-0 shadow-sm hover:shadow-lg transition-all duration-300" style={{ backgroundColor: '#e8e8f5' }}>
+                                <CardContent className="pt-6">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-4">
+                                            <Avatar className="w-12 h-12" style={{ backgroundColor: '#0b0b30' }}>
+                                                <AvatarImage src={meeting.organizer?.picture} />
+                                                <AvatarFallback className="text-white" style={{ backgroundColor: '#0b0b30' }}>
+                                                    {meeting.organizer?.name?.charAt(0)}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                            <div>
+                                                <p className="font-semibold" style={{ color: '#0b0b30' }}>{meeting.organizer?.name}</p>
+                                                <p className="text-sm text-muted-foreground">{meeting.organizer?.email}</p>
+                                                {meeting.organizer?.specialty && (
+                                                    <Badge variant="outline" className="mt-1 text-xs" style={{ borderColor: '#0b0b30', color: '#0b0b30' }}>
+                                                        {meeting.organizer?.specialty}
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <Badge className="bg-primary text-white">Organizer</Badge>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            {/* Other Participants */}
+                            {meeting.participants?.filter(p => p.role !== 'organizer').length === 0 ? (
+                                <Card className="border-slate-200">
+                                    <CardContent className="py-12 text-center">
+                                        <Users className="w-12 h-12 mx-auto mb-3 text-muted-foreground opacity-50" />
+                                        <p className="text-muted-foreground">No participants added yet</p>
+                                        {meeting.status !== 'completed' && (
+                                            <Button 
+                                                variant="outline" 
+                                                className="mt-4" 
+                                                onClick={openParticipantDialog}
+                                            >
+                                                <UserPlus className="w-4 h-4 mr-2" /> Add First Participant
+                                            </Button>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            ) : (
+                                meeting.participants?.filter(p => p.role !== 'organizer').map((participant, idx) => {
+                                    const cardColors = [
+                                        { light: '#e8f5f0', dark: '#3b6658' }, // Teal
+                                        { light: '#f5f0e8', dark: '#694e20' }, // Amber
+                                        { light: '#f3edf5', dark: '#68517d' }, // Purple
+                                        { light: '#e8e8f5', dark: '#0b0b30' }, // Blue
+                                    ];
+                                    const colors = cardColors[idx % cardColors.length];
+                                    
+                                    return (
+                                        <Card 
+                                            key={participant.id} 
+                                            className="border-0 shadow-sm hover:shadow-lg transition-all duration-300" 
+                                            style={{ backgroundColor: colors.light }}
+                                            data-testid={`participant-card-${idx}`}
+                                        >
+                                            <CardContent className="pt-6">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-4">
+                                                        <Avatar className="w-12 h-12" style={{ backgroundColor: colors.dark }}>
+                                                            <AvatarImage src={participant.picture} />
+                                                            <AvatarFallback className="text-white" style={{ backgroundColor: colors.dark }}>
+                                                                {participant.name?.charAt(0)}
+                                                            </AvatarFallback>
+                                                        </Avatar>
+                                                        <div>
+                                                            <p className="font-semibold" style={{ color: colors.dark }}>{participant.name}</p>
+                                                            <p className="text-sm text-muted-foreground">{participant.email}</p>
+                                                            <div className="flex gap-2 mt-1">
+                                                                {participant.specialty && (
+                                                                    <Badge variant="outline" className="text-xs" style={{ borderColor: colors.dark, color: colors.dark }}>
+                                                                        {participant.specialty}
+                                                                    </Badge>
+                                                                )}
+                                                                {participant.role && participant.role !== 'doctor' && (
+                                                                    <Badge variant="secondary" className="text-xs capitalize" style={{ backgroundColor: `${colors.dark}20`, color: colors.dark }}>
+                                                                        {participant.role}
+                                                                    </Badge>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    {isOrganizer && meeting.status !== 'completed' && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() => handleRemoveParticipant(participant.user_id)}
+                                                            className="text-muted-foreground hover:text-destructive"
+                                                            title="Remove participant"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    );
+                                })
+                            )}
+                        </div>
                     </TabsContent>
                 </Tabs>
 
