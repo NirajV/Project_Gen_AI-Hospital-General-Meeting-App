@@ -2114,7 +2114,7 @@ export default function MeetingDetailPage() {
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <Label>MRN *</Label>
+                                        <Label>MRN (Medical Record Number) *</Label>
                                         <Input
                                             placeholder="MRN123456"
                                             value={newPatient.mrn}
