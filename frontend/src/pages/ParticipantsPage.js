@@ -233,7 +233,7 @@ export default function ParticipantsPage() {
                         data-testid="add-participant-page-btn"
                     >
                         <UserPlus className="w-4 h-4" />
-                        Add Participant
+                        Create Participant
                     </Button>
                 </div>
 
