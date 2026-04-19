@@ -224,18 +224,17 @@ export default function ParticipantsPage() {
                             Manage hospital staff and meeting participants
                         </p>
                     </div>
-                    {isOrganizer && (
-                        <Button 
-                            onClick={() => setCreateDialog(true)} 
-                            className="gap-2 shadow-md hover:shadow-lg transition-all duration-200 font-semibold"
-                            style={{ backgroundColor: '#68517d', color: '#ffffff' }}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#523d61'}
-                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#68517d'}
-                        >
-                            <UserPlus className="w-4 h-4" />
-                            Create Participant
-                        </Button>
-                    )}
+                    <Button 
+                        onClick={() => setCreateDialog(true)} 
+                        className="gap-2 shadow-md hover:shadow-lg transition-all duration-200 font-semibold"
+                        style={{ backgroundColor: '#68517d', color: '#ffffff' }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#523d61'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#68517d'}
+                        data-testid="add-participant-page-btn"
+                    >
+                        <UserPlus className="w-4 h-4" />
+                        Add Participant
+                    </Button>
                 </div>
 
                 {/* Statistics Cards */}
