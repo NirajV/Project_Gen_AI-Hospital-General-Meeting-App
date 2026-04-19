@@ -96,10 +96,17 @@ export default function MeetingDetailPage() {
         first_name: '', 
         last_name: '', 
         mrn: '', 
-        date_of_birth: '', 
         gender: '',
-        diagnosis: '', 
-        phone: '' 
+        date_of_birth: '', 
+        phone: '',
+        email: '',
+        address: '',
+        department_name: '',
+        department_provider_name: '',
+        diagnosis: '',
+        allergies: '',
+        current_medications: '',
+        notes: ''
     });
     const [creatingPatient, setCreatingPatient] = useState(false);
     const [agendaDialog, setAgendaDialog] = useState(false);
@@ -322,10 +329,17 @@ export default function MeetingDetailPage() {
                 first_name: newPatient.first_name,
                 last_name: newPatient.last_name,
                 patient_id_number: newPatient.mrn,  // Frontend uses 'mrn', backend expects 'patient_id_number'
-                date_of_birth: newPatient.date_of_birth,
                 gender: newPatient.gender,
+                date_of_birth: newPatient.date_of_birth,
+                phone: newPatient.phone,
+                email: newPatient.email,
+                address: newPatient.address,
+                department_name: newPatient.department_name,
+                department_provider_name: newPatient.department_provider_name,
                 primary_diagnosis: newPatient.diagnosis,
-                phone: newPatient.phone
+                allergies: newPatient.allergies,
+                current_medications: newPatient.current_medications,
+                notes: newPatient.notes
             };
 
             const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/patients`, {
@@ -344,7 +358,22 @@ export default function MeetingDetailPage() {
             await loadMeeting();
             await loadAllPatients();
 
-            setNewPatient({ first_name: '', last_name: '', mrn: '', date_of_birth: '', gender: '', diagnosis: '', phone: '' });
+            setNewPatient({ 
+                first_name: '', 
+                last_name: '', 
+                mrn: '', 
+                gender: '',
+                date_of_birth: '', 
+                phone: '',
+                email: '',
+                address: '',
+                department_name: '',
+                department_provider_name: '',
+                diagnosis: '',
+                allergies: '',
+                current_medications: '',
+                notes: ''
+            });
             setPatientTab('existing');
             setPatientDialog(false);
             alert(`✅ Patient "${newPatient.first_name} ${newPatient.last_name}" created and added!`);
@@ -1797,7 +1826,22 @@ export default function MeetingDetailPage() {
                 setPatientDialog(open);
                 if (!open) {
                     setPatientTab('existing');
-                    setNewPatient({ first_name: '', last_name: '', mrn: '', date_of_birth: '', gender: '', diagnosis: '', phone: '' });
+                    setNewPatient({ 
+                first_name: '', 
+                last_name: '', 
+                mrn: '', 
+                gender: '',
+                date_of_birth: '', 
+                phone: '',
+                email: '',
+                address: '',
+                department_name: '',
+                department_provider_name: '',
+                diagnosis: '',
+                allergies: '',
+                current_medications: '',
+                notes: ''
+            });
                     setSelectedPatients([]);
                 }
             }}>
@@ -1909,77 +1953,151 @@ export default function MeetingDetailPage() {
                         </>
                     ) : (
                         <div className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
+                            {/* Basic Information Section */}
+                            <div className="space-y-4">
+                                <h4 className="text-sm font-semibold text-slate-700 border-b pb-2">Basic Information</h4>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>First Name *</Label>
+                                        <Input
+                                            placeholder="John"
+                                            value={newPatient.first_name}
+                                            onChange={(e) => setNewPatient({ ...newPatient, first_name: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>Last Name *</Label>
+                                        <Input
+                                            placeholder="Doe"
+                                            value={newPatient.last_name}
+                                            onChange={(e) => setNewPatient({ ...newPatient, last_name: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>MRN *</Label>
+                                        <Input
+                                            placeholder="MRN123456"
+                                            value={newPatient.mrn}
+                                            onChange={(e) => setNewPatient({ ...newPatient, mrn: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>Gender</Label>
+                                        <Select 
+                                            value={newPatient.gender} 
+                                            onValueChange={(value) => setNewPatient({ ...newPatient, gender: value })}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select gender" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="male">Male</SelectItem>
+                                                <SelectItem value="female">Female</SelectItem>
+                                                <SelectItem value="other">Other</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>Date of Birth *</Label>
+                                        <Input
+                                            type="date"
+                                            max={new Date().toISOString().split('T')[0]}
+                                            value={newPatient.date_of_birth}
+                                            onChange={(e) => setNewPatient({ ...newPatient, date_of_birth: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>Phone</Label>
+                                        <Input
+                                            placeholder="+1 (555) 123-4567"
+                                            value={newPatient.phone}
+                                            onChange={(e) => setNewPatient({ ...newPatient, phone: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
                                 <div className="space-y-2">
-                                    <Label>First Name *</Label>
+                                    <Label>Email</Label>
                                     <Input
-                                        placeholder="John"
-                                        value={newPatient.first_name}
-                                        onChange={(e) => setNewPatient({ ...newPatient, first_name: e.target.value })}
+                                        type="email"
+                                        placeholder="patient@email.com"
+                                        value={newPatient.email}
+                                        onChange={(e) => setNewPatient({ ...newPatient, email: e.target.value })}
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label>Last Name *</Label>
-                                    <Input
-                                        placeholder="Doe"
-                                        value={newPatient.last_name}
-                                        onChange={(e) => setNewPatient({ ...newPatient, last_name: e.target.value })}
+                                    <Label>Address</Label>
+                                    <Textarea
+                                        placeholder="Full address"
+                                        value={newPatient.address}
+                                        onChange={(e) => setNewPatient({ ...newPatient, address: e.target.value })}
+                                        rows={2}
                                     />
                                 </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
+
+                            {/* Medical Information Section */}
+                            <div className="space-y-4">
+                                <h4 className="text-sm font-semibold text-slate-700 border-b pb-2">Medical Information</h4>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label>Department</Label>
+                                        <Input
+                                            placeholder="e.g., Oncology"
+                                            value={newPatient.department_name}
+                                            onChange={(e) => setNewPatient({ ...newPatient, department_name: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>Provider Name</Label>
+                                        <Input
+                                            placeholder="e.g., Dr. Smith"
+                                            value={newPatient.department_provider_name}
+                                            onChange={(e) => setNewPatient({ ...newPatient, department_provider_name: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
                                 <div className="space-y-2">
-                                    <Label>MRN *</Label>
-                                    <Input
-                                        placeholder="MRN123456"
-                                        value={newPatient.mrn}
-                                        onChange={(e) => setNewPatient({ ...newPatient, mrn: e.target.value })}
+                                    <Label>Primary Diagnosis</Label>
+                                    <Textarea
+                                        placeholder="Enter primary diagnosis"
+                                        value={newPatient.diagnosis}
+                                        onChange={(e) => setNewPatient({ ...newPatient, diagnosis: e.target.value })}
+                                        rows={2}
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label>Gender</Label>
-                                    <Select 
-                                        value={newPatient.gender} 
-                                        onValueChange={(value) => setNewPatient({ ...newPatient, gender: value })}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select gender" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="male">Male</SelectItem>
-                                            <SelectItem value="female">Female</SelectItem>
-                                            <SelectItem value="other">Other</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label>Date of Birth *</Label>
-                                    <Input
-                                        type="date"
-                                        max={new Date().toISOString().split('T')[0]}
-                                        value={newPatient.date_of_birth}
-                                        onChange={(e) => setNewPatient({ ...newPatient, date_of_birth: e.target.value })}
+                                    <Label>Allergies</Label>
+                                    <Textarea
+                                        placeholder="List any known allergies"
+                                        value={newPatient.allergies}
+                                        onChange={(e) => setNewPatient({ ...newPatient, allergies: e.target.value })}
+                                        rows={2}
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label>Phone Number</Label>
-                                    <Input
-                                        placeholder="+1 (555) 123-4567"
-                                        value={newPatient.phone}
-                                        onChange={(e) => setNewPatient({ ...newPatient, phone: e.target.value })}
+                                    <Label>Current Medications</Label>
+                                    <Textarea
+                                        placeholder="List current medications"
+                                        value={newPatient.current_medications}
+                                        onChange={(e) => setNewPatient({ ...newPatient, current_medications: e.target.value })}
+                                        rows={2}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Additional Notes</Label>
+                                    <Textarea
+                                        placeholder="Any additional notes"
+                                        value={newPatient.notes}
+                                        onChange={(e) => setNewPatient({ ...newPatient, notes: e.target.value })}
+                                        rows={2}
                                     />
                                 </div>
                             </div>
-                            <div className="space-y-2">
-                                <Label>Diagnosis</Label>
-                                <Input
-                                    placeholder="e.g., Lung Cancer Stage II"
-                                    value={newPatient.diagnosis}
-                                    onChange={(e) => setNewPatient({ ...newPatient, diagnosis: e.target.value })}
-                                />
-                            </div>
+
                             <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800">
                                 <AlertCircle className="w-4 h-4" />
                                 <span>Patient will be created in the system and added to this meeting</span>
@@ -1988,7 +2106,22 @@ export default function MeetingDetailPage() {
                                 <Button
                                     variant="outline"
                                     onClick={() => {
-                                        setNewPatient({ first_name: '', last_name: '', mrn: '', date_of_birth: '', gender: '', diagnosis: '', phone: '' });
+                                        setNewPatient({ 
+                first_name: '', 
+                last_name: '', 
+                mrn: '', 
+                gender: '',
+                date_of_birth: '', 
+                phone: '',
+                email: '',
+                address: '',
+                department_name: '',
+                department_provider_name: '',
+                diagnosis: '',
+                allergies: '',
+                current_medications: '',
+                notes: ''
+            });
                                         setPatientTab('existing');
                                     }}
                                 >
