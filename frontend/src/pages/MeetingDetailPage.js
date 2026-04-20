@@ -437,7 +437,8 @@ export default function MeetingDetailPage() {
         setNewAgenda({
             ...newAgenda,
             patient_id: patientId,
-            mrn: selectedPatient?.patient_id_number || ''
+            mrn: selectedPatient?.patient_id_number || '',
+            requested_provider: selectedPatient?.department_provider_name || ''
         });
     };
 
