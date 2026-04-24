@@ -4,6 +4,7 @@ Creates and manages Teams meeting links for hospital meetings
 """
 
 from msgraph import GraphServiceClient
+from msgraph.generated.models.online_meeting import OnlineMeeting
 from azure.identity import ClientSecretCredential
 from datetime import datetime
 from typing import Dict, Any, Optional
@@ -60,23 +61,16 @@ class TeamsService:
             Dictionary with meeting details including join URL
         """
         try:
-            # Prepare request body
-            request_body = {
-                "subject": subject,
-                "startDateTime": start_datetime.isoformat(),
-                "endDateTime": end_datetime.isoformat()
-            }
-            
-            # Add passcode settings if required
-            if require_passcode:
-                request_body["joinMeetingIdSettings"] = {
-                    "isPasscodeRequired": True
-                }
+            # Create OnlineMeeting object
+            online_meeting = OnlineMeeting()
+            online_meeting.subject = subject
+            online_meeting.start_date_time = start_datetime
+            online_meeting.end_date_time = end_datetime
             
             # Create meeting using application permissions (on behalf of service account)
             result = await self.client.users.by_user_id(
                 self.user_id
-            ).online_meetings.post(request_body)
+            ).online_meetings.post(online_meeting)
             
             if not result:
                 raise Exception("Failed to create Teams meeting - no response from API")
@@ -87,9 +81,9 @@ class TeamsService:
                 'id': result.id,
                 'joinWebUrl': result.join_web_url,
                 'subject': result.subject,
-                'startDateTime': result.start_date_time,
-                'endDateTime': result.end_date_time,
-                'createdDateTime': result.creation_date_time
+                'startDateTime': result.start_date_time.isoformat() if result.start_date_time else None,
+                'endDateTime': result.end_date_time.isoformat() if result.end_date_time else None,
+                'createdDateTime': result.creation_date_time.isoformat() if result.creation_date_time else None
             }
             
         except Exception as e:
