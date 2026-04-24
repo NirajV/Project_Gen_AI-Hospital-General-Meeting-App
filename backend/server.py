@@ -42,6 +42,7 @@ from utils.email import (
 )
 from utils.pdf_generator import generate_meeting_summary_pdf
 from utils.holiday_checker import get_holiday_checker, validate_meeting_date
+from services.teams_service import get_teams_service
 
 app = FastAPI(title="Hospital Meeting Scheduler API")
 api_router = APIRouter(prefix="/api")
@@ -578,9 +579,41 @@ async def create_meeting(meeting: MeetingCreate, current_user: dict = Depends(ge
         "recurrence_day_of_month": meeting.recurrence_day_of_month,
         "status": "scheduled",
         "organizer_id": current_user['id'],
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "teams_meeting_id": None,
+        "teams_join_url": None
     }
     await db.meetings.insert_one(meeting_doc)
+    
+    # Auto-generate Teams meeting link
+    try:
+        teams_service = get_teams_service()
+        
+        # Parse meeting date and times for Teams
+        meeting_datetime = datetime.strptime(f"{meeting.meeting_date} {meeting.start_time}", "%Y-%m-%d %H:%M")
+        end_datetime = datetime.strptime(f"{meeting.meeting_date} {meeting.end_time}", "%Y-%m-%d %H:%M")
+        
+        # Create Teams meeting
+        teams_meeting = await teams_service.create_online_meeting(
+            subject=f"{meeting.title} - Hospital Meeting",
+            start_datetime=meeting_datetime,
+            end_datetime=end_datetime
+        )
+        
+        # Update meeting with Teams info
+        await db.meetings.update_one(
+            {"id": meeting_id},
+            {"$set": {
+                "teams_meeting_id": teams_meeting['id'],
+                "teams_join_url": teams_meeting['joinWebUrl']
+            }}
+        )
+        
+        logger.info(f"Teams meeting created for meeting {meeting_id}")
+        
+    except Exception as e:
+        logger.error(f"Failed to create Teams meeting for {meeting_id}: {str(e)}")
+        # Continue without Teams link - meeting still created successfully
     
     # Add organizer as participant
     await db.meeting_participants.insert_one({
@@ -1442,6 +1475,65 @@ async def upload_file(
     })
     
     return {"id": file_id, "file_name": file_name, "message": "File uploaded"}
+
+@api_router.post("/meetings/{meeting_id}/generate-teams-link")
+async def generate_teams_link(meeting_id: str, current_user: dict = Depends(get_current_user)):
+    """Generate or regenerate Microsoft Teams meeting link for an existing meeting"""
+    
+    # Get meeting
+    meeting = await db.meetings.find_one({"id": meeting_id}, {"_id": 0})
+    if not meeting:
+        raise HTTPException(status_code=404, detail="Meeting not found")
+    
+    # Check if user has permission (organizer or participant)
+    is_organizer = meeting['organizer_id'] == current_user['id']
+    participant = await db.meeting_participants.find_one({
+        "meeting_id": meeting_id,
+        "user_id": current_user['id']
+    }, {"_id": 0})
+    
+    if not is_organizer and not participant:
+        raise HTTPException(status_code=403, detail="You don't have permission to generate Teams link for this meeting")
+    
+    try:
+        teams_service = get_teams_service()
+        
+        # Parse meeting date and times
+        meeting_datetime = datetime.strptime(f"{meeting['meeting_date']} {meeting['start_time']}", "%Y-%m-%d %H:%M")
+        end_datetime = datetime.strptime(f"{meeting['meeting_date']} {meeting['end_time']}", "%Y-%m-%d %H:%M")
+        
+        # Create Teams meeting
+        teams_meeting = await teams_service.create_online_meeting(
+            subject=f"{meeting['title']} - Hospital Meeting",
+            start_datetime=meeting_datetime,
+            end_datetime=end_datetime
+        )
+        
+        # Update meeting with Teams info
+        await db.meetings.update_one(
+            {"id": meeting_id},
+            {"$set": {
+                "teams_meeting_id": teams_meeting['id'],
+                "teams_join_url": teams_meeting['joinWebUrl'],
+                "teams_generated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        logger.info(f"Teams link generated for meeting {meeting_id} by user {current_user['id']}")
+        
+        return {
+            "success": True,
+            "teams_join_url": teams_meeting['joinWebUrl'],
+            "message": "Teams meeting link generated successfully"
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to generate Teams link for meeting {meeting_id}: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate Teams meeting link: {str(e)}"
+        )
+
 
 @api_router.get("/files/{file_id}")
 async def get_file(file_id: str, current_user: dict = Depends(get_current_user)):

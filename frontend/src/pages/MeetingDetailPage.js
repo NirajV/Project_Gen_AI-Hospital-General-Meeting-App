@@ -81,6 +81,7 @@ export default function MeetingDetailPage() {
     const [inviteTab, setInviteTab] = useState('existing');
     const [newInvite, setNewInvite] = useState({ email: '', name: '', specialty: '', role: 'doctor' });
     const [inviting, setInviting] = useState(false);
+    const [generatingTeamsLink, setGeneratingTeamsLink] = useState(false);
     const [newDecision, setNewDecision] = useState({
         title: '', 
         description: '', 
@@ -247,6 +248,33 @@ export default function MeetingDetailPage() {
             setIsUpdatingDateTime(false);
         }
     };
+
+    const handleGenerateTeamsLink = async () => {
+        setGeneratingTeamsLink(true);
+        try {
+            const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/meetings/${id}/generate-teams-link`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to generate Teams link');
+            }
+            
+            const data = await response.json();
+            await loadMeeting(); // Reload to get updated Teams link
+            alert('Teams meeting link generated successfully!');
+        } catch (error) {
+            console.error('Failed to generate Teams link:', error);
+            alert('Failed to generate Teams meeting link. Please try again.');
+        } finally {
+            setGeneratingTeamsLink(false);
+        }
+    };
+
 
     const handleFileUpload = async () => {
         if (!selectedFile) return;
@@ -689,6 +717,31 @@ export default function MeetingDetailPage() {
                         </div>
                     </div>
                     <div className="flex gap-2">
+                        {meeting.teams_join_url && (
+                            <Button variant="default" asChild className="bg-[#464EB8] hover:bg-[#464EB8]/90" data-testid="join-teams-btn">
+                                <a href={meeting.teams_join_url} target="_blank" rel="noopener noreferrer">
+                                    <Video className="w-4 h-4 mr-2" /> Join Teams Meeting
+                                </a>
+                            </Button>
+                        )}
+                        {!meeting.teams_join_url && meeting.status !== 'completed' && (
+                            <Button 
+                                variant="outline" 
+                                onClick={handleGenerateTeamsLink}
+                                disabled={generatingTeamsLink}
+                                data-testid="generate-teams-btn"
+                            >
+                                {generatingTeamsLink ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Video className="w-4 h-4 mr-2" /> Generate Teams Link
+                                    </>
+                                )}
+                            </Button>
+                        )}
                         {meeting.video_link && (
                             <Button variant="outline" asChild data-testid="join-btn">
                                 <a href={meeting.video_link} target="_blank" rel="noopener noreferrer">
