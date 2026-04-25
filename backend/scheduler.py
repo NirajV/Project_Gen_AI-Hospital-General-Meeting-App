@@ -130,12 +130,14 @@ async def _send_one_hour_reminders(db) -> None:
                 )
 
         # Mark the meeting so we never remind again, even if no recipients.
+        # Using local-time isoformat to stay consistent with meeting_date/start_time
+        # which are stored as user-local naive strings.
         await db.meetings.update_one(
             {"id": meeting_id},
             {
                 "$set": {
                     "reminder_1h_sent": True,
-                    "reminder_1h_sent_at": datetime.utcnow().isoformat(),
+                    "reminder_1h_sent_at": datetime.now().isoformat(),
                     "reminder_1h_sent_count": sent_count,
                 }
             },
