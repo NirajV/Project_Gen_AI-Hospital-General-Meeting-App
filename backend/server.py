@@ -9,6 +9,7 @@ import secrets
 import aiofiles
 import httpx
 import os
+import asyncio
 
 # Core imports (refactored modules)
 from core import (
@@ -2019,7 +2020,20 @@ async def startup():
     await db.meeting_patients.create_index([("meeting_id", 1), ("patient_id", 1)])
     logger.info("Database indexes created")
 
+    # Start background email reminder scheduler (1h before meeting)
+    from scheduler import reminder_loop
+    app.state.reminder_task = asyncio.create_task(reminder_loop(db))
+    logger.info("Email reminder background task scheduled")
+
 @app.on_event("shutdown")
 async def shutdown():
+    # Cancel background reminder task cleanly
+    task = getattr(app.state, "reminder_task", None)
+    if task is not None:
+        task.cancel()
+        try:
+            await task
+        except (asyncio.CancelledError, Exception):
+            pass
     client.close()
     logger.info("Database connection closed")

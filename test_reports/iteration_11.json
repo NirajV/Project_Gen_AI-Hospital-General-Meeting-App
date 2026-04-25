@@ -1,0 +1,42 @@
+{
+  "summary": "Verified iteration 11 P1 work: (a) email reminder scheduler starts cleanly inside FastAPI lifespan and does not break backend startup; (b) MeetingDetailPage refactor (FilesTab.js + DecisionsTab.js + treatmentPlanUtils.js) is a pure no-op visually and behaviorally — all 5 tabs render, Files/Decisions empty states + buttons + dialogs work, decision create/delete flow works end-to-end, and the 3 untouched tabs (Overview, Patients, Agenda) still render without runtime errors.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_scheduler_health.py",
+    "/app/test_reports/pytest/pytest_iter11_scheduler.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "scheduler.py uses datetime.now() (naive local) for the 1h window comparison while reminder_1h_sent_at is stored as datetime.utcnow().isoformat(). If the host TZ is not UTC, the 50-70 min window may compute against local time but compare against meetings whose start_time is also local — this works today but is brittle. Recommend standardizing on UTC throughout (datetime.now(timezone.utc) and store start_time/meeting_date in UTC) to avoid TZ drift on Docker hosts in non-UTC zones.",
+    "scheduler.py: a single failing send_meeting_reminder call only logs the error, but the meeting is still flagged reminder_1h_sent=True afterwards. If SMTP is briefly down for ALL recipients, that meeting will never be retried. Consider only setting the flag when sent_count > 0, or tracking per-participant send status."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_scheduler_health.py (new)"
+  ],
+  "success_rate": {
+    "backend": "100% (3/3 pytest passed)",
+    "frontend": "100% (login, all 5 tabs, files dialog, decisions create+delete, smoke of 3 untouched tabs)"
+  },
+  "test_credentials": {
+    "test_user": "refactor.test@example.com / TestPass123!"
+  },
+  "seed_data_creation": "Created one meeting via POST /api/meetings (id=0d78f860-dca3-40d9-b5f5-6248ae8cf97d, title='Refactor Test Meeting', date=2026-12-01) for the refactor.test user. Decision created and then deleted within the test, so no residual decision data.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend scheduler logs are visible in /var/log/supervisor/backend.err.log — search for 'Email reminder scheduler started'. The scheduler only acts on meetings whose meeting_date == today AND start_time ~ now+1h, so do NOT expect log entries about dispatching reminders during normal regression unless you seed a meeting starting in ~60 min. Test user refactor.test@example.com still has the seeded meeting 0d78f860-dca3-40d9-b5f5-6248ae8cf97d for future detail-page tests. MS Teams 'Generate Teams Link' button is intentionally broken (returns 502) — skip it.",
+  "verified_features": {
+    "scheduler_startup": "Logs show 'Email reminder background task scheduled' + 'Email reminder scheduler started (1h reminders, poll every 300s)'. Cancellation on shutdown also logs cleanly.",
+    "tabs_render": "All 5 tabs (Overview, Patients(0), Agenda(0), Files(0), Decisions(0)) render with correct counts.",
+    "files_tab": "Empty state 'No files uploaded yet' shown. data-testid=upload-file-btn visible & clickable. Upload dialog opens with Patient/File Type/Choose File controls.",
+    "decisions_tab_create": "data-testid=add-decision-btn opens dialog with title/desc/action/follow-up inputs (data-testid=decision-title-input, decision-desc-input, decision-action-input, confirm-decision-btn). Submit creates card displaying title, 'medium' priority badge, 'pending' status badge, description.",
+    "decisions_tab_delete": "Trash icon visible on card for organizer. Click removes card and returns to 'No decisions recorded yet' empty state. Tab counter updates from (1) back to (0)."
+  }
+}

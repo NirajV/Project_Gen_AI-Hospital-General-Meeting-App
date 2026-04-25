@@ -21,6 +21,9 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import Layout from '@/components/Layout';
+import FilesTab from '@/components/meeting/FilesTab';
+import DecisionsTab from '@/components/meeting/DecisionsTab';
+import { isTreatmentPlanEditable, getRemainingEditDays } from '@/lib/treatmentPlanUtils';
 import { toast } from '@/components/ui/sonner';
 import { 
     ArrowLeft, Calendar, Clock, Video, MapPin, Users, User, FileText,
@@ -28,37 +31,6 @@ import {
     Plus, ExternalLink, Loader2, AlertCircle, Clipboard, UserPlus, Mail, Edit, Check
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
-
-// Helper function to check if treatment plan editing is allowed (7-day rule)
-const isTreatmentPlanEditable = (meeting) => {
-    if (meeting.status !== 'completed') {
-        return true; // Meeting not completed, always editable
-    }
-    
-    if (!meeting.completed_at) {
-        return true; // No completion timestamp, allow editing
-    }
-    
-    const completedAt = new Date(meeting.completed_at);
-    const now = new Date();
-    const daysSinceCompletion = Math.floor((now - completedAt) / (1000 * 60 * 60 * 24));
-    
-    return daysSinceCompletion <= 7;
-};
-
-// Helper function to get remaining days for treatment plan editing
-const getRemainingEditDays = (meeting) => {
-    if (meeting.status !== 'completed' || !meeting.completed_at) {
-        return null;
-    }
-    
-    const completedAt = new Date(meeting.completed_at);
-    const now = new Date();
-    const daysSinceCompletion = Math.floor((now - completedAt) / (1000 * 60 * 60 * 24));
-    const remainingDays = 7 - daysSinceCompletion;
-    
-    return remainingDays >= 0 ? remainingDays : 0;
-};
 
 export default function MeetingDetailPage() {
     const { id } = useParams();
@@ -1342,168 +1314,22 @@ export default function MeetingDetailPage() {
 
                     {/* Files Tab */}
                     <TabsContent value="files" className="mt-6">
-                        <div className="flex justify-end mb-4">
-                            <Button onClick={() => setUploadDialog(true)} className="bg-primary hover:bg-primary/90" data-testid="upload-file-btn">
-                                <Upload className="w-4 h-4 mr-2" /> Upload File
-                            </Button>
-                        </div>
-                        {meeting.files?.length === 0 ? (
-                            <Card className="border-slate-200">
-                                <CardContent className="py-12 text-center">
-                                    <FileText className="w-12 h-12 mx-auto mb-3 text-muted-foreground opacity-50" />
-                                    <p className="text-muted-foreground">No files uploaded yet</p>
-                                </CardContent>
-                            </Card>
-                        ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {meeting.files?.map((file, idx) => {
-                                    const filePatient = meeting.patients?.find(p => p.patient_id === file.patient_id);
-                                    
-                                    // Rotating colors for file cards
-                                    const cardColors = [
-                                        { light: '#e8f5f0', dark: '#3b6658' }, // Teal
-                                        { light: '#f5f0e8', dark: '#694e20' }, // Amber
-                                        { light: '#f3edf5', dark: '#68517d' }, // Purple
-                                        { light: '#e8e8f5', dark: '#0b0b30' }, // Blue
-                                    ];
-                                    const colors = cardColors[idx % cardColors.length];
-                                    
-                                    return (
-                                        <Card key={file.id} className="border-0 shadow-sm hover:shadow-lg transition-all duration-300" style={{ backgroundColor: colors.light }} data-testid={`file-${idx}`}>
-                                            <CardContent className="pt-6">
-                                                <div className="flex items-start justify-between mb-3">
-                                                    <div className="flex items-start gap-3 flex-1">
-                                                        <span className="text-2xl">{getFileIcon(file.file_type)}</span>
-                                                        <div className="flex-1">
-                                                            <p className="font-semibold text-sm truncate" style={{ color: colors.dark }}>{file.original_name}</p>
-                                                            <p className="text-xs capitalize" style={{ color: colors.dark, opacity: 0.7 }}>{file.file_type?.replace('_', ' ')}</p>
-                                                            <p className="text-xs mt-1" style={{ color: colors.dark, opacity: 0.7 }}>By {file.uploader_name}</p>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex gap-1">
-                                                        <Button variant="ghost" size="icon" asChild>
-                                                            <a href={getFileUrl(file.id)} target="_blank" rel="noopener noreferrer">
-                                                                <Download className="w-4 h-4" style={{ color: colors.dark }} />
-                                                            </a>
-                                                        </Button>
-                                                        <Button variant="ghost" size="icon" onClick={() => handleDeleteFile(file.id)} className="text-destructive">
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </Button>
-                                                    </div>
-                                                </div>
-                                                {filePatient && (
-                                                    <div className="pt-3" style={{ borderTop: `1px solid ${colors.dark}30` }}>
-                                                        <div className="flex items-center gap-2">
-                                                            <Badge variant="outline" className="text-xs" style={{ borderColor: colors.dark, color: colors.dark }}>
-                                                                👤 {filePatient.first_name} {filePatient.last_name}
-                                                            </Badge>
-                                                            {filePatient.patient_id_number && (
-                                                                <Badge variant="secondary" className="text-xs font-mono" style={{ backgroundColor: `${colors.dark}20`, color: colors.dark }}>
-                                                                    MRN: {filePatient.patient_id_number}
-                                                                </Badge>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                )}
-                                                {!filePatient && file.patient_id && (
-                                                    <div className="pt-3" style={{ borderTop: `1px solid ${colors.dark}30` }}>
-                                                        <Badge variant="outline" className="text-xs text-slate-400">
-                                                            Patient not found
-                                                        </Badge>
-                                                    </div>
-                                                )}
-                                            </CardContent>
-                                        </Card>
-                                    );
-                                })}
-                            </div>
-                        )}
+                        <FilesTab
+                            meeting={meeting}
+                            onUploadClick={() => setUploadDialog(true)}
+                            onDeleteFile={handleDeleteFile}
+                            getFileIcon={getFileIcon}
+                        />
                     </TabsContent>
 
                     {/* Decisions Tab */}
                     <TabsContent value="decisions" className="mt-6">
-                        <div className="flex justify-end mb-4">
-                            <Button onClick={() => setDecisionDialog(true)} className="bg-primary hover:bg-primary/90" data-testid="add-decision-btn">
-                                <Plus className="w-4 h-4 mr-2" /> Add Decision
-                            </Button>
-                        </div>
-                        {meeting.decisions?.length === 0 ? (
-                            <Card className="border-slate-200">
-                                <CardContent className="py-12 text-center">
-                                    <Clipboard className="w-12 h-12 mx-auto mb-3 text-muted-foreground opacity-50" />
-                                    <p className="text-muted-foreground">No decisions recorded yet</p>
-                                </CardContent>
-                            </Card>
-                        ) : (
-                            <div className="space-y-4">
-                                {meeting.decisions?.map((decision, idx) => {
-                                    const decisionPatient = meeting.patients?.find(p => p.patient_id === decision.meeting_patient_id);
-                                    
-                                    // Rotating colors for decision cards
-                                    const cardColors = [
-                                        { light: '#e8f5f0', dark: '#3b6658' }, // Teal
-                                        { light: '#f5f0e8', dark: '#694e20' }, // Amber
-                                        { light: '#f3edf5', dark: '#68517d' }, // Purple
-                                        { light: '#e8e8f5', dark: '#0b0b30' }, // Blue
-                                    ];
-                                    const colors = cardColors[idx % cardColors.length];
-                                    
-                                    return (
-                                        <Card key={decision.id} className="border-0 shadow-sm hover:shadow-lg transition-all duration-300" style={{ backgroundColor: colors.light }} data-testid={`decision-${idx}`}>
-                                            <CardContent className="pt-6">
-                                                <div className="flex items-start justify-between">
-                                                    <div className="flex-1">
-                                                        <div className="flex items-center gap-2 flex-wrap">
-                                                            <h3 className="font-semibold" style={{ color: colors.dark }}>{decision.title}</h3>
-                                                            <Badge variant="outline" className={`text-xs ${
-                                                                decision.priority === 'high' || decision.priority === 'urgent' ? 'border-red-300 text-red-700' :
-                                                                decision.priority === 'medium' ? 'border-orange-300 text-orange-700' : ''
-                                                            }`} style={{ borderColor: colors.dark, color: colors.dark }}>{decision.priority}</Badge>
-                                                            <Badge className={decision.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}>
-                                                                {decision.status}
-                                                            </Badge>
-                                                        </div>
-                                                        {decisionPatient && (
-                                                            <div className="flex items-center gap-2 mt-2">
-                                                                <Badge variant="outline" className="text-xs" style={{ borderColor: colors.dark, color: colors.dark }}>
-                                                                    👤 {decisionPatient.first_name} {decisionPatient.last_name}
-                                                                </Badge>
-                                                                {decisionPatient.patient_id_number && (
-                                                                    <Badge variant="secondary" className="text-xs font-mono" style={{ backgroundColor: `${colors.dark}20`, color: colors.dark }}>
-                                                                        MRN: {decisionPatient.patient_id_number}
-                                                                    </Badge>
-                                                                )}
-                                                            </div>
-                                                        )}
-                                                        {decision.description && <p className="text-sm mt-2" style={{ color: colors.dark, opacity: 0.8 }}>{decision.description}</p>}
-                                                        {decision.action_plan && (
-                                                            <div className="mt-3 p-3 rounded" style={{ backgroundColor: `${colors.dark}15` }}>
-                                                                <p className="text-xs font-medium" style={{ color: colors.dark, opacity: 0.7 }}>Action Plan</p>
-                                                                <p className="text-sm mt-1" style={{ color: colors.dark }}>{decision.action_plan}</p>
-                                                            </div>
-                                                        )}
-                                                        {decision.follow_up_date && (
-                                                            <p className="text-xs mt-2" style={{ color: colors.dark, opacity: 0.7 }}>Follow-up: {format(parseISO(decision.follow_up_date), 'MMM d, yyyy')}</p>
-                                                        )}
-                                                    </div>
-                                                    {isOrganizer && meeting.status !== 'completed' && (
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            onClick={() => handleDeleteDecision(decision.id)}
-                                                            className="text-muted-foreground hover:text-destructive ml-2"
-                                                            title="Delete decision"
-                                                        >
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </Button>
-                                                    )}
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    );
-                                })}
-                            </div>
-                        )}
+                        <DecisionsTab
+                            meeting={meeting}
+                            isOrganizer={isOrganizer}
+                            onAddClick={() => setDecisionDialog(true)}
+                            onDeleteDecision={handleDeleteDecision}
+                        />
                     </TabsContent>
                 </Tabs>
 
