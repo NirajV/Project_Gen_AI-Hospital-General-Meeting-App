@@ -1,0 +1,45 @@
+{
+  "summary": "Verified iteration 12 P2 work: (a) MeetingDetailPage refactor with OverviewTab/PatientsTab/AgendaTab extracted into /app/frontend/src/components/meeting/ — all 5 tabs render and their extracted components behave identically (Overview details + add-participant dialog open; Patients empty state + add-patient flow + card render with name/MRN/status badge + 'View Full Profile' ribbon link navigates to /patients/<id>; Agenda empty state + agenda dialog opens with all fields rendering); (b) Server-side PDF export GET /api/meetings/{id}/summary verified end-to-end with pytest — 4/4 backend tests passed (200 + valid %PDF body for owner, 404 for unknown id, 403 for non-participant, 401/403 for unauthenticated).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_meeting_summary_pdf.py",
+    "/app/test_reports/pytest/pytest_iter12_summary.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "OverviewTab.js & PatientsTab.js: PARTICIPANT_COLORS / PATIENT_CARD_COLORS arrays are duplicated literally (same 4 colors). Extract into a shared /lib/meetingColors.js to avoid drift if palette changes.",
+    "MeetingDetailPage.js is still 1802 lines after this round of extraction. Remaining logic that should be split into hooks/sub-components: 4 dialogs (Edit Date/Time, Upload File, Patient Add, Agenda Add) and their associated state (~600 lines). Recommend useMeetingDialogs() hook + extracted <PatientDialog/> + <AgendaDialog/> as next iteration to bring the page under ~1000 lines.",
+    "AgendaTab requires a non-organizer participant for the 'Requested Provider' field, but there is no inline help/CTA when meeting.participants only contains the organizer — the Select shows a disabled 'No participants in this meeting' option and submit silently does nothing. Recommend disabling 'Add Agenda Item' button + showing a hint like 'Invite a participant first' when no providers are available."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_meeting_summary_pdf.py (new)"
+  ],
+  "success_rate": {
+    "backend": "100% (4/4 pytest passed for /api/meetings/{id}/summary)",
+    "frontend": "100% on flows that did not require pre-existing meeting participants (login, all 5 tabs render, Overview details/dialog, Patients add/render/profile-link nav, Agenda dialog open + fields render). Full agenda create E2E + treatment plan inline edit was blocked by data (seeded meeting has 0 non-organizer participants for 'Requested Provider' Select) — not a refactor regression."
+  },
+  "test_credentials": {
+    "test_user": "refactor.test@example.com / TestPass123!"
+  },
+  "seed_data_creation": "Added 1 existing patient (Scott Brown, MRN 345454) to meeting 0d78f860-dca3-40d9-b5f5-6248ae8cf97d via the Patients tab existing-patient flow. Stranger user TEST_stranger_<uuid>@example.com created via /api/auth/register for 403 test (one per pytest run).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend test for PDF export lives at /app/backend/tests/test_meeting_summary_pdf.py (4 tests, all green; junit at /app/test_reports/pytest/pytest_iter12_summary.xml). Seeded meeting 0d78f860-dca3-40d9-b5f5-6248ae8cf97d now has 1 patient (Scott Brown). To do a complete agenda+TP edit E2E next time, first invite a non-organizer participant to the meeting (POST /api/meetings/{id}/participants) — without that the 'Requested Provider' Select stays empty and Add Agenda Item silently fails validation. MS Teams 'Generate Teams Link' still 502s — skip. All 5 meeting-detail tabs (Overview/Patients/Agenda/Files/Decisions) are now external components in /app/frontend/src/components/meeting/.",
+  "verified_features": {
+    "tabs_render": "data-testid tab-overview / tab-patients / tab-agenda / tab-files / tab-decisions all present (count=1 each).",
+    "overview_tab": "Meeting Details + Recurrence + Duration + Quick Stats + Participants sidebar all visible. add-participant-btn opens role=dialog.",
+    "patients_tab": "Empty state 'No patients added to this meeting' renders. add-patient-btn opens dialog. Existing-patient flow added Scott Brown -> meeting-patient-0 card renders with name/MRN/status badge + 'View Full Profile →' ribbon link href=/patients/<uuid>; clicking navigates correctly.",
+    "agenda_tab": "Empty state 'No agenda items' renders. add-first-agenda-btn opens role=dialog with all required fields (Patient Name select, MRN auto-fill, Requested Provider select, Diagnosis, Reason, Pathology/Radiology checkboxes, Treatment Plan textarea, Add Agenda Item submit). Patient select populated correctly with meeting patients.",
+    "files_decisions_tabs": "Already verified in iteration 11 — empty states + buttons present.",
+    "backend_pdf_summary": "GET /api/meetings/0d78f860.../summary -> 200, Content-Type: application/pdf, body starts with %PDF, ~2.5KB. Returns 404 for unknown id, 403 for non-participant fresh user, 401/403 for unauthenticated."
+  },
+  "rca of the issue": "No bugs found. The only test that did not complete end-to-end (agenda item create + treatment-plan inline edit) was blocked by pre-existing meeting data shape (no non-organizer participants), not by the refactor. The AgendaTab component's data-testids edit-tp-{idx}/save-tp-{idx}/cancel-tp-{idx}/tp-textarea-{idx} are present in code and would be exercisable as soon as one agenda item exists."
+}
