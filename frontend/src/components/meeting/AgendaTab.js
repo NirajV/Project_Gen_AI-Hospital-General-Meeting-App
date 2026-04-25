@@ -8,13 +8,7 @@ import {
     isTreatmentPlanEditable,
     getRemainingEditDays,
 } from '@/lib/treatmentPlanUtils';
-
-const AGENDA_CARD_COLORS = [
-    { light: '#e8f5f0', dark: '#3b6658' }, // Teal
-    { light: '#f5f0e8', dark: '#694e20' }, // Amber
-    { light: '#f3edf5', dark: '#68517d' }, // Purple
-    { light: '#e8e8f5', dark: '#0b0b30' }, // Blue
-];
+import { colorAt } from '@/lib/meetingColors';
 
 export default function AgendaTab({
     meeting,
@@ -72,8 +66,7 @@ export default function AgendaTab({
                                     treatmentPlanText[item.id] !== undefined
                                         ? treatmentPlanText[item.id]
                                         : item.treatment_plan;
-                                const colors =
-                                    AGENDA_CARD_COLORS[idx % AGENDA_CARD_COLORS.length];
+                                const colors = colorAt(idx);
 
                                 return (
                                     <div

@@ -4,13 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Clipboard, Trash2 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
-
-const DECISION_CARD_COLORS = [
-    { light: '#e8f5f0', dark: '#3b6658' }, // Teal
-    { light: '#f5f0e8', dark: '#694e20' }, // Amber
-    { light: '#f3edf5', dark: '#68517d' }, // Purple
-    { light: '#e8e8f5', dark: '#0b0b30' }, // Blue
-];
+import { colorAt } from '@/lib/meetingColors';
 
 export default function DecisionsTab({
     meeting,
@@ -47,8 +41,7 @@ export default function DecisionsTab({
                         const decisionPatient = patients.find(
                             (p) => p.patient_id === decision.meeting_patient_id
                         );
-                        const colors =
-                            DECISION_CARD_COLORS[idx % DECISION_CARD_COLORS.length];
+                        const colors = colorAt(idx);
 
                         return (
                             <Card

@@ -4,13 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Users, User, FileText, ExternalLink, UserPlus, XCircle } from 'lucide-react';
-
-const PARTICIPANT_COLORS = [
-    { light: '#e8f5f0', dark: '#3b6658' }, // Teal
-    { light: '#f5f0e8', dark: '#694e20' }, // Amber
-    { light: '#f3edf5', dark: '#68517d' }, // Purple
-    { light: '#e8e8f5', dark: '#0b0b30' }, // Blue
-];
+import { colorAt } from '@/lib/meetingColors';
 
 export default function OverviewTab({
     meeting,
@@ -153,7 +147,7 @@ export default function OverviewTab({
                     </div>
 
                     {additionalParticipants.map((participant, idx) => {
-                        const colors = PARTICIPANT_COLORS[idx % PARTICIPANT_COLORS.length];
+                        const colors = colorAt(idx);
 
                         return (
                             <div

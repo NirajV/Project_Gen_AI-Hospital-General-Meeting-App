@@ -4,13 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus, User, Trash2, Check } from 'lucide-react';
-
-const PATIENT_CARD_COLORS = [
-    { light: '#e8f5f0', dark: '#3b6658' }, // Teal
-    { light: '#f5f0e8', dark: '#694e20' }, // Amber
-    { light: '#f3edf5', dark: '#68517d' }, // Purple
-    { light: '#e8e8f5', dark: '#0b0b30' }, // Blue
-];
+import { colorAt } from '@/lib/meetingColors';
 
 export default function PatientsTab({
     meeting,
@@ -61,8 +55,7 @@ export default function PatientsTab({
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-2">
                         {patients.map((mp, idx) => {
-                            const colors =
-                                PATIENT_CARD_COLORS[idx % PATIENT_CARD_COLORS.length];
+                            const colors = colorAt(idx);
                             const isPending = mp.approval_status === 'pending';
 
                             return (
