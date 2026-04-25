@@ -1496,19 +1496,32 @@ async def generate_teams_link(meeting_id: str, current_user: dict = Depends(get_
         raise HTTPException(status_code=403, detail="You don't have permission to generate Teams link for this meeting")
     
     try:
-        teams_service = get_teams_service()
-        
+        try:
+            teams_service = get_teams_service()
+        except ValueError as cfg_err:
+            # Credentials not configured in environment
+            logger.error(f"Teams not configured: {cfg_err}")
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    "Microsoft Teams integration is not configured on this server. "
+                    "An administrator needs to set GRAPH_CLIENT_ID, GRAPH_TENANT_ID, "
+                    "GRAPH_CLIENT_SECRET (and optionally GRAPH_USER_ID) in the backend "
+                    "environment and restart the backend container."
+                )
+            )
+
         # Parse meeting date and times
         meeting_datetime = datetime.strptime(f"{meeting['meeting_date']} {meeting['start_time']}", "%Y-%m-%d %H:%M")
         end_datetime = datetime.strptime(f"{meeting['meeting_date']} {meeting['end_time']}", "%Y-%m-%d %H:%M")
-        
+
         # Create Teams meeting
         teams_meeting = await teams_service.create_online_meeting(
             subject=f"{meeting['title']} - Hospital Meeting",
             start_datetime=meeting_datetime,
             end_datetime=end_datetime
         )
-        
+
         # Update meeting with Teams info
         await db.meetings.update_one(
             {"id": meeting_id},
@@ -1518,19 +1531,21 @@ async def generate_teams_link(meeting_id: str, current_user: dict = Depends(get_
                 "teams_generated_at": datetime.now(timezone.utc).isoformat()
             }}
         )
-        
+
         logger.info(f"Teams link generated for meeting {meeting_id} by user {current_user['id']}")
-        
+
         return {
             "success": True,
             "teams_join_url": teams_meeting['joinWebUrl'],
             "message": "Teams meeting link generated successfully"
         }
-        
+
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Failed to generate Teams link for meeting {meeting_id}: {str(e)}")
         raise HTTPException(
-            status_code=500,
+            status_code=502,
             detail=f"Failed to generate Teams meeting link: {str(e)}"
         )
 

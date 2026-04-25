@@ -6,7 +6,7 @@ Creates and manages Teams meeting links for hospital meetings
 from msgraph import GraphServiceClient
 from msgraph.generated.models.online_meeting import OnlineMeeting
 from azure.identity import ClientSecretCredential
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any, Optional
 import logging
 import os
@@ -40,6 +40,30 @@ class TeamsService:
         )
         
         logger.info("Teams service initialized successfully")
+
+    @staticmethod
+    def _extract_graph_error(exc: Exception) -> str:
+        """
+        Extract a useful error message from MS Graph SDK exceptions.
+        ODataError exposes .error.code, .error.message and .response_status_code.
+        """
+        try:
+            parts = [type(exc).__name__]
+            status = getattr(exc, 'response_status_code', None)
+            if status is not None:
+                parts.append(f"HTTP {status}")
+            inner = getattr(exc, 'error', None)
+            if inner is not None:
+                code = getattr(inner, 'code', None)
+                message = getattr(inner, 'message', None)
+                if code:
+                    parts.append(f"code={code}")
+                if message:
+                    parts.append(f"message={message}")
+            parts.append(str(exc))
+            return " | ".join(p for p in parts if p)
+        except Exception:
+            return str(exc)
     
     async def create_online_meeting(
         self,
@@ -61,22 +85,29 @@ class TeamsService:
             Dictionary with meeting details including join URL
         """
         try:
+            # Microsoft Graph API requires timezone-aware datetimes (ISO 8601 with offset).
+            # If naive datetimes are passed in, assume they are UTC.
+            if start_datetime.tzinfo is None:
+                start_datetime = start_datetime.replace(tzinfo=timezone.utc)
+            if end_datetime.tzinfo is None:
+                end_datetime = end_datetime.replace(tzinfo=timezone.utc)
+
             # Create OnlineMeeting object
             online_meeting = OnlineMeeting()
             online_meeting.subject = subject
             online_meeting.start_date_time = start_datetime
             online_meeting.end_date_time = end_datetime
-            
+
             # Create meeting using application permissions (on behalf of service account)
             result = await self.client.users.by_user_id(
                 self.user_id
             ).online_meetings.post(online_meeting)
-            
+
             if not result:
                 raise Exception("Failed to create Teams meeting - no response from API")
-            
+
             logger.info(f"Successfully created Teams meeting: {result.id}")
-            
+
             return {
                 'id': result.id,
                 'joinWebUrl': result.join_web_url,
@@ -85,10 +116,12 @@ class TeamsService:
                 'endDateTime': result.end_date_time.isoformat() if result.end_date_time else None,
                 'createdDateTime': result.creation_date_time.isoformat() if result.creation_date_time else None
             }
-            
+
         except Exception as e:
-            logger.error(f"Failed to create Teams meeting: {str(e)}")
-            raise Exception(f"Teams meeting creation failed: {str(e)}")
+            # Try to surface MS Graph ODataError details (status code, error code, message)
+            error_detail = self._extract_graph_error(e)
+            logger.error(f"Failed to create Teams meeting: {error_detail}")
+            raise Exception(f"Teams meeting creation failed: {error_detail}")
     
     async def get_meeting(self, meeting_id: str) -> Optional[Dict[str, Any]]:
         """
