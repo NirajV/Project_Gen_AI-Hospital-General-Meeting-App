@@ -205,7 +205,18 @@
             <a href="{{ accept_link }}" class="button btn-accept">✓ Accept Invitation</a>
             <a href="{{ decline_link }}" class="button btn-decline">✗ Decline</a>
         </div>
-        
+
+        {% if meeting_join_url %}
+        <div style="text-align: center; margin: 20px 0;">
+            <a href="{{ meeting_join_url }}" class="button btn-accept" style="background: #6264a7; color: #ffffff;">
+                🎥 Join Teams Meeting
+            </a>
+            <p style="font-size: 12px; color: #666; margin-top: 8px; word-break: break-all;">
+                Or copy this link: <a href="{{ meeting_join_url }}" style="color: #6264a7;">{{ meeting_join_url }}</a>
+            </p>
+        </div>
+        {% endif %}
+
         <div style="text-align: center; margin: 20px 0;">
             <a href="{{ view_link }}" class="button btn-view">View Meeting Details</a>
         </div>

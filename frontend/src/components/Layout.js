@@ -109,12 +109,6 @@ export default function Layout({ children }) {
                                             Profile
                                         </Link>
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem asChild>
-                                        <Link to="/settings" className="cursor-pointer" data-testid="settings-link">
-                                            <Settings className="mr-2 h-4 w-4" />
-                                            Settings
-                                        </Link>
-                                    </DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive" data-testid="logout-btn">
                                         <LogOut className="mr-2 h-4 w-4" />

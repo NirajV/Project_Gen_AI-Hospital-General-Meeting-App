@@ -134,7 +134,10 @@ def send_meeting_invite(
     accept_link = f"{frontend_url}/meetings/{meeting_id}?action=accept"
     decline_link = f"{frontend_url}/meetings/{meeting_id}?action=decline"
     view_link = f"{frontend_url}/meetings/{meeting_id}"
-    
+
+    # Prefer the auto-generated Teams link; fall back to manually pasted video link.
+    meeting_join_url = meeting.get('teams_join_url') or meeting.get('video_link') or ''
+
     # Render template
     template_obj = Template(template)
     html_content = template_obj.render(
@@ -145,6 +148,7 @@ def send_meeting_invite(
         meeting_time=meeting_time,
         meeting_location=meeting.get('location', 'To be announced'),
         meeting_description=meeting.get('description', ''),
+        meeting_join_url=meeting_join_url,
         accept_link=accept_link,
         decline_link=decline_link,
         view_link=view_link

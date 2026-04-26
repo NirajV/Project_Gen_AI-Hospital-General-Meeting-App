@@ -692,16 +692,28 @@ export default function MeetingDetailPage() {
                         </div>
                     </div>
                     <div className="flex gap-2">
-                        {meeting.teams_join_url && (
-                            <Button variant="default" asChild className="bg-[#464EB8] hover:bg-[#464EB8]/90" data-testid="join-teams-btn">
-                                <a href={meeting.teams_join_url} target="_blank" rel="noopener noreferrer">
-                                    <Video className="w-4 h-4 mr-2" /> Join Teams Meeting
+                        {/* Single Join button — prefers Teams link over manual video link */}
+                        {(meeting.teams_join_url || meeting.video_link) && (
+                            <Button
+                                variant="default"
+                                asChild
+                                className="bg-[#464EB8] hover:bg-[#464EB8]/90"
+                                data-testid="join-meeting-btn"
+                            >
+                                <a
+                                    href={meeting.teams_join_url || meeting.video_link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    <Video className="w-4 h-4 mr-2" />
+                                    {meeting.teams_join_url ? 'Join Teams Meeting' : 'Join Meeting'}
                                 </a>
                             </Button>
                         )}
-                        {!meeting.teams_join_url && meeting.status !== 'completed' && (
-                            <Button 
-                                variant="outline" 
+                        {/* Generate Teams Link — only when no link exists yet and meeting isn't completed */}
+                        {!meeting.teams_join_url && !meeting.video_link && meeting.status !== 'completed' && (
+                            <Button
+                                variant="outline"
                                 onClick={handleGenerateTeamsLink}
                                 disabled={generatingTeamsLink}
                                 data-testid="generate-teams-btn"
@@ -715,13 +727,6 @@ export default function MeetingDetailPage() {
                                         <Video className="w-4 h-4 mr-2" /> Generate Teams Link
                                     </>
                                 )}
-                            </Button>
-                        )}
-                        {meeting.video_link && (
-                            <Button variant="outline" asChild data-testid="join-btn">
-                                <a href={meeting.video_link} target="_blank" rel="noopener noreferrer">
-                                    <Video className="w-4 h-4 mr-2" /> Join Meeting
-                                </a>
                             </Button>
                         )}
                         {isOrganizer && meeting.status === 'scheduled' && (

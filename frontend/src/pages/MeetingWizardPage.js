@@ -33,14 +33,23 @@ export default function MeetingWizardPage() {
     const [patientTab, setPatientTab] = useState('existing');
     const [newInvite, setNewInvite] = useState({ email: '', name: '', specialty: '', role: 'doctor' });
     const [inviting, setInviting] = useState(false);
-    const [newPatient, setNewPatient] = useState({ 
-        first_name: '', 
-        last_name: '', 
-        date_of_birth: '', 
+    const EMPTY_NEW_PATIENT = {
+        first_name: '',
+        last_name: '',
+        patient_id_number: '',
         gender: '',
-        primary_diagnosis: '', 
-        department_name: '' 
-    });
+        date_of_birth: '',
+        phone: '',
+        email: '',
+        address: '',
+        department_name: '',
+        department_provider_name: '',
+        primary_diagnosis: '',
+        allergies: '',
+        current_medications: '',
+        notes: '',
+    };
+    const [newPatient, setNewPatient] = useState(EMPTY_NEW_PATIENT);
     const [addingPatient, setAddingPatient] = useState(false);
     const [generatingTeamsLink, setGeneratingTeamsLink] = useState(false);
 
@@ -195,14 +204,7 @@ export default function MeetingWizardPage() {
                 ...prev,
                 patient_ids: [...prev.patient_ids, createdPatient.id]
             }));
-            setNewPatient({ 
-                first_name: '', 
-                last_name: '', 
-                date_of_birth: '', 
-                gender: '',
-                primary_diagnosis: '', 
-                department_name: '' 
-            });
+            setNewPatient(EMPTY_NEW_PATIENT);
             setPatientTab('existing');
         } catch (error) {
             console.error('Failed to create patient:', error);
@@ -829,99 +831,209 @@ export default function MeetingWizardPage() {
                                 )}
                             </>
                         ) : (
-                            <div className="max-w-md space-y-4">
+                            <div className="space-y-6">
                                 <p className="text-muted-foreground">Add a new patient to discuss in this meeting:</p>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="patient-first-name">First Name *</Label>
-                                        <Input
-                                            id="patient-first-name"
-                                            placeholder="John"
-                                            value={newPatient.first_name}
-                                            onChange={(e) => setNewPatient({ ...newPatient, first_name: e.target.value })}
-                                            className="h-11 bg-slate-50"
-                                            data-testid="wizard-patient-first-name"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="patient-last-name">Last Name *</Label>
-                                        <Input
-                                            id="patient-last-name"
-                                            placeholder="Doe"
-                                            value={newPatient.last_name}
-                                            onChange={(e) => setNewPatient({ ...newPatient, last_name: e.target.value })}
-                                            className="h-11 bg-slate-50"
-                                            data-testid="wizard-patient-last-name"
-                                        />
+
+                                {/* Basic Information */}
+                                <div>
+                                    <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-3">
+                                        Basic Information
+                                    </h3>
+                                    <div className="space-y-4 border-t pt-4">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="patient-first-name">First Name *</Label>
+                                                <Input
+                                                    id="patient-first-name"
+                                                    placeholder="John"
+                                                    value={newPatient.first_name}
+                                                    onChange={(e) => setNewPatient({ ...newPatient, first_name: e.target.value })}
+                                                    className="h-11 bg-slate-50"
+                                                    data-testid="wizard-patient-first-name"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="patient-last-name">Last Name *</Label>
+                                                <Input
+                                                    id="patient-last-name"
+                                                    placeholder="Doe"
+                                                    value={newPatient.last_name}
+                                                    onChange={(e) => setNewPatient({ ...newPatient, last_name: e.target.value })}
+                                                    className="h-11 bg-slate-50"
+                                                    data-testid="wizard-patient-last-name"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="patient-mrn">MRN (Medical Record Number) *</Label>
+                                                <Input
+                                                    id="patient-mrn"
+                                                    placeholder="MRN123456"
+                                                    value={newPatient.patient_id_number}
+                                                    onChange={(e) => setNewPatient({ ...newPatient, patient_id_number: e.target.value })}
+                                                    className="h-11 bg-slate-50"
+                                                    data-testid="wizard-patient-mrn"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="patient-gender">Gender</Label>
+                                                <Select
+                                                    onValueChange={(v) => setNewPatient({ ...newPatient, gender: v })}
+                                                    value={newPatient.gender}
+                                                >
+                                                    <SelectTrigger className="h-11 bg-slate-50" data-testid="wizard-patient-gender">
+                                                        <SelectValue placeholder="Select gender" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="male">Male</SelectItem>
+                                                        <SelectItem value="female">Female</SelectItem>
+                                                        <SelectItem value="other">Other</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="patient-dob">Date of Birth *</Label>
+                                                <Input
+                                                    id="patient-dob"
+                                                    type="date"
+                                                    value={newPatient.date_of_birth}
+                                                    onChange={(e) => setNewPatient({ ...newPatient, date_of_birth: e.target.value })}
+                                                    className="h-11 bg-slate-50"
+                                                    max={new Date().toISOString().split('T')[0]}
+                                                    min="1900-01-01"
+                                                    data-testid="wizard-patient-dob"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="patient-phone">Phone</Label>
+                                                <Input
+                                                    id="patient-phone"
+                                                    placeholder="+1 (555) 123-4567"
+                                                    value={newPatient.phone}
+                                                    onChange={(e) => setNewPatient({ ...newPatient, phone: e.target.value })}
+                                                    className="h-11 bg-slate-50"
+                                                    data-testid="wizard-patient-phone"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="patient-email">Email</Label>
+                                            <Input
+                                                id="patient-email"
+                                                type="email"
+                                                placeholder="patient@email.com"
+                                                value={newPatient.email}
+                                                onChange={(e) => setNewPatient({ ...newPatient, email: e.target.value })}
+                                                className="h-11 bg-slate-50"
+                                                data-testid="wizard-patient-email"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="patient-address">Address</Label>
+                                            <Textarea
+                                                id="patient-address"
+                                                placeholder="Full address"
+                                                value={newPatient.address}
+                                                onChange={(e) => setNewPatient({ ...newPatient, address: e.target.value })}
+                                                rows={2}
+                                                className="bg-slate-50"
+                                                data-testid="wizard-patient-address"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="patient-mrn">MRN (Medical Record Number)</Label>
-                                        <Input
-                                            id="patient-mrn"
-                                            placeholder="MRN123456"
-                                            value={newPatient.patient_id_number}
-                                            onChange={(e) => setNewPatient({ ...newPatient, patient_id_number: e.target.value })}
-                                            className="h-11 bg-slate-50"
-                                            data-testid="wizard-patient-mrn"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="patient-gender">Gender</Label>
-                                        <Select 
-                                            onValueChange={(v) => setNewPatient({ ...newPatient, gender: v })} 
-                                            value={newPatient.gender}
-                                        >
-                                            <SelectTrigger className="h-11 bg-slate-50" data-testid="wizard-patient-gender">
-                                                <SelectValue placeholder="Select" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="male">Male</SelectItem>
-                                                <SelectItem value="female">Female</SelectItem>
-                                                <SelectItem value="other">Other</SelectItem>
-                                            </SelectContent>
-                                        </Select>
+
+                                {/* Medical Information */}
+                                <div>
+                                    <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-3">
+                                        Medical Information
+                                    </h3>
+                                    <div className="space-y-4 border-t pt-4">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="patient-department">Department</Label>
+                                                <Input
+                                                    id="patient-department"
+                                                    placeholder="e.g., Oncology"
+                                                    value={newPatient.department_name}
+                                                    onChange={(e) => setNewPatient({ ...newPatient, department_name: e.target.value })}
+                                                    className="h-11 bg-slate-50"
+                                                    data-testid="wizard-patient-department"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="patient-provider">Provider Name</Label>
+                                                <Input
+                                                    id="patient-provider"
+                                                    placeholder="e.g., Dr. Smith"
+                                                    value={newPatient.department_provider_name}
+                                                    onChange={(e) => setNewPatient({ ...newPatient, department_provider_name: e.target.value })}
+                                                    className="h-11 bg-slate-50"
+                                                    data-testid="wizard-patient-provider"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="patient-diagnosis">Primary Diagnosis</Label>
+                                            <Input
+                                                id="patient-diagnosis"
+                                                placeholder="e.g., Lung Cancer Stage II"
+                                                value={newPatient.primary_diagnosis}
+                                                onChange={(e) => setNewPatient({ ...newPatient, primary_diagnosis: e.target.value })}
+                                                className="h-11 bg-slate-50"
+                                                data-testid="wizard-patient-diagnosis"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="patient-allergies">Allergies</Label>
+                                            <Textarea
+                                                id="patient-allergies"
+                                                placeholder="List any known allergies"
+                                                value={newPatient.allergies}
+                                                onChange={(e) => setNewPatient({ ...newPatient, allergies: e.target.value })}
+                                                rows={2}
+                                                className="bg-slate-50"
+                                                data-testid="wizard-patient-allergies"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="patient-medications">Current Medications</Label>
+                                            <Textarea
+                                                id="patient-medications"
+                                                placeholder="List current medications and dosages"
+                                                value={newPatient.current_medications}
+                                                onChange={(e) => setNewPatient({ ...newPatient, current_medications: e.target.value })}
+                                                rows={2}
+                                                className="bg-slate-50"
+                                                data-testid="wizard-patient-medications"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="patient-notes">Notes</Label>
+                                            <Textarea
+                                                id="patient-notes"
+                                                placeholder="Additional clinical notes"
+                                                value={newPatient.notes}
+                                                onChange={(e) => setNewPatient({ ...newPatient, notes: e.target.value })}
+                                                rows={3}
+                                                className="bg-slate-50"
+                                                data-testid="wizard-patient-notes"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="patient-dob">Date of Birth</Label>
-                                        <Input
-                                            id="patient-dob"
-                                            type="date"
-                                            value={newPatient.date_of_birth}
-                                            onChange={(e) => setNewPatient({ ...newPatient, date_of_birth: e.target.value })}
-                                            className="h-11 bg-slate-50"
-                                            max={new Date().toISOString().split('T')[0]}
-                                            min="1900-01-01"
-                                            data-testid="wizard-patient-dob"
-                                        />
-                                        <p className="text-xs text-slate-500">Must be a valid date in the past</p>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="patient-diagnosis">Primary Diagnosis</Label>
-                                        <Input
-                                            id="patient-diagnosis"
-                                            placeholder="e.g., Lung Cancer Stage II"
-                                            value={newPatient.primary_diagnosis}
-                                            onChange={(e) => setNewPatient({ ...newPatient, primary_diagnosis: e.target.value })}
-                                            className="h-11 bg-slate-50"
-                                            data-testid="wizard-patient-diagnosis"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="patient-department">Department</Label>
-                                    <Input
-                                        id="patient-department"
-                                        placeholder="e.g., Oncology"
-                                        value={newPatient.department_name}
-                                        onChange={(e) => setNewPatient({ ...newPatient, department_name: e.target.value })}
-                                        className="h-11 bg-slate-50"
-                                        data-testid="wizard-patient-department"
-                                    />
-                                </div>
+
                                 <Button
                                     className="w-full"
                                     onClick={handleAddNewPatient}

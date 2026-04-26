@@ -638,6 +638,8 @@ async def create_meeting(meeting: MeetingCreate, current_user: dict = Depends(ge
     })
     
     # Add participants
+    # Reload the meeting doc so we get the latest teams_join_url (auto-generated above).
+    fresh_meeting = await db.meetings.find_one({"id": meeting_id}, {"_id": 0})
     for participant_id in meeting.participant_ids or []:
         if participant_id != current_user['id']:
             await db.meeting_participants.insert_one({
@@ -657,9 +659,15 @@ async def create_meeting(meeting: MeetingCreate, current_user: dict = Depends(ge
                         "id": meeting_id,
                         "title": meeting.title,
                         "description": meeting.description,
+                        "meeting_date": meeting.meeting_date,
+                        "start_time": meeting.start_time,
+                        # legacy fields kept for backward compat
                         "date": meeting.meeting_date,
                         "time": meeting.start_time,
-                        "location": meeting.location or "To be announced"
+                        "location": meeting.location or "To be announced",
+                        "organizer_timezone": (fresh_meeting or {}).get("organizer_timezone"),
+                        "teams_join_url": (fresh_meeting or {}).get("teams_join_url"),
+                        "video_link": meeting.video_link,
                     }
                     send_meeting_invite(
                         meeting=meeting_data,
@@ -1013,9 +1021,15 @@ async def add_participant(meeting_id: str, invite: ParticipantInvite, current_us
                 "id": meeting_id,
                 "title": meeting.get('title'),
                 "description": meeting.get('description'),
+                "meeting_date": meeting.get('meeting_date'),
+                "start_time": meeting.get('start_time'),
+                # legacy fields
                 "date": meeting.get('meeting_date'),
                 "time": meeting.get('start_time'),
-                "location": meeting.get('location') or "To be announced"
+                "location": meeting.get('location') or "To be announced",
+                "organizer_timezone": meeting.get('organizer_timezone'),
+                "teams_join_url": meeting.get('teams_join_url'),
+                "video_link": meeting.get('video_link'),
             }
             send_meeting_invite(
                 meeting=meeting_data,
