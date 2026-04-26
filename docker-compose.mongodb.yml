@@ -51,7 +51,19 @@ services:
       - SMTP_PASSWORD=${SMTP_PASSWORD:-}
       - SMTP_FROM=${SMTP_FROM:-}
       - SMTP_USE_TLS=${SMTP_USE_TLS:-true}
-      
+
+      # Email Reminder Scheduler (1h-before reminders)
+      - EMAIL_REMINDERS_ENABLED=${EMAIL_REMINDERS_ENABLED:-true}
+      - REMINDER_POLL_SECONDS=${REMINDER_POLL_SECONDS:-300}
+
+      # Microsoft Teams / Graph API Configuration (Optional)
+      # Obtain these from Azure Entra ID > App Registrations.
+      # Required for auto-generating Teams meeting links.
+      - GRAPH_CLIENT_ID=${GRAPH_CLIENT_ID:-}
+      - GRAPH_TENANT_ID=${GRAPH_TENANT_ID:-}
+      - GRAPH_CLIENT_SECRET=${GRAPH_CLIENT_SECRET:-}
+      - GRAPH_USER_ID=${GRAPH_USER_ID:-}
+
       # Upload Directory
       - UPLOAD_DIR=/app/uploads
     ports:
