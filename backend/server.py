@@ -43,7 +43,13 @@ from utils.email import (
     send_simple_account_setup_email
 )
 from utils.pdf_generator import generate_meeting_summary_pdf
-from utils.holiday_checker import get_holiday_checker, validate_meeting_date
+from utils.holiday_checker import (
+    get_holiday_checker,
+    validate_meeting_date,
+    validate_meeting_date_for_user,
+    get_default_holidays_for_country,
+    country_to_key,
+)
 from services.teams_service import get_teams_service
 
 app = FastAPI(title="Hospital Meeting Scheduler API")
@@ -350,9 +356,11 @@ async def update_user(user_id: str, updates: dict, current_user: dict = Depends(
     
     # Admin/Organizer can update email and specialty, users can update their own info
     if is_admin_or_organizer:
-        allowed_fields = ['name', 'first_name', 'last_name', 'email', 'specialty', 'organization', 'phone', 'language', 'country', 'timezone']
+        allowed_fields = ['name', 'first_name', 'last_name', 'email', 'specialty', 'organization', 'phone', 'language', 'country', 'timezone',
+                          'holiday_enforcement_enabled', 'enabled_default_holidays', 'custom_holidays']
     else:
-        allowed_fields = ['name', 'first_name', 'last_name', 'email', 'specialty', 'organization', 'phone', 'language', 'country', 'timezone']
+        allowed_fields = ['name', 'first_name', 'last_name', 'email', 'specialty', 'organization', 'phone', 'language', 'country', 'timezone',
+                          'holiday_enforcement_enabled', 'enabled_default_holidays', 'custom_holidays']
     
     update_data = {k: v for k, v in updates.items() if k in allowed_fields}
 
@@ -532,10 +540,10 @@ async def list_meetings(filter_type: Optional[str] = None, status: Optional[str]
 async def create_meeting(meeting: MeetingCreate, current_user: dict = Depends(get_current_user)):
     meeting_id = str(uuid.uuid4())
     
-    # Validate meeting date against holidays
+    # Validate meeting date against the organizer's user-managed holiday preferences
     try:
         meeting_date_obj = datetime.strptime(meeting.meeting_date, '%Y-%m-%d').date()
-        holiday_validation = validate_meeting_date(meeting_date_obj)
+        holiday_validation = validate_meeting_date_for_user(meeting_date_obj, current_user)
         
         if not holiday_validation['valid']:
             holiday_name = holiday_validation['holiday_name']
@@ -1878,6 +1886,17 @@ async def toggle_holiday_enforcement(
 
 
 # ============== Holiday Calendar Endpoints ==============
+
+@api_router.get("/holidays/defaults")
+async def get_default_holidays(country: str, current_user: dict = Depends(get_current_user)):
+    """Return the canonical list of default holidays for a country
+    (US/IN/GB or USA/India/UK), used by the Settings UI checkbox list."""
+    try:
+        return {"country": country, "holidays": get_default_holidays_for_country(country)}
+    except Exception as e:
+        logger.error(f"Error loading default holidays for {country}: {e}")
+        raise HTTPException(status_code=500, detail="Error loading holidays")
+
 
 @api_router.get("/holidays/countries")
 async def get_available_countries():

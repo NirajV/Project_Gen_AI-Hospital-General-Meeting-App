@@ -7,6 +7,7 @@ import { Loader2, Save, Globe } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import { updateUser } from '@/lib/api';
 import { LANGUAGES, COUNTRIES, TIMEZONES } from '@/lib/regionalData';
+import HolidaysCard from '@/components/profile/HolidaysCard';
 
 export default function SettingsTab({ user, onUpdated }) {
     const [saving, setSaving] = useState(false);
@@ -46,7 +47,8 @@ export default function SettingsTab({ user, onUpdated }) {
     };
 
     return (
-        <Card data-testid="regional-settings-card">
+        <div className="space-y-6">
+            <Card data-testid="regional-settings-card">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     <Globe className="w-5 h-5" /> Regional Settings
@@ -134,5 +136,8 @@ export default function SettingsTab({ user, onUpdated }) {
                 </form>
             </CardContent>
         </Card>
+
+        <HolidaysCard user={user} onUpdated={onUpdated} />
+        </div>
     );
 }

@@ -19,6 +19,9 @@ class UserBase(BaseModel):
     language: Optional[str] = "en-US"
     country: Optional[str] = "US"
     timezone: Optional[str] = "America/New_York"
+    holiday_enforcement_enabled: Optional[bool] = True
+    enabled_default_holidays: Optional[List[str]] = None
+    custom_holidays: Optional[List[dict]] = None
 
 
 class UserCreate(UserBase):

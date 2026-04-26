@@ -269,6 +269,109 @@ def validate_meeting_date(meeting_date: date, country_code: str = None) -> Dict:
     return checker.validate_meeting_date(meeting_date, country_code)
 
 
+# Country code mapping (ISO 3166-1 alpha-2 -> internal key used in JSON)
+_COUNTRY_KEY_MAP = {
+    'US': 'USA',
+    'IN': 'India',
+    'GB': 'UK',
+}
+
+
+def country_to_key(country: str) -> str:
+    """Map ISO-2 (US/IN/GB) or legacy key (USA/India/UK) to JSON key."""
+    if not country:
+        return 'USA'
+    return _COUNTRY_KEY_MAP.get(country, country)
+
+
+def get_default_holidays_for_country(country: str) -> List[Dict]:
+    """
+    Return the canonical (de-duplicated by name) list of holidays for a country.
+    Used by Settings UI to render the checkbox list.
+    """
+    checker = get_holiday_checker()
+    key = country_to_key(country)
+    country_data = checker.config.get('countries', {}).get(key)
+    if not country_data:
+        return []
+    holidays_by_year = country_data.get('holidays', {})
+    seen = {}
+    for _year, items in holidays_by_year.items():
+        for h in items:
+            name = h.get('name')
+            if name and name not in seen:
+                seen[name] = {'name': name, 'sample_date': h.get('date')}
+    return list(seen.values())
+
+
+def validate_meeting_date_for_user(meeting_date: date, user: Dict) -> Dict:
+    """
+    Per-user validation: respects the user's `holiday_enforcement_enabled`,
+    selected default-holiday names, and custom_holidays list.
+
+    Falls back to global validate_meeting_date when the user has no preferences.
+    """
+    if not user:
+        return validate_meeting_date(meeting_date)
+
+    enforcement = user.get('holiday_enforcement_enabled')
+    if enforcement is False:
+        return {
+            'valid': True,
+            'is_holiday': False,
+            'holiday_name': None,
+            'message': 'Holiday enforcement disabled',
+            'holiday_info': None,
+            'country': user.get('country', 'US'),
+            'enforcement_enabled': False,
+        }
+
+    # 1) Custom holidays — exact-date match (or month/day if recurring)
+    date_str = meeting_date.strftime('%Y-%m-%d')
+    md_str = meeting_date.strftime('%m-%d')
+    for ch in user.get('custom_holidays') or []:
+        ch_date = ch.get('date')
+        if not ch_date:
+            continue
+        if ch_date == date_str:
+            return _holiday_invalid(meeting_date, ch.get('name', 'Custom Holiday'),
+                                     user.get('country', 'US'))
+        if ch.get('recurring') and len(ch_date) >= 10 and ch_date[5:10] == md_str:
+            return _holiday_invalid(meeting_date, ch.get('name', 'Custom Holiday'),
+                                     user.get('country', 'US'))
+
+    # 2) Selected default holidays — match by name against country's JSON entries
+    enabled_names = set(user.get('enabled_default_holidays') or [])
+    if enabled_names:
+        checker = get_holiday_checker()
+        is_hol, info = checker.is_holiday(meeting_date, country_to_key(user.get('country', 'US')))
+        if is_hol and info and info.get('name') in enabled_names:
+            return _holiday_invalid(meeting_date, info.get('name'),
+                                     user.get('country', 'US'), info)
+
+    return {
+        'valid': True,
+        'is_holiday': False,
+        'holiday_name': None,
+        'message': 'Meeting date is available',
+        'holiday_info': None,
+        'country': user.get('country', 'US'),
+        'enforcement_enabled': True,
+    }
+
+
+def _holiday_invalid(meeting_date: date, name: str, country: str, info: Dict = None) -> Dict:
+    return {
+        'valid': False,
+        'is_holiday': True,
+        'holiday_name': name,
+        'message': f"Cannot schedule meeting on {name}",
+        'holiday_info': info,
+        'country': country,
+        'enforcement_enabled': True,
+    }
+
+
 def get_upcoming_holidays(days: int = 30) -> List[Dict]:
     """Get upcoming holidays"""
     checker = get_holiday_checker()
