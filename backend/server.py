@@ -350,11 +350,20 @@ async def update_user(user_id: str, updates: dict, current_user: dict = Depends(
     
     # Admin/Organizer can update email and specialty, users can update their own info
     if is_admin_or_organizer:
-        allowed_fields = ['name', 'email', 'specialty', 'organization', 'phone']
+        allowed_fields = ['name', 'first_name', 'last_name', 'email', 'specialty', 'organization', 'phone', 'language', 'country', 'timezone']
     else:
-        allowed_fields = ['name', 'specialty', 'organization', 'phone']
+        allowed_fields = ['name', 'first_name', 'last_name', 'email', 'specialty', 'organization', 'phone', 'language', 'country', 'timezone']
     
     update_data = {k: v for k, v in updates.items() if k in allowed_fields}
+
+    # Auto-sync `name` from first_name/last_name when both provided
+    if 'first_name' in update_data or 'last_name' in update_data:
+        existing = await db.users.find_one({"id": user_id}, {"_id": 0})
+        fn = update_data.get('first_name', existing.get('first_name', '') if existing else '')
+        ln = update_data.get('last_name', existing.get('last_name', '') if existing else '')
+        combined = f"{fn} {ln}".strip()
+        if combined:
+            update_data['name'] = combined
     
     # If updating email, check if it's unique
     if 'email' in update_data:
@@ -581,6 +590,7 @@ async def create_meeting(meeting: MeetingCreate, current_user: dict = Depends(ge
         "recurrence_day_of_month": meeting.recurrence_day_of_month,
         "status": "scheduled",
         "organizer_id": current_user['id'],
+        "organizer_timezone": current_user.get('timezone') or 'UTC',
         "created_at": datetime.now(timezone.utc).isoformat(),
         "teams_meeting_id": None,
         "teams_join_url": None

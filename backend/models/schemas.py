@@ -10,10 +10,15 @@ from typing import List, Optional
 class UserBase(BaseModel):
     email: EmailStr
     name: str
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
     specialty: Optional[str] = None
     organization: Optional[str] = None
     phone: Optional[str] = None
     role: Optional[str] = "doctor"
+    language: Optional[str] = "en-US"
+    country: Optional[str] = "US"
+    timezone: Optional[str] = "America/New_York"
 
 
 class UserCreate(UserBase):

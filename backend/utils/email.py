@@ -122,10 +122,12 @@ def send_meeting_invite(
     template = load_email_template("meeting_invite")
     if not template:
         return False
-    
-    # Parse meeting date and time
-    meeting_date = meeting.get('date', 'TBD')
-    meeting_time = meeting.get('time', 'TBD')
+
+    # Format meeting date/time in the recipient's timezone (Plan B regional support)
+    from utils.timezone_utils import format_meeting_time_for_user
+    meeting_date, meeting_time = format_meeting_time_for_user(
+        meeting, participant.get('timezone')
+    )
     
     # Create accept/decline links
     meeting_id = meeting.get('id', '')
@@ -235,14 +237,20 @@ def send_meeting_reminder(
     
     reminder_text = "24 hours" if reminder_type == "24h" else "1 hour"
     meeting_link = f"{frontend_url}/meetings/{meeting.get('id', '')}"
-    
+
+    # Format meeting date/time in the recipient's timezone (Plan B regional support)
+    from utils.timezone_utils import format_meeting_time_for_user
+    meeting_date, meeting_time = format_meeting_time_for_user(
+        meeting, participant.get('timezone')
+    )
+
     template_obj = Template(template)
     html_content = template_obj.render(
         participant_name=participant.get('name', 'there'),
         reminder_time=reminder_text,
         meeting_title=meeting.get('title', 'Meeting'),
-        meeting_date=meeting.get('date', 'TBD'),
-        meeting_time=meeting.get('time', 'TBD'),
+        meeting_date=meeting_date,
+        meeting_time=meeting_time,
         meeting_location=meeting.get('location', 'To be announced'),
         meeting_link=meeting_link
     )

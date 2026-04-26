@@ -35,6 +35,9 @@ export const getDashboardStats = () => api.get('/dashboard/stats');
 export const getUsers = () => api.get('/users').then(res => ({ data: res.data }));
 export const getUser = (id) => api.get(`/users/${id}`);
 export const updateUser = (id, data) => api.put(`/users/${id}`, data);
+export const changePassword = ({ current_password, new_password }) =>
+    api.post('/auth/change-password', { current_password, new_password });
+export const submitFeedback = (data) => api.post('/feedback', data);
 
 // Patients
 export const getPatients = (params) => api.get('/patients', { params });
