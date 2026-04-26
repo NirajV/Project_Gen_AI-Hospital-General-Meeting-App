@@ -16,11 +16,17 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
-// Handle 401 responses
+// Handle 401 responses — but only for true session expiry. Domain-level
+// 401s (e.g. "current password is incorrect" from /auth/change-password)
+// must surface to the caller instead of forcing a logout.
+const SESSION_401_WHITELIST = ['/auth/change-password', '/auth/login'];
+
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response?.status === 401) {
+        const url = error.config?.url || '';
+        const isWhitelisted = SESSION_401_WHITELIST.some((path) => url.includes(path));
+        if (error.response?.status === 401 && !isWhitelisted) {
             localStorage.removeItem('auth_token');
             window.location.href = '/login';
         }
