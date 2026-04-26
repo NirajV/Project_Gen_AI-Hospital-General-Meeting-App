@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createMeeting, getUsers, getPatients, createPatient } from '@/lib/api';
+import { createMeeting, getUsers, getPatients, createPatient, generateStandaloneTeamsLink } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import Layout from '@/components/Layout';
+import { toast } from '@/components/ui/sonner';
 import { 
     ArrowLeft, ArrowRight, Calendar, Users, User, FileText,
     Video, MapPin, Loader2, Check, X, Plus, Trash2, Mail, UserPlus
@@ -41,6 +42,7 @@ export default function MeetingWizardPage() {
         department_name: '' 
     });
     const [addingPatient, setAddingPatient] = useState(false);
+    const [generatingTeamsLink, setGeneratingTeamsLink] = useState(false);
 
     const [formData, setFormData] = useState({
         title: '',
@@ -95,6 +97,29 @@ export default function MeetingWizardPage() {
 
     const handleSelectChange = (name, value) => {
         setFormData({ ...formData, [name]: value });
+    };
+
+    const handleGenerateTeamsLink = async () => {
+        if (!formData.title || !formData.meeting_date || !formData.start_time || !formData.end_time) {
+            toast.error('Enter title, date, start time and end time first.');
+            return;
+        }
+        setGeneratingTeamsLink(true);
+        try {
+            const res = await generateStandaloneTeamsLink({
+                title: formData.title,
+                meeting_date: formData.meeting_date,
+                start_time: formData.start_time,
+                end_time: formData.end_time,
+            });
+            setFormData((prev) => ({ ...prev, video_link: res.data.teams_join_url }));
+            toast.success('Teams meeting link generated.');
+        } catch (err) {
+            const detail = err?.response?.data?.detail || err.message;
+            toast.error(typeof detail === 'string' ? detail : 'Failed to generate Teams link.');
+        } finally {
+            setGeneratingTeamsLink(false);
+        }
     };
 
     const toggleParticipant = (userId) => {
@@ -515,7 +540,29 @@ export default function MeetingWizardPage() {
                         )}
                         {(formData.meeting_type === 'video' || formData.meeting_type === 'hybrid') && (
                             <div className="space-y-2">
-                                <Label htmlFor="video_link">Meeting Link *</Label>
+                                <div className="flex items-center justify-between">
+                                    <Label htmlFor="video_link">Meeting Link *</Label>
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={handleGenerateTeamsLink}
+                                        disabled={generatingTeamsLink}
+                                        data-testid="generate-teams-link-wizard-btn"
+                                    >
+                                        {generatingTeamsLink ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                Generating…
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Video className="w-4 h-4 mr-2" />
+                                                Generate Teams Link
+                                            </>
+                                        )}
+                                    </Button>
+                                </div>
                                 <Input
                                     id="video_link"
                                     name="video_link"
@@ -526,7 +573,7 @@ export default function MeetingWizardPage() {
                                     data-testid="video-link-input"
                                 />
                                 <p className="text-xs text-slate-500">
-                                    Paste the full link from Teams, Zoom, or other video platform
+                                    Click <strong>Generate Teams Link</strong> to auto-create one, or paste a Zoom / other video platform link manually.
                                 </p>
                             </div>
                         )}

@@ -61,6 +61,9 @@ export const addPatientToMeeting = (meetingId, data) => api.post(`/meetings/${me
 export const removePatientFromMeeting = (meetingId, patientId) => api.delete(`/meetings/${meetingId}/patients/${patientId}`);
 export const approvePatientAddition = (meetingId, patientId) => api.post(`/meetings/${meetingId}/patients/${patientId}/approve`);
 
+export const generateStandaloneTeamsLink = ({ title, meeting_date, start_time, end_time }) =>
+    api.post('/teams/generate-link', { title, meeting_date, start_time, end_time });
+
 // Agenda
 export const addAgendaItem = (meetingId, data) => api.post(`/meetings/${meetingId}/agenda`, data);
 export const updateAgendaItem = (meetingId, itemId, data) => api.put(`/meetings/${meetingId}/agenda/${itemId}`, data);

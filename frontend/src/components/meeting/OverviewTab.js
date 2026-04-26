@@ -47,7 +47,7 @@ export default function OverviewTab({
                         )}
                         {meeting.video_link && (
                             <div>
-                                <Label className="text-muted-foreground">Video Link</Label>
+                                <Label className="text-muted-foreground">Meeting Link</Label>
                                 <a
                                     href={meeting.video_link}
                                     target="_blank"
