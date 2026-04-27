@@ -134,10 +134,42 @@ export const TIPS = [
         ],
         related: ['add-agenda'],
     },
+
+    // ─── Settings & Help ─────────────────────────────────────────
+    {
+        id: 'use-holidays-settings',
+        category: 'Settings & Help',
+        icon: '📆',
+        title: 'How to use Holidays in Settings',
+        summary: 'Block meeting scheduling on the holidays you observe.',
+        steps: [
+            'Click your avatar → Profile → Settings tab.',
+            'In the "Holidays" card, toggle "Enforcement on/off" at the top right. When on, the system blocks meeting creation on configured holidays.',
+            'Tick the default holidays for your country (US/India/UK) you want enforced.',
+            'Add a custom holiday (e.g., your hospital\'s foundation day) with name + date. Tick "Repeat yearly" if it\'s recurring.',
+            'Click "Save Holiday Preferences". From now on, attempts to create a meeting on those dates will be blocked with a friendly error.',
+        ],
+        related: ['create-meeting'],
+    },
+    {
+        id: 'send-feedback',
+        category: 'Settings & Help',
+        icon: '💬',
+        title: 'How to send feedback',
+        summary: 'Found a bug or have an idea? Tell us — we read everything.',
+        steps: [
+            'Click your avatar → Profile → Feedback tab.',
+            'Choose a type: Feature Request, Bug Report, General Feedback, or Other.',
+            'Add a short Subject and a detailed Message.',
+            'Click "Submit Feedback". You\'ll get a confirmation toast — your message lands directly in our queue.',
+        ],
+        related: [],
+    },
 ];
 
 export const TIP_CATEGORIES = [
     'Getting Started',
     'Participants & Patients',
     'Agenda & Files',
+    'Settings & Help',
 ];
