@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import TipsDrawer from '@/components/help/TipsDrawer';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -83,7 +84,8 @@ export default function Layout({ children }) {
                         </nav>
 
                         {/* User Menu */}
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                            <TipsDrawer />
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" className="relative h-9 w-9 rounded-full" data-testid="user-menu-trigger">
