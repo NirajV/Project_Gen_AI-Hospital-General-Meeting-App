@@ -39,9 +39,12 @@ export default function FeedbackTab() {
     };
 
     return (
-        <Card data-testid="feedback-card">
+        <Card
+            data-testid="feedback-card"
+            className="border-t-4 border-t-purple-500 bg-gradient-to-br from-purple-50/60 via-white to-purple-50/30"
+        >
             <CardHeader>
-                <CardTitle>Send Feedback</CardTitle>
+                <CardTitle className="text-purple-900">Send Feedback</CardTitle>
                 <CardDescription>
                     Found a bug? Have an idea? Tell us — we read every message.
                 </CardDescription>

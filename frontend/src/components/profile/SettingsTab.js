@@ -48,9 +48,12 @@ export default function SettingsTab({ user, onUpdated }) {
 
     return (
         <div className="space-y-6">
-            <Card data-testid="regional-settings-card">
+            <Card
+                data-testid="regional-settings-card"
+                className="border-t-4 border-t-amber-500 bg-gradient-to-br from-amber-50/60 via-white to-amber-50/30"
+            >
             <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-amber-900">
                     <Globe className="w-5 h-5" /> Regional Settings
                 </CardTitle>
                 <CardDescription>

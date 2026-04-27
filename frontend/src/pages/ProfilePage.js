@@ -42,16 +42,32 @@ export default function ProfilePage() {
 
                 <Tabs defaultValue={defaultTab} className="w-full">
                     <TabsList className="grid w-full grid-cols-4">
-                        <TabsTrigger value="profile" data-testid="tab-profile">
+                        <TabsTrigger
+                            value="profile"
+                            data-testid="tab-profile"
+                            className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-900 data-[state=active]:border-b-2 data-[state=active]:border-blue-500"
+                        >
                             Profile Information
                         </TabsTrigger>
-                        <TabsTrigger value="password" data-testid="tab-password">
+                        <TabsTrigger
+                            value="password"
+                            data-testid="tab-password"
+                            className="data-[state=active]:bg-emerald-100 data-[state=active]:text-emerald-900 data-[state=active]:border-b-2 data-[state=active]:border-emerald-500"
+                        >
                             Change Password
                         </TabsTrigger>
-                        <TabsTrigger value="settings" data-testid="tab-settings">
+                        <TabsTrigger
+                            value="settings"
+                            data-testid="tab-settings"
+                            className="data-[state=active]:bg-amber-100 data-[state=active]:text-amber-900 data-[state=active]:border-b-2 data-[state=active]:border-amber-500"
+                        >
                             Settings
                         </TabsTrigger>
-                        <TabsTrigger value="feedback" data-testid="tab-feedback">
+                        <TabsTrigger
+                            value="feedback"
+                            data-testid="tab-feedback"
+                            className="data-[state=active]:bg-purple-100 data-[state=active]:text-purple-900 data-[state=active]:border-b-2 data-[state=active]:border-purple-500"
+                        >
                             Feedback
                         </TabsTrigger>
                     </TabsList>

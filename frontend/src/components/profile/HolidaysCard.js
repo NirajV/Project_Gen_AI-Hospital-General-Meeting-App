@@ -89,11 +89,14 @@ export default function HolidaysCard({ user, onUpdated }) {
     };
 
     return (
-        <Card data-testid="holidays-card">
+        <Card
+            data-testid="holidays-card"
+            className="border-t-4 border-t-amber-500 bg-gradient-to-br from-amber-50/60 via-white to-amber-50/30"
+        >
             <CardHeader>
                 <div className="flex items-start justify-between gap-4">
                     <div>
-                        <CardTitle className="flex items-center gap-2">
+                        <CardTitle className="flex items-center gap-2 text-amber-900">
                             <CalendarDays className="w-5 h-5" /> Holidays
                         </CardTitle>
                         <CardDescription className="mt-1">

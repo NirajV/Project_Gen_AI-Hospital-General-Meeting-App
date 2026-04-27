@@ -64,9 +64,12 @@ export default function ProfileInformationTab({ user, onUpdated }) {
     const username = user?.email || '—';
 
     return (
-        <Card data-testid="profile-information-card">
+        <Card
+            data-testid="profile-information-card"
+            className="border-t-4 border-t-blue-500 bg-gradient-to-br from-blue-50/60 via-white to-blue-50/30"
+        >
             <CardHeader>
-                <CardTitle>Profile Information</CardTitle>
+                <CardTitle className="text-blue-900">Profile Information</CardTitle>
                 <CardDescription>
                     Update your personal details. Your username cannot be changed.
                 </CardDescription>

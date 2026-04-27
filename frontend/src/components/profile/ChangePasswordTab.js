@@ -43,9 +43,12 @@ export default function ChangePasswordTab() {
     };
 
     return (
-        <Card data-testid="change-password-card">
+        <Card
+            data-testid="change-password-card"
+            className="border-t-4 border-t-emerald-500 bg-gradient-to-br from-emerald-50/60 via-white to-emerald-50/30"
+        >
             <CardHeader>
-                <CardTitle>Change Password</CardTitle>
+                <CardTitle className="text-emerald-900">Change Password</CardTitle>
                 <CardDescription>
                     Choose a strong password (minimum 8 characters).
                 </CardDescription>
