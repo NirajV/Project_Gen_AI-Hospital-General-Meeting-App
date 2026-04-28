@@ -870,21 +870,22 @@ async def update_meeting(meeting_id: str, updates: dict, current_user: dict = De
             new_time = update_data.get('start_time', meeting.get('start_time'))
             old_date = meeting.get('meeting_date')
             old_time = meeting.get('start_time')
-            
+
+            # Build updated meeting dict to pass into the invite-style template.
+            updated_meeting = {**meeting, **update_data}
+
             for participant_doc in participants:
                 if participant_doc['user_id'] != current_user['id']:  # Don't email organizer
                     user = await db.users.find_one({"id": participant_doc['user_id']}, {"_id": 0})
                     if user and user.get('email'):
                         try:
                             send_datetime_change_email(
-                                meeting_title=update_data.get('title', meeting.get('title', 'Meeting')),
+                                meeting=updated_meeting,
                                 participant=user,
                                 organizer=current_user,
                                 old_date=old_date,
                                 old_time=old_time,
-                                new_date=new_date,
-                                new_time=new_time,
-                                meeting_link=f"{FRONTEND_URL}/meetings/{meeting_id}"
+                                frontend_url=FRONTEND_URL,
                             )
                             logger.info(f"Sent datetime change notification to {user.get('email')}")
                         except Exception as e:

@@ -28,13 +28,27 @@ Web-based Hospital General Meeting Scheduler App for healthcare professionals. D
 - 1h-before reminders only, polled every 5 min, deduped via `reminder_1h_sent` flag
 
 ## Frontend Modular Architecture (Apr 2026)
-- `MeetingDetailPage.js`: 2,449 → 1,802 lines (-647, -26%)
+- `MeetingDetailPage.js`: 2,449 → 1,802 → **1,004 lines** (-1,445, -59%)
 - New `/app/frontend/src/components/meeting/`:
   - OverviewTab.js, PatientsTab.js, AgendaTab.js, FilesTab.js, DecisionsTab.js
+- New `/app/frontend/src/components/meeting/dialogs/` (Apr 28 2026):
+  - UploadFileDialog.js, DecisionDialog.js, DeleteMeetingDialog.js,
+    AddParticipantDialog.js, AddPatientDialog.js (+ EMPTY_PATIENT),
+    AddAgendaDialog.js (+ EMPTY_AGENDA), EditDateTimeDialog.js
 - Shared utils in `/app/frontend/src/lib/`:
   - treatmentPlanUtils.js (7-day edit window helpers)
   - meetingColors.js (rotating card palette)
 - Tested 100% pass (iter 11 + 12)
+
+## Email Template Enhancements (Apr 28 2026)
+- `meeting_invite.html`: Teams "Join" link moved inside the meeting-details box
+  directly below Location (consistent with Date/Time/Location grouping).
+- Accept / Decline / View Meeting buttons now render in a single horizontal
+  row using a 3-column `<table>` for Outlook/Gmail rendering compatibility.
+- `send_datetime_change_email` refactored to reuse `meeting_invite.html` in
+  `is_update=True` mode — renders an UPDATED banner showing the previous
+  schedule struck through, plus the full invite layout (details, Teams link,
+  action buttons, refreshed .ics attachment).
 
 ## Prioritized Backlog
 ### P0 (External Block)
@@ -48,8 +62,8 @@ Web-based Hospital General Meeting Scheduler App for healthcare professionals. D
 - [ ] Calendar Integration: Outlook + Google (chosen by user; needs scope decisions before implementation)
 
 ### P2 (Pending)
-- [ ] Further refactor: extract dialogs (EditDateTime, Upload, PatientAdd, AgendaAdd) and useMeetingDialogs hook → bring MeetingDetailPage.js < 1000 lines
 - [ ] UX hint when adding agenda with no non-organizer participants
+- [ ] First-time holiday selection prompt
 - [ ] Cloud file storage migration
 
 ### P3

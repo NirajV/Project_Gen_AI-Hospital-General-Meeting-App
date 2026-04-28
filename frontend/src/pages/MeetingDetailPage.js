@@ -1,37 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { getMeeting, updateMeeting, deleteMeeting, uploadFile, deleteFile, createDecision, updateAgendaItem, getFileUrl, getUsers, addParticipant, removeParticipant, addPatientToMeeting, addAgendaItem, getPatients, removePatientFromMeeting, deleteAgendaItem, deleteDecision, updateTreatmentPlan, approvePatientAddition } from '@/lib/api';
+import { getMeeting, updateMeeting, deleteMeeting, uploadFile, deleteFile, createDecision, updateAgendaItem, getUsers, addParticipant, removeParticipant, addPatientToMeeting, addAgendaItem, getPatients, removePatientFromMeeting, deleteAgendaItem, deleteDecision, updateTreatmentPlan, approvePatientAddition } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
 import Layout from '@/components/Layout';
 import FilesTab from '@/components/meeting/FilesTab';
 import DecisionsTab from '@/components/meeting/DecisionsTab';
 import OverviewTab from '@/components/meeting/OverviewTab';
 import PatientsTab from '@/components/meeting/PatientsTab';
 import AgendaTab from '@/components/meeting/AgendaTab';
+import UploadFileDialog from '@/components/meeting/dialogs/UploadFileDialog';
+import DecisionDialog from '@/components/meeting/dialogs/DecisionDialog';
+import DeleteMeetingDialog from '@/components/meeting/dialogs/DeleteMeetingDialog';
+import AddParticipantDialog from '@/components/meeting/dialogs/AddParticipantDialog';
+import AddPatientDialog, { EMPTY_PATIENT } from '@/components/meeting/dialogs/AddPatientDialog';
+import AddAgendaDialog, { EMPTY_AGENDA } from '@/components/meeting/dialogs/AddAgendaDialog';
+import EditDateTimeDialog from '@/components/meeting/dialogs/EditDateTimeDialog';
 import { isTreatmentPlanEditable, getRemainingEditDays } from '@/lib/treatmentPlanUtils';
 import { toast } from '@/components/ui/sonner';
 import { 
-    ArrowLeft, Calendar, Clock, Video, MapPin, Users, User, FileText,
-    CheckCircle2, XCircle, HelpCircle, Play, Upload, Trash2, Download,
-    Plus, ExternalLink, Loader2, AlertCircle, Clipboard, UserPlus, Mail, Edit, Check
+    ArrowLeft, Calendar, Clock, Video, MapPin, FileText,
+    CheckCircle2, XCircle, HelpCircle, Play, Trash2,
+    Loader2, Edit
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 
@@ -909,906 +902,103 @@ export default function MeetingDetailPage() {
                 </div>
             </div>
 
-            {/* Upload Dialog */}
-            <Dialog open={uploadDialog} onOpenChange={setUploadDialog}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Upload File</DialogTitle>
-                        <DialogDescription>Upload a document for this meeting</DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                        <div className="space-y-2">
-                            <Label>Patient (Optional)</Label>
-                            <Select value={filePatientId || 'none'} onValueChange={(v) => setFilePatientId(v === 'none' ? '' : v)}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Link to a patient (optional)" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="none">None - General file</SelectItem>
-                                    {meeting?.patients?.map((patient) => (
-                                        <SelectItem key={patient.patient_id} value={patient.patient_id}>
-                                            {patient.first_name} {patient.last_name}
-                                            {patient.patient_id_number ? ` (MRN: ${patient.patient_id_number})` : ''}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <p className="text-xs text-slate-500">Link this file to a specific patient for better organization</p>
-                        </div>
-                        <div className="space-y-2">
-                            <Label>File Type</Label>
-                            <select
-                                className="w-full h-10 px-3 rounded-md border border-input bg-background"
-                                value={fileType}
-                                onChange={(e) => setFileType(e.target.value)}
-                            >
-                                <option value="radiology">Radiology Report</option>
-                                <option value="lab">Lab Report</option>
-                                <option value="consult_note">Consultation Note</option>
-                                <option value="specialist_note">Specialist Note</option>
-                                <option value="other">Other</option>
-                            </select>
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Select File</Label>
-                            <Input type="file" onChange={(e) => setSelectedFile(e.target.files[0])} data-testid="file-input" />
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setUploadDialog(false)}>Cancel</Button>
-                        <Button onClick={handleFileUpload} disabled={!selectedFile || uploading} data-testid="confirm-upload-btn">
-                            {uploading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
-                            Upload
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            <UploadFileDialog
+                open={uploadDialog}
+                onOpenChange={setUploadDialog}
+                meetingPatients={meeting?.patients || []}
+                filePatientId={filePatientId}
+                setFilePatientId={setFilePatientId}
+                fileType={fileType}
+                setFileType={setFileType}
+                selectedFile={selectedFile}
+                setSelectedFile={setSelectedFile}
+                uploading={uploading}
+                onUpload={handleFileUpload}
+            />
 
-            {/* Decision Dialog */}
-            <Dialog open={decisionDialog} onOpenChange={setDecisionDialog}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Log Decision</DialogTitle>
-                        <DialogDescription>Record a decision or action item from this meeting</DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                        <div className="space-y-2">
-                            <Label>Patient (Optional)</Label>
-                            <Select 
-                                value={newDecision.meeting_patient_id || 'none'} 
-                                onValueChange={(v) => {
-                                    const patientId = v === 'none' ? '' : v;
-                                    setNewDecision({ ...newDecision, meeting_patient_id: patientId, patient_id: patientId });
-                                }}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Link to a patient (optional)" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="none">None - General decision</SelectItem>
-                                    {meeting?.patients?.map((patient) => (
-                                        <SelectItem key={patient.patient_id} value={patient.patient_id}>
-                                            {patient.first_name} {patient.last_name}
-                                            {patient.patient_id_number ? ` (MRN: ${patient.patient_id_number})` : ''}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <p className="text-xs text-slate-500">Link this decision to a specific patient for better organization</p>
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Title *</Label>
-                            <Input
-                                value={newDecision.title}
-                                onChange={(e) => setNewDecision({ ...newDecision, title: e.target.value })}
-                                placeholder="Decision title"
-                                data-testid="decision-title-input"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Description</Label>
-                            <Textarea
-                                value={newDecision.description}
-                                onChange={(e) => setNewDecision({ ...newDecision, description: e.target.value })}
-                                placeholder="Brief description"
-                                data-testid="decision-desc-input"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Action Plan</Label>
-                            <Textarea
-                                value={newDecision.action_plan}
-                                onChange={(e) => setNewDecision({ ...newDecision, action_plan: e.target.value })}
-                                placeholder="Next steps or action items"
-                                data-testid="decision-action-input"
-                            />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label>Priority</Label>
-                                <select
-                                    className="w-full h-10 px-3 rounded-md border border-input bg-background"
-                                    value={newDecision.priority}
-                                    onChange={(e) => setNewDecision({ ...newDecision, priority: e.target.value })}
-                                >
-                                    <option value="low">Low</option>
-                                    <option value="medium">Medium</option>
-                                    <option value="high">High</option>
-                                    <option value="urgent">Urgent</option>
-                                </select>
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Follow-up Date</Label>
-                                <Input
-                                    type="date"
-                                    value={newDecision.follow_up_date}
-                                    onChange={(e) => setNewDecision({ ...newDecision, follow_up_date: e.target.value })}
-                                    min={new Date().toISOString().split('T')[0]}
-                                    max={new Date(new Date().setFullYear(new Date().getFullYear() + 2)).toISOString().split('T')[0]}
-                                />
-                                <p className="text-xs text-slate-500">Must be a future date</p>
-                            </div>
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setDecisionDialog(false)}>Cancel</Button>
-                        <Button onClick={handleCreateDecision} disabled={!newDecision.title} data-testid="confirm-decision-btn">
-                            <Plus className="w-4 h-4 mr-2" /> Add Decision
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            <DecisionDialog
+                open={decisionDialog}
+                onOpenChange={setDecisionDialog}
+                meetingPatients={meeting?.patients || []}
+                newDecision={newDecision}
+                setNewDecision={setNewDecision}
+                onCreate={handleCreateDecision}
+            />
 
-            {/* Delete Confirmation Dialog */}
-            <Dialog open={deleteDialog} onOpenChange={setDeleteDialog}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
-                            <AlertCircle className="w-5 h-5 text-destructive" /> Cancel Meeting
-                        </DialogTitle>
-                        <DialogDescription>
-                            Are you sure you want to cancel this meeting? This action cannot be undone.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setDeleteDialog(false)}>Keep Meeting</Button>
-                        <Button variant="destructive" onClick={handleDelete} data-testid="confirm-delete-btn">
-                            Cancel Meeting
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            <DeleteMeetingDialog
+                open={deleteDialog}
+                onOpenChange={setDeleteDialog}
+                onConfirm={handleDelete}
+            />
 
-            {/* Add Participant Dialog */}
-            <Dialog open={participantDialog} onOpenChange={(open) => {
-                setParticipantDialog(open);
-                if (!open) {
-                    setInviteTab('existing');
-                    setNewInvite({ email: '', name: '', specialty: '', role: 'doctor' });
-                }
-            }}>
-                <DialogContent className="max-w-lg">
-                    <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
-                            <UserPlus className="w-5 h-5 text-primary" /> Add Participants
-                        </DialogTitle>
-                        <DialogDescription>
-                            Select existing doctors or invite someone new
-                        </DialogDescription>
-                    </DialogHeader>
-                    
-                    {/* Tab buttons */}
-                    <div className="flex gap-2 border-b pb-3">
-                        <Button
-                            variant={inviteTab === 'existing' ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => setInviteTab('existing')}
-                            data-testid="tab-existing"
-                        >
-                            <Users className="w-4 h-4 mr-2" /> Existing Doctors
-                        </Button>
-                        <Button
-                            variant={inviteTab === 'invite' ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => setInviteTab('invite')}
-                            data-testid="tab-invite-new"
-                        >
-                            <Mail className="w-4 h-4 mr-2" /> Invite by Email
-                        </Button>
-                    </div>
+            <AddParticipantDialog
+                open={participantDialog}
+                onOpenChange={(open) => {
+                    setParticipantDialog(open);
+                    if (!open) {
+                        setInviteTab('existing');
+                        setNewInvite({ email: '', name: '', specialty: '', role: 'doctor' });
+                    }
+                }}
+                inviteTab={inviteTab}
+                setInviteTab={setInviteTab}
+                newInvite={newInvite}
+                setNewInvite={setNewInvite}
+                availableUsers={getAvailableUsers()}
+                addingParticipant={addingParticipant}
+                onAddUser={handleAddParticipant}
+                inviting={inviting}
+                onInviteByEmail={handleInviteByEmail}
+            />
 
-                    {inviteTab === 'existing' ? (
-                        <div className="max-h-72 overflow-y-auto space-y-2">
-                            {getAvailableUsers().length === 0 ? (
-                                <div className="text-center py-8 text-muted-foreground">
-                                    <Users className="w-10 h-10 mx-auto mb-2 opacity-50" />
-                                    <p>All available doctors are already participants</p>
-                                    <Button 
-                                        variant="link" 
-                                        className="mt-2"
-                                        onClick={() => setInviteTab('invite')}
-                                    >
-                                        Invite someone new instead
-                                    </Button>
-                                </div>
-                            ) : (
-                                getAvailableUsers().map((availableUser, idx) => (
-                                    <div
-                                        key={availableUser.id}
-                                        className="flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:border-primary/30 hover:bg-slate-50 transition-all"
-                                        data-testid={`available-user-${idx}`}
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <Avatar className="w-10 h-10">
-                                                <AvatarImage src={availableUser.picture} />
-                                                <AvatarFallback className="bg-primary/10 text-primary">
-                                                    {availableUser.name?.charAt(0)}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                            <div>
-                                                <p className="font-medium">{availableUser.name}</p>
-                                                <p className="text-sm text-muted-foreground">
-                                                    {availableUser.specialty || availableUser.email}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <Button
-                                            size="sm"
-                                            onClick={() => handleAddParticipant(availableUser.id)}
-                                            disabled={addingParticipant}
-                                            data-testid={`add-user-${idx}`}
-                                        >
-                                            {addingParticipant ? (
-                                                <Loader2 className="w-4 h-4 animate-spin" />
-                                            ) : (
-                                                <>
-                                                    <Plus className="w-4 h-4 mr-1" /> Add
-                                                </>
-                                            )}
-                                        </Button>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                    ) : (
-                        <div className="space-y-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="invite-email">Email Address *</Label>
-                                <Input
-                                    id="invite-email"
-                                    type="email"
-                                    placeholder="doctor@hospital.com"
-                                    value={newInvite.email}
-                                    onChange={(e) => setNewInvite({ ...newInvite, email: e.target.value })}
-                                    data-testid="invite-email-input"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="invite-name">Full Name *</Label>
-                                <Input
-                                    id="invite-name"
-                                    placeholder="Dr. John Smith"
-                                    value={newInvite.name}
-                                    onChange={(e) => setNewInvite({ ...newInvite, name: e.target.value })}
-                                    data-testid="invite-name-input"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="invite-specialty">Specialty (Optional)</Label>
-                                <Input
-                                    id="invite-specialty"
-                                    placeholder="e.g., Oncology, Cardiology"
-                                    value={newInvite.specialty}
-                                    onChange={(e) => setNewInvite({ ...newInvite, specialty: e.target.value })}
-                                    data-testid="invite-specialty-input"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="invite-role">Role *</Label>
-                                <Select
-                                    value={newInvite.role}
-                                    onValueChange={(value) => setNewInvite({ ...newInvite, role: value })}
-                                >
-                                    <SelectTrigger id="invite-role" data-testid="invite-role-select">
-                                        <SelectValue placeholder="Select role" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="doctor">Doctor</SelectItem>
-                                        <SelectItem value="nurse">Nurse</SelectItem>
-                                        <SelectItem value="organizer">Organizer</SelectItem>
-                                        <SelectItem value="guest">Guest</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <Button
-                                className="w-full"
-                                onClick={handleInviteByEmail}
-                                disabled={inviting || !newInvite.email || !newInvite.name}
-                                data-testid="send-invite-btn"
-                            >
-                                {inviting ? (
-                                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Sending Invite...</>
-                                ) : (
-                                    <><Mail className="w-4 h-4 mr-2" /> Send Invite</>
-                                )}
-                            </Button>
-                            <p className="text-xs text-muted-foreground text-center">
-                                An account will be created and login credentials will be emailed to the invited person.
-                            </p>
-                        </div>
-                    )}
+            <AddPatientDialog
+                open={patientDialog}
+                onOpenChange={(open) => {
+                    setPatientDialog(open);
+                    if (!open) {
+                        setPatientTab('existing');
+                        setNewPatient({ ...EMPTY_PATIENT });
+                        setSelectedPatients([]);
+                    }
+                }}
+                patientTab={patientTab}
+                setPatientTab={setPatientTab}
+                allPatients={allPatients}
+                meetingPatients={meeting?.patients || []}
+                selectedPatients={selectedPatients}
+                setSelectedPatients={setSelectedPatients}
+                addingPatients={addingPatients}
+                onAddPatients={handleAddPatients}
+                newPatient={newPatient}
+                setNewPatient={setNewPatient}
+                creatingPatient={creatingPatient}
+                onCreateAndAdd={handleCreateAndAddPatient}
+            />
 
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setParticipantDialog(false)}>
-                            Done
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            <AddAgendaDialog
+                open={agendaDialog}
+                onOpenChange={setAgendaDialog}
+                meetingPatients={meeting?.patients || []}
+                meetingParticipants={meeting?.participants || []}
+                newAgenda={newAgenda}
+                setNewAgenda={setNewAgenda}
+                onPatientSelect={handleAgendaPatientSelect}
+                addingAgenda={addingAgenda}
+                onAdd={handleAddAgenda}
+            />
 
-            {/* Add Patient Dialog */}
-            <Dialog open={patientDialog} onOpenChange={(open) => {
-                setPatientDialog(open);
-                if (!open) {
-                    setPatientTab('existing');
-                    setNewPatient({ 
-                first_name: '', 
-                last_name: '', 
-                mrn: '', 
-                gender: '',
-                date_of_birth: '', 
-                phone: '',
-                email: '',
-                address: '',
-                department_name: '',
-                department_provider_name: '',
-                diagnosis: '',
-                allergies: '',
-                current_medications: '',
-                notes: ''
-            });
-                    setSelectedPatients([]);
-                }
-            }}>
-                <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
-                    <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
-                            <User className="w-5 h-5 text-primary" /> Add Patients to Meeting
-                        </DialogTitle>
-                        <DialogDescription>
-                            Select existing patients or create a new patient
-                        </DialogDescription>
-                    </DialogHeader>
-                    
-                    {/* Tab Buttons */}
-                    <div className="flex gap-2 border-b pb-3">
-                        <Button
-                            variant={patientTab === 'existing' ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => setPatientTab('existing')}
-                        >
-                            <Users className="w-4 h-4 mr-2" /> Existing Patients
-                        </Button>
-                        <Button
-                            variant={patientTab === 'create' ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => setPatientTab('create')}
-                        >
-                            <Plus className="w-4 h-4 mr-2" /> Create New Patient
-                        </Button>
-                    </div>
-
-                    {patientTab === 'existing' ? (
-                        <>
-                            <div className="space-y-2 max-h-96 overflow-y-auto">
-                                {allPatients.length === 0 ? (
-                                    <div className="text-center py-8 text-muted-foreground">
-                                        <User className="w-10 h-10 mx-auto mb-2 opacity-50" />
-                                        <p>No patients available</p>
-                                        <Button 
-                                            variant="link" 
-                                            className="mt-2"
-                                            onClick={() => setPatientTab('create')}
-                                        >
-                                            Create a new patient instead
-                                        </Button>
-                                    </div>
-                                ) : (
-                                    allPatients
-                                        .filter(p => !meeting?.patients?.some(mp => mp.patient_id === p.id))
-                                        .map((patient) => (
-                                            <div
-                                                key={patient.id}
-                                                className="flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:border-primary/30 hover:bg-slate-50 cursor-pointer"
-                                                onClick={() => {
-                                                    const isSelected = selectedPatients.includes(patient.id);
-                                                    if (isSelected) {
-                                                        setSelectedPatients(selectedPatients.filter(id => id !== patient.id));
-                                                    } else {
-                                                        setSelectedPatients([...selectedPatients, patient.id]);
-                                                    }
-                                                }}
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <Checkbox
-                                                        checked={selectedPatients.includes(patient.id)}
-                                                        onCheckedChange={(checked) => {
-                                                            if (checked) {
-                                                                setSelectedPatients([...selectedPatients, patient.id]);
-                                                            } else {
-                                                                setSelectedPatients(selectedPatients.filter(id => id !== patient.id));
-                                                            }
-                                                        }}
-                                                    />
-                                                    <div>
-                                                        <p className="font-medium">{patient.first_name} {patient.last_name}</p>
-                                                        <p className="text-sm text-muted-foreground">
-                                                            {patient.primary_diagnosis || patient.patient_id_number}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))
-                                )}
-                            </div>
-                            {allPatients.filter(p => !meeting?.patients?.some(mp => mp.patient_id === p.id)).length > 0 && selectedPatients.length === 0 && (
-                                <div className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-lg p-3">
-                                    💡 Click on a patient row or checkbox to select patients to add
-                                </div>
-                            )}
-                            <DialogFooter>
-                                <Button variant="outline" onClick={() => {
-                                    setPatientDialog(false);
-                                    setSelectedPatients([]);
-                                }}>
-                                    Cancel
-                                </Button>
-                                <Button 
-                                    onClick={handleAddPatients}
-                                    disabled={selectedPatients.length === 0 || addingPatients}
-                                >
-                                    {addingPatients ? (
-                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                    ) : (
-                                        <Plus className="w-4 h-4 mr-2" />
-                                    )}
-                                    {selectedPatients.length > 0 ? `Add (${selectedPatients.length})` : 'Select patients'}
-                                </Button>
-                            </DialogFooter>
-                        </>
-                    ) : (
-                        <div className="space-y-4">
-                            {/* Basic Information Section */}
-                            <div className="space-y-4">
-                                <h4 className="text-sm font-semibold text-slate-700 border-b pb-2">Basic Information</h4>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label>First Name *</Label>
-                                        <Input
-                                            placeholder="John"
-                                            value={newPatient.first_name}
-                                            onChange={(e) => setNewPatient({ ...newPatient, first_name: e.target.value })}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label>Last Name *</Label>
-                                        <Input
-                                            placeholder="Doe"
-                                            value={newPatient.last_name}
-                                            onChange={(e) => setNewPatient({ ...newPatient, last_name: e.target.value })}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label>MRN (Medical Record Number) *</Label>
-                                        <Input
-                                            placeholder="MRN123456"
-                                            value={newPatient.mrn}
-                                            onChange={(e) => setNewPatient({ ...newPatient, mrn: e.target.value })}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label>Gender</Label>
-                                        <Select 
-                                            value={newPatient.gender} 
-                                            onValueChange={(value) => setNewPatient({ ...newPatient, gender: value })}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select gender" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="male">Male</SelectItem>
-                                                <SelectItem value="female">Female</SelectItem>
-                                                <SelectItem value="other">Other</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label>Date of Birth *</Label>
-                                        <Input
-                                            type="date"
-                                            max={new Date().toISOString().split('T')[0]}
-                                            value={newPatient.date_of_birth}
-                                            onChange={(e) => setNewPatient({ ...newPatient, date_of_birth: e.target.value })}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label>Phone</Label>
-                                        <Input
-                                            placeholder="+1 (555) 123-4567"
-                                            value={newPatient.phone}
-                                            onChange={(e) => setNewPatient({ ...newPatient, phone: e.target.value })}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Email</Label>
-                                    <Input
-                                        type="email"
-                                        placeholder="patient@email.com"
-                                        value={newPatient.email}
-                                        onChange={(e) => setNewPatient({ ...newPatient, email: e.target.value })}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Address</Label>
-                                    <Textarea
-                                        placeholder="Full address"
-                                        value={newPatient.address}
-                                        onChange={(e) => setNewPatient({ ...newPatient, address: e.target.value })}
-                                        rows={2}
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Medical Information Section */}
-                            <div className="space-y-4">
-                                <h4 className="text-sm font-semibold text-slate-700 border-b pb-2">Medical Information</h4>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label>Department</Label>
-                                        <Input
-                                            placeholder="e.g., Oncology"
-                                            value={newPatient.department_name}
-                                            onChange={(e) => setNewPatient({ ...newPatient, department_name: e.target.value })}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label>Provider Name</Label>
-                                        <Input
-                                            placeholder="e.g., Dr. Smith"
-                                            value={newPatient.department_provider_name}
-                                            onChange={(e) => setNewPatient({ ...newPatient, department_provider_name: e.target.value })}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Primary Diagnosis</Label>
-                                    <Textarea
-                                        placeholder="Enter primary diagnosis"
-                                        value={newPatient.diagnosis}
-                                        onChange={(e) => setNewPatient({ ...newPatient, diagnosis: e.target.value })}
-                                        rows={2}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Allergies</Label>
-                                    <Textarea
-                                        placeholder="List any known allergies"
-                                        value={newPatient.allergies}
-                                        onChange={(e) => setNewPatient({ ...newPatient, allergies: e.target.value })}
-                                        rows={2}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Current Medications</Label>
-                                    <Textarea
-                                        placeholder="List current medications"
-                                        value={newPatient.current_medications}
-                                        onChange={(e) => setNewPatient({ ...newPatient, current_medications: e.target.value })}
-                                        rows={2}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Additional Notes</Label>
-                                    <Textarea
-                                        placeholder="Any additional notes"
-                                        value={newPatient.notes}
-                                        onChange={(e) => setNewPatient({ ...newPatient, notes: e.target.value })}
-                                        rows={2}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800">
-                                <AlertCircle className="w-4 h-4" />
-                                <span>Patient will be created in the system and added to this meeting</span>
-                            </div>
-                            <DialogFooter>
-                                <Button
-                                    variant="outline"
-                                    onClick={() => {
-                                        setNewPatient({ 
-                first_name: '', 
-                last_name: '', 
-                mrn: '', 
-                gender: '',
-                date_of_birth: '', 
-                phone: '',
-                email: '',
-                address: '',
-                department_name: '',
-                department_provider_name: '',
-                diagnosis: '',
-                allergies: '',
-                current_medications: '',
-                notes: ''
-            });
-                                        setPatientTab('existing');
-                                    }}
-                                >
-                                    Cancel
-                                </Button>
-                                <Button
-                                    onClick={handleCreateAndAddPatient}
-                                    disabled={!newPatient.first_name || !newPatient.last_name || !newPatient.mrn || !newPatient.date_of_birth || creatingPatient}
-                                >
-                                    {creatingPatient ? (
-                                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Creating...</>
-                                    ) : (
-                                        <><Plus className="w-4 h-4 mr-2" /> Create & Add</>
-                                    )}
-                                </Button>
-                            </DialogFooter>
-                        </div>
-                    )}
-                </DialogContent>
-            </Dialog>
-
-            {/* Add Agenda Item Dialog */}
-            <Dialog open={agendaDialog} onOpenChange={setAgendaDialog}>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                    <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
-                            <Clipboard className="w-5 h-5 text-primary" /> Add Agenda Item (Patient Case)
-                        </DialogTitle>
-                        <DialogDescription>
-                            Add a new patient case to the meeting agenda with all required medical information
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                        {/* Patient Name */}
-                        <div className="space-y-2">
-                            <Label htmlFor="agenda-patient">Patient Name *</Label>
-                            <Select 
-                                value={newAgenda.patient_id || ''} 
-                                onValueChange={handleAgendaPatientSelect}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select a patient" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {meeting?.patients?.map((mp) => (
-                                        <SelectItem key={mp.patient_id} value={mp.patient_id}>
-                                            {mp.first_name} {mp.last_name} 
-                                            {mp.patient_id_number ? ` (MRN: ${mp.patient_id_number})` : ''}
-                                        </SelectItem>
-                                    ))}
-                                    {(!meeting?.patients || meeting.patients.length === 0) && (
-                                        <SelectItem value="no-patients" disabled>
-                                            No patients in this meeting
-                                        </SelectItem>
-                                    )}
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        {/* MRN */}
-                        <div className="space-y-2">
-                            <Label htmlFor="agenda-mrn">MRN (Medical Record Number) *</Label>
-                            <Input
-                                id="agenda-mrn"
-                                value={newAgenda.mrn}
-                                onChange={(e) => setNewAgenda({ ...newAgenda, mrn: e.target.value })}
-                                placeholder="e.g., 12345"
-                            />
-                            <p className="text-xs text-slate-500">Auto-filled if available, otherwise enter manually</p>
-                        </div>
-
-                        {/* Requested Provider */}
-                        <div className="space-y-2">
-                            <Label htmlFor="agenda-provider">Requested Provider *</Label>
-                            <Select 
-                                value={newAgenda.requested_provider} 
-                                onValueChange={(value) => setNewAgenda({ ...newAgenda, requested_provider: value })}
-                            >
-                                <SelectTrigger id="agenda-provider">
-                                    <SelectValue placeholder="Select a provider from meeting participants" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {meeting?.participants?.filter(p => p.role !== 'organizer').length === 0 ? (
-                                        <SelectItem value="no-participants" disabled>
-                                            No participants in this meeting
-                                        </SelectItem>
-                                    ) : (
-                                        meeting?.participants?.filter(p => p.role !== 'organizer').map((participant) => (
-                                            <SelectItem key={participant.user_id} value={participant.name}>
-                                                {participant.name}
-                                                {participant.specialty ? ` - ${participant.specialty}` : ''}
-                                            </SelectItem>
-                                        ))
-                                    )}
-                                </SelectContent>
-                            </Select>
-                            <p className="text-xs text-slate-500">Select from invited doctors/participants</p>
-                        </div>
-
-                        {/* Diagnosis */}
-                        <div className="space-y-2">
-                            <Label htmlFor="agenda-diagnosis">Diagnosis *</Label>
-                            <Input
-                                id="agenda-diagnosis"
-                                value={newAgenda.diagnosis}
-                                onChange={(e) => setNewAgenda({ ...newAgenda, diagnosis: e.target.value })}
-                                placeholder="e.g., Lung Cancer Stage 2"
-                            />
-                        </div>
-
-                        {/* Reason for Discussion */}
-                        <div className="space-y-2">
-                            <Label htmlFor="agenda-reason">Reason For Discussion *</Label>
-                            <Textarea
-                                id="agenda-reason"
-                                value={newAgenda.reason_for_discussion}
-                                onChange={(e) => setNewAgenda({ ...newAgenda, reason_for_discussion: e.target.value })}
-                                placeholder="Brief explanation of why this case needs discussion"
-                                rows={3}
-                            />
-                        </div>
-
-                        {/* Checkboxes Row */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="flex items-center space-x-3 p-3 rounded-lg border border-slate-200">
-                                <Checkbox 
-                                    id="dialog-pathology"
-                                    checked={newAgenda.pathology_required}
-                                    onCheckedChange={(checked) => setNewAgenda({ ...newAgenda, pathology_required: checked })}
-                                />
-                                <Label htmlFor="dialog-pathology" className="text-sm font-medium cursor-pointer">
-                                    Pathology Review Required *
-                                </Label>
-                            </div>
-                            <div className="flex items-center space-x-3 p-3 rounded-lg border border-slate-200">
-                                <Checkbox 
-                                    id="dialog-radiology"
-                                    checked={newAgenda.radiology_required}
-                                    onCheckedChange={(checked) => setNewAgenda({ ...newAgenda, radiology_required: checked })}
-                                />
-                                <Label htmlFor="dialog-radiology" className="text-sm font-medium cursor-pointer">
-                                    Radiology Review Required *
-                                </Label>
-                            </div>
-                        </div>
-
-                        {/* Treatment Plan (Optional) */}
-                        <div className="space-y-2">
-                            <Label htmlFor="agenda-treatment">Treatment Plan (Optional - can be updated during meeting)</Label>
-                            <Textarea
-                                id="agenda-treatment"
-                                value={newAgenda.treatment_plan}
-                                onChange={(e) => setNewAgenda({ ...newAgenda, treatment_plan: e.target.value })}
-                                placeholder="Treatment plan notes (can be updated later)"
-                                rows={3}
-                            />
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => {
-                            setAgendaDialog(false);
-                            setNewAgenda({
-                                patient_id: '',
-                                mrn: '',
-                                requested_provider: '',
-                                diagnosis: '',
-                                reason_for_discussion: '',
-                                pathology_required: false,
-                                radiology_required: false,
-                                treatment_plan: ''
-                            });
-                        }}>
-                            Cancel
-                        </Button>
-                        <Button 
-                            onClick={handleAddAgenda}
-                            disabled={addingAgenda}
-                        >
-                            {addingAgenda ? (
-                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            ) : (
-                                <Plus className="w-4 h-4 mr-2" />
-                            )}
-                            Add Agenda Item
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-            
-            {/* Edit Date/Time Dialog */}
-            <Dialog open={showEditDateTimeDialog} onOpenChange={setShowEditDateTimeDialog}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Edit Meeting Date & Time</DialogTitle>
-                        <DialogDescription>
-                            Update the meeting schedule. All participants will be notified of the change.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="edit-date">Meeting Date *</Label>
-                            <Input
-                                id="edit-date"
-                                type="date"
-                                value={editedDate}
-                                onChange={(e) => setEditedDate(e.target.value)}
-                                required
-                            />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="edit-start-time">Start Time *</Label>
-                                <Input
-                                    id="edit-start-time"
-                                    type="time"
-                                    value={editedStartTime}
-                                    onChange={(e) => setEditedStartTime(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="edit-end-time">End Time</Label>
-                                <Input
-                                    id="edit-end-time"
-                                    type="time"
-                                    value={editedEndTime}
-                                    onChange={(e) => setEditedEndTime(e.target.value)}
-                                />
-                            </div>
-                        </div>
-                        <div className="rounded-md bg-blue-50 p-4 text-sm text-blue-800">
-                            <div className="flex items-start gap-2">
-                                <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                                <div>
-                                    <strong>Note:</strong> All accepted participants will receive an email notification about this schedule change.
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setShowEditDateTimeDialog(false)}>
-                            Cancel
-                        </Button>
-                        <Button 
-                            onClick={handleDateTimeUpdate}
-                            disabled={isUpdatingDateTime || !editedDate || !editedStartTime}
-                        >
-                            {isUpdatingDateTime ? (
-                                <>
-                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                    Updating...
-                                </>
-                            ) : (
-                                <>
-                                    <Clock className="w-4 h-4 mr-2" />
-                                    Update Date & Time
-                                </>
-                            )}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            <EditDateTimeDialog
+                open={showEditDateTimeDialog}
+                onOpenChange={setShowEditDateTimeDialog}
+                editedDate={editedDate}
+                setEditedDate={setEditedDate}
+                editedStartTime={editedStartTime}
+                setEditedStartTime={setEditedStartTime}
+                editedEndTime={editedEndTime}
+                setEditedEndTime={setEditedEndTime}
+                isUpdatingDateTime={isUpdatingDateTime}
+                onUpdate={handleDateTimeUpdate}
+            />
         </Layout>
     );
 }

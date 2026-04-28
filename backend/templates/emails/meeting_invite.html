@@ -97,13 +97,55 @@
         }
         .button {
             display: inline-block;
-            padding: 12px 30px;
-            margin: 0 10px;
+            padding: 12px 20px;
             text-decoration: none;
             border-radius: 6px;
             font-weight: 600;
             font-size: 14px;
             transition: all 0.3s;
+            white-space: nowrap;
+        }
+        .button-row {
+            width: 100%;
+            margin: 30px 0;
+            border-collapse: separate;
+            border-spacing: 8px 0;
+        }
+        .button-row td {
+            text-align: center;
+            vertical-align: middle;
+        }
+        .update-banner {
+            background-color: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 16px 18px;
+            margin: 0 0 24px 0;
+            border-radius: 4px;
+        }
+        .update-banner .update-title {
+            margin: 0;
+            color: #92400e;
+            font-weight: 700;
+            font-size: 15px;
+        }
+        .update-banner .update-body {
+            margin: 6px 0 0 0;
+            color: #78350f;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .update-banner .old-schedule {
+            margin: 10px 0 0 0;
+            color: #78350f;
+            font-size: 13px;
+        }
+        .update-banner .old-schedule s {
+            color: #b45309;
+        }
+        .teams-link-inline a {
+            color: #6264a7;
+            font-weight: 600;
+            text-decoration: none;
         }
         .btn-accept {
             background-color: #10b981;
@@ -140,13 +182,31 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🏥 Meeting Invitation</h1>
+            <h1>{% if is_update %}🔄 Meeting Updated{% else %}🏥 Meeting Invitation{% endif %}</h1>
         </div>
-        
+
         <p class="greeting">Dear {{ participant_name }},</p>
-        
+
+        {% if is_update %}
+        <div class="update-banner">
+            <p class="update-title">⚠️ This meeting has been rescheduled</p>
+            <p class="update-body">
+                <strong>{{ organizer_name }}</strong> has changed the date and/or time of this meeting. Please review the updated schedule below and update your calendar.
+            </p>
+            {% if old_date or old_time %}
+            <p class="old-schedule">
+                Previous schedule: <s>{{ old_date }}{% if old_time %} at {{ old_time }}{% endif %}</s>
+            </p>
+            {% endif %}
+        </div>
+        {% endif %}
+
         <p class="invitation-text">
+            {% if is_update %}
+            The updated details for <strong>{{ meeting_title }}</strong> are below. Your participation remains requested — please re-confirm your attendance using the buttons below.
+            {% else %}
             You are cordially invited to attend the <strong>{{ meeting_title }}</strong> to discuss a comprehensive treatment plan. Your expertise and input are vital to ensuring the best possible outcome.
+            {% endif %}
         </p>
         
         <div class="meeting-details">
@@ -166,6 +226,15 @@
                 <span class="detail-label">📍 Location:</span>
                 <span>{{ meeting_location }}</span>
             </div>
+
+            {% if meeting_join_url %}
+            <div class="detail-row teams-link-inline">
+                <span class="detail-label">🎥 Teams:</span>
+                <span>
+                    <a href="{{ meeting_join_url }}">Join Teams Meeting</a>
+                </span>
+            </div>
+            {% endif %}
             
             {% if meeting_description %}
             <div class="detail-row" style="margin-top: 15px;">
@@ -201,25 +270,19 @@
             </div>
         </div>
         
-        <div class="button-container">
-            <a href="{{ accept_link }}" class="button btn-accept">✓ Accept Invitation</a>
-            <a href="{{ decline_link }}" class="button btn-decline">✗ Decline</a>
-        </div>
-
-        {% if meeting_join_url %}
-        <div style="text-align: center; margin: 20px 0;">
-            <a href="{{ meeting_join_url }}" class="button btn-accept" style="background: #6264a7; color: #ffffff;">
-                🎥 Join Teams Meeting
-            </a>
-            <p style="font-size: 12px; color: #666; margin-top: 8px; word-break: break-all;">
-                Or copy this link: <a href="{{ meeting_join_url }}" style="color: #6264a7;">{{ meeting_join_url }}</a>
-            </p>
-        </div>
-        {% endif %}
-
-        <div style="text-align: center; margin: 20px 0;">
-            <a href="{{ view_link }}" class="button btn-view">View Meeting Details</a>
-        </div>
+        <table role="presentation" class="button-row" cellpadding="0" cellspacing="0">
+            <tr>
+                <td>
+                    <a href="{{ accept_link }}" class="button btn-accept">✓ Accept</a>
+                </td>
+                <td>
+                    <a href="{{ decline_link }}" class="button btn-decline">✗ Decline</a>
+                </td>
+                <td>
+                    <a href="{{ view_link }}" class="button btn-view">View Meeting</a>
+                </td>
+            </tr>
+        </table>
         
         <div class="closing">
             <p>I look forward to our meeting and a productive session.</p>
