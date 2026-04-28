@@ -32,53 +32,77 @@ def send_email(
     to_email: str,
     subject: str,
     html_content: str,
-    text_content: Optional[str] = None
+    text_content: Optional[str] = None,
+    ics_content: Optional[str] = None,
+    ics_filename: str = "invite.ics",
 ) -> bool:
     """
     Send an email using SMTP configuration
-    
+
     Args:
         to_email: Recipient email address
         subject: Email subject
         html_content: HTML email body
         text_content: Plain text email body (optional)
-    
+        ics_content: iCalendar (.ics) content string — if provided, attached
+            as a calendar invite so recipient calendars (Outlook/Google/Apple)
+            can add the event in their local timezone, honoring any RRULE.
+        ics_filename: Filename for the .ics attachment
+
     Returns:
         bool: True if email sent successfully, False otherwise
     """
     if not EMAIL_ENABLED:
         logger.info(f"Email disabled. Would send to {to_email}: {subject}")
         return True
-    
+
     if not SMTP_USER or not SMTP_PASSWORD:
         logger.error("SMTP credentials not configured")
         return False
-    
+
     try:
-        # Create message
-        msg = MIMEMultipart('alternative')
+        # When an ICS attachment is present we must use a `mixed` container so
+        # clients show the calendar invite even with our HTML body.
+        if ics_content:
+            msg = MIMEMultipart('mixed')
+        else:
+            msg = MIMEMultipart('alternative')
+
         msg['Subject'] = subject
         msg['From'] = SMTP_FROM
         msg['To'] = to_email
-        
-        # Add text and HTML parts
+
+        body = MIMEMultipart('alternative') if ics_content else msg
         if text_content:
-            part1 = MIMEText(text_content, 'plain')
-            msg.attach(part1)
-        
-        part2 = MIMEText(html_content, 'html')
-        msg.attach(part2)
-        
+            body.attach(MIMEText(text_content, 'plain'))
+        body.attach(MIMEText(html_content, 'html'))
+        if ics_content:
+            msg.attach(body)
+
+            # 1) Inline calendar part so Outlook/Gmail show "Add to calendar".
+            cal_part = MIMEText(ics_content, 'calendar; method=REQUEST; charset="UTF-8"')
+            cal_part.add_header('Content-Class', 'urn:content-classes:calendarmessage')
+            msg.attach(cal_part)
+
+            # 2) Also attach as a regular file so less-advanced clients download it.
+            from email.mime.base import MIMEBase
+            from email import encoders as _encoders
+            att = MIMEBase('text', 'calendar', method='REQUEST', name=ics_filename)
+            att.set_payload(ics_content.encode('utf-8'))
+            _encoders.encode_base64(att)
+            att.add_header('Content-Disposition', f'attachment; filename="{ics_filename}"')
+            msg.attach(att)
+
         # Send email
         with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
             if SMTP_USE_TLS:
                 server.starttls()
             server.login(SMTP_USER, SMTP_PASSWORD)
             server.send_message(msg)
-        
+
         logger.info(f"Email sent successfully to {to_email}")
         return True
-        
+
     except Exception as e:
         logger.error(f"Failed to send email to {to_email}: {str(e)}")
         return False
@@ -155,11 +179,29 @@ def send_meeting_invite(
     )
     
     subject = f"Meeting Invitation: {meeting.get('title', 'New Meeting')}"
-    
+
+    # Build .ics calendar attachment so recipients can one-click add to
+    # Outlook / Google / Apple calendars in their local timezone, with
+    # recurrence preserved.
+    ics_content = None
+    try:
+        from utils.ics_builder import build_meeting_ics
+        ics_content = build_meeting_ics(
+            meeting=meeting,
+            organizer_email=organizer.get('email', SMTP_FROM or 'no-reply@medmeet.local'),
+            organizer_name=organizer.get('name', 'Hospital Meeting'),
+            participant_email=participant.get('email'),
+            participant_name=participant.get('name'),
+        )
+    except Exception as e:
+        logger.warning(f"Could not build .ics for meeting {meeting.get('id')}: {e}")
+
     return send_email(
         to_email=participant.get('email'),
         subject=subject,
-        html_content=html_content
+        html_content=html_content,
+        ics_content=ics_content,
+        ics_filename=f"{meeting.get('title', 'meeting').replace(' ', '_')}.ics",
     )
 
 

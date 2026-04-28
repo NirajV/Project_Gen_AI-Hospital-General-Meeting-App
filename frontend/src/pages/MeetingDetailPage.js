@@ -636,6 +636,13 @@ export default function MeetingDetailPage() {
     };
 
     const isOrganizer = meeting?.organizer_id === user?.id;
+    // Any accepted participant — or the organizer — can start/complete the meeting.
+    // Rationale: organizer may not attend every session.
+    const userParticipant = meeting?.participants?.find((p) => p.user_id === user?.id);
+    const canControlMeeting =
+        isOrganizer ||
+        userParticipant?.response_status === 'accepted' ||
+        userParticipant?.role === 'organizer';
 
     if (loading) {
         return (
@@ -729,12 +736,12 @@ export default function MeetingDetailPage() {
                                 )}
                             </Button>
                         )}
-                        {isOrganizer && meeting.status === 'scheduled' && (
+                        {canControlMeeting && meeting.status === 'scheduled' && (
                             <Button className="bg-accent hover:bg-accent/90" onClick={() => handleStatusChange('in_progress')} data-testid="start-btn">
                                 <Play className="w-4 h-4 mr-2" /> Start Meeting
                             </Button>
                         )}
-                        {isOrganizer && meeting.status === 'in_progress' && (
+                        {canControlMeeting && meeting.status === 'in_progress' && (
                             <Button variant="outline" onClick={() => handleStatusChange('completed')} data-testid="complete-btn">
                                 <CheckCircle2 className="w-4 h-4 mr-2" /> Complete
                             </Button>

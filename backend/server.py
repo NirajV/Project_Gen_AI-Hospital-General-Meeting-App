@@ -5,6 +5,7 @@ from typing import List, Optional
 from pathlib import Path
 import uuid
 from datetime import datetime, timezone, timedelta, date, time
+from zoneinfo import ZoneInfo
 import secrets
 import aiofiles
 import httpx
@@ -608,11 +609,22 @@ async def create_meeting(meeting: MeetingCreate, current_user: dict = Depends(ge
     # Auto-generate Teams meeting link
     try:
         teams_service = get_teams_service()
-        
-        # Parse meeting date and times for Teams
-        meeting_datetime = datetime.strptime(f"{meeting.meeting_date} {meeting.start_time}", "%Y-%m-%d %H:%M")
-        end_datetime = datetime.strptime(f"{meeting.meeting_date} {meeting.end_time}", "%Y-%m-%d %H:%M")
-        
+
+        # Interpret meeting start/end in the ORGANIZER's timezone, not the
+        # server's naive time. Teams stores the aware datetime and each viewer
+        # sees it converted to their own calendar's timezone automatically.
+        organizer_tz_name = current_user.get('timezone') or 'UTC'
+        try:
+            tz = ZoneInfo(organizer_tz_name)
+        except Exception:
+            tz = ZoneInfo('UTC')
+        meeting_datetime = datetime.strptime(
+            f"{meeting.meeting_date} {meeting.start_time}", "%Y-%m-%d %H:%M"
+        ).replace(tzinfo=tz)
+        end_datetime = datetime.strptime(
+            f"{meeting.meeting_date} {meeting.end_time}", "%Y-%m-%d %H:%M"
+        ).replace(tzinfo=tz)
+
         # Create Teams meeting
         teams_meeting = await teams_service.create_online_meeting(
             subject=f"{meeting.title} - Hospital Meeting",
@@ -669,6 +681,7 @@ async def create_meeting(meeting: MeetingCreate, current_user: dict = Depends(ge
                         "description": meeting.description,
                         "meeting_date": meeting.meeting_date,
                         "start_time": meeting.start_time,
+                        "end_time": meeting.end_time,
                         # legacy fields kept for backward compat
                         "date": meeting.meeting_date,
                         "time": meeting.start_time,
@@ -676,6 +689,7 @@ async def create_meeting(meeting: MeetingCreate, current_user: dict = Depends(ge
                         "organizer_timezone": (fresh_meeting or {}).get("organizer_timezone"),
                         "teams_join_url": (fresh_meeting or {}).get("teams_join_url"),
                         "video_link": meeting.video_link,
+                        "recurrence_type": meeting.recurrence_type,
                     }
                     send_meeting_invite(
                         meeting=meeting_data,
@@ -807,8 +821,26 @@ async def update_meeting(meeting_id: str, updates: dict, current_user: dict = De
     if not meeting:
         raise HTTPException(status_code=404, detail="Meeting not found")
     
-    if meeting['organizer_id'] != current_user['id']:
-        raise HTTPException(status_code=403, detail="Only organizer can update meeting")
+    # Permissions: organizer can edit anything. Accepted participants can only
+    # change `status` (Start/Complete Meeting) — per product requirement so the
+    # meeting can proceed even if the organizer isn't present.
+    is_org = meeting['organizer_id'] == current_user['id']
+    status_only_update = set(updates.keys()) == {"status"}
+    participant_doc = None
+    if not is_org:
+        participant_doc = await db.meeting_participants.find_one(
+            {"meeting_id": meeting_id, "user_id": current_user['id']}, {"_id": 0}
+        )
+    is_accepted_participant = (
+        participant_doc is not None
+        and participant_doc.get("response_status") == "accepted"
+    )
+
+    if not is_org and not (status_only_update and is_accepted_participant):
+        raise HTTPException(
+            status_code=403,
+            detail="Only the organizer (or an accepted participant for Start/Complete) can update this meeting",
+        )
     
     allowed_fields = ['title', 'description', 'meeting_date', 'start_time', 'end_time',
                       'meeting_type', 'location', 'video_link', 'status', 'recurrence_type']
@@ -1031,6 +1063,7 @@ async def add_participant(meeting_id: str, invite: ParticipantInvite, current_us
                 "description": meeting.get('description'),
                 "meeting_date": meeting.get('meeting_date'),
                 "start_time": meeting.get('start_time'),
+                "end_time": meeting.get('end_time'),
                 # legacy fields
                 "date": meeting.get('meeting_date'),
                 "time": meeting.get('start_time'),
@@ -1038,6 +1071,7 @@ async def add_participant(meeting_id: str, invite: ParticipantInvite, current_us
                 "organizer_timezone": meeting.get('organizer_timezone'),
                 "teams_join_url": meeting.get('teams_join_url'),
                 "video_link": meeting.get('video_link'),
+                "recurrence_type": meeting.get('recurrence_type'),
             }
             send_meeting_invite(
                 meeting=meeting_data,
@@ -1545,9 +1579,18 @@ async def generate_teams_link(meeting_id: str, current_user: dict = Depends(get_
                 )
             )
 
-        # Parse meeting date and times
-        meeting_datetime = datetime.strptime(f"{meeting['meeting_date']} {meeting['start_time']}", "%Y-%m-%d %H:%M")
-        end_datetime = datetime.strptime(f"{meeting['meeting_date']} {meeting['end_time']}", "%Y-%m-%d %H:%M")
+        # Parse meeting date and times in the meeting's organizer timezone
+        tz_name = meeting.get('organizer_timezone') or 'UTC'
+        try:
+            tz = ZoneInfo(tz_name)
+        except Exception:
+            tz = ZoneInfo('UTC')
+        meeting_datetime = datetime.strptime(
+            f"{meeting['meeting_date']} {meeting['start_time']}", "%Y-%m-%d %H:%M"
+        ).replace(tzinfo=tz)
+        end_datetime = datetime.strptime(
+            f"{meeting['meeting_date']} {meeting['end_time']}", "%Y-%m-%d %H:%M"
+        ).replace(tzinfo=tz)
 
         # Create Teams meeting
         teams_meeting = await teams_service.create_online_meeting(
@@ -1615,12 +1658,17 @@ async def generate_standalone_teams_link(
             )
 
         try:
+            tz_name = current_user.get('timezone') or 'UTC'
+            try:
+                tz = ZoneInfo(tz_name)
+            except Exception:
+                tz = ZoneInfo('UTC')
             meeting_dt = datetime.strptime(
                 f"{payload.meeting_date} {payload.start_time}", "%Y-%m-%d %H:%M"
-            )
+            ).replace(tzinfo=tz)
             end_dt = datetime.strptime(
                 f"{payload.meeting_date} {payload.end_time}", "%Y-%m-%d %H:%M"
-            )
+            ).replace(tzinfo=tz)
         except ValueError:
             raise HTTPException(
                 status_code=400,
