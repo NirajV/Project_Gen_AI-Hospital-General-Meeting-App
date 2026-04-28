@@ -985,6 +985,10 @@ export default function MeetingDetailPage() {
                 onPatientSelect={handleAgendaPatientSelect}
                 addingAgenda={addingAgenda}
                 onAdd={handleAddAgenda}
+                onAddParticipantClick={() => {
+                    setAgendaDialog(false);
+                    openParticipantDialog();
+                }}
             />
 
             <EditDateTimeDialog

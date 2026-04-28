@@ -50,6 +50,15 @@ Web-based Hospital General Meeting Scheduler App for healthcare professionals. D
   schedule struck through, plus the full invite layout (details, Teams link,
   action buttons, refreshed .ics attachment).
 
+## First-time Region Setup + Agenda UX (Apr 28 2026)
+- `HolidaySetupPrompt` (new, mounted in `Layout`): persistent toast with
+  **Set now** CTA → `/settings`. Triggered only when `user.country` is empty.
+  Session-scoped dismissal via `sessionStorage` key `holiday_setup_prompt_dismissed`.
+- `AddAgendaDialog`: when the meeting has zero non-organizer participants,
+  an inline amber warning banner is shown with an **Add Participant Now**
+  shortcut button that closes the agenda dialog and opens the participant
+  dialog (wired via new `onAddParticipantClick` prop from `MeetingDetailPage`).
+
 ## Prioritized Backlog
 ### P0 (External Block)
 - [ ] Wait for MS Teams policy propagation; verify meeting creation generates link
@@ -62,9 +71,7 @@ Web-based Hospital General Meeting Scheduler App for healthcare professionals. D
 - [ ] Calendar Integration: Outlook + Google (chosen by user; needs scope decisions before implementation)
 
 ### P2 (Pending)
-- [ ] UX hint when adding agenda with no non-organizer participants
-- [ ] First-time holiday selection prompt
-- [ ] Cloud file storage migration
+- [ ] Cloud file storage migration (S3 / Azure Blob)
 
 ### P3
 - [ ] AI summary generation

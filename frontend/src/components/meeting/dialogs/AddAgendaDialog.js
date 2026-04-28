@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import {
     Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
-import { Clipboard, Plus, Loader2 } from 'lucide-react';
+import { Clipboard, Plus, Loader2, UserPlus, AlertTriangle } from 'lucide-react';
 
 const EMPTY_AGENDA = {
     patient_id: '',
@@ -31,8 +31,10 @@ export default function AddAgendaDialog({
     onPatientSelect,
     addingAgenda,
     onAdd,
+    onAddParticipantClick,
 }) {
     const nonOrganizerParticipants = meetingParticipants.filter((p) => p.role !== 'organizer');
+    const hasNoProviders = nonOrganizerParticipants.length === 0;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -45,6 +47,36 @@ export default function AddAgendaDialog({
                         Add a new patient case to the meeting agenda with all required medical information
                     </DialogDescription>
                 </DialogHeader>
+
+                {hasNoProviders && (
+                    <div
+                        className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4"
+                        data-testid="no-participants-hint"
+                    >
+                        <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                        <div className="flex-1 space-y-2">
+                            <p className="text-sm font-semibold text-amber-900">
+                                No participants available as Requested Provider
+                            </p>
+                            <p className="text-sm text-amber-800">
+                                The Requested Provider must be a meeting participant (other than the organizer).
+                                Please add at least one participant first, then come back to create this agenda item.
+                            </p>
+                            {onAddParticipantClick && (
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="mt-1 border-amber-300 bg-white text-amber-900 hover:bg-amber-100"
+                                    onClick={onAddParticipantClick}
+                                    data-testid="agenda-add-participant-shortcut"
+                                >
+                                    <UserPlus className="w-4 h-4 mr-2" /> Add Participant Now
+                                </Button>
+                            )}
+                        </div>
+                    </div>
+                )}
+
                 <div className="space-y-4">
                     <div className="space-y-2">
                         <Label htmlFor="agenda-patient">Patient Name *</Label>

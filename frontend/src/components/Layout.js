@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import TipsDrawer from '@/components/help/TipsDrawer';
+import HolidaySetupPrompt from '@/components/HolidaySetupPrompt';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -41,6 +42,7 @@ export default function Layout({ children }) {
 
     return (
         <div className="min-h-screen bg-background">
+            <HolidaySetupPrompt />
             {/* Top Navigation */}
             <header className="sticky top-0 z-50 w-full border-b-2 border-slate-200/80 bg-white shadow-sm">
                 <div className="container mx-auto px-4 lg:px-8">
