@@ -173,3 +173,7 @@ export const TIP_CATEGORIES = [
     'Agenda & Files',
     'Settings & Help',
 ];
+
+// Exported as a getter function — prevents the preview environment's visual-edits
+// babel plugin from attempting to cross-file-trace this array through JSX.
+export const getTips = () => TIPS;
