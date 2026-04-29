@@ -153,6 +153,50 @@ class TeamsService:
             logger.error(f"Failed to retrieve Teams meeting: {str(e)}")
             return None
     
+    async def update_online_meeting(
+        self,
+        meeting_id: str,
+        start_datetime: Optional[datetime] = None,
+        end_datetime: Optional[datetime] = None,
+        subject: Optional[str] = None,
+    ) -> bool:
+        """
+        Update an existing Teams meeting (start/end time and/or subject).
+
+        Args:
+            meeting_id: Microsoft Graph onlineMeeting id
+            start_datetime: New start time (timezone-aware preferred)
+            end_datetime: New end time (timezone-aware preferred)
+            subject: New subject (optional)
+
+        Returns:
+            True if updated successfully, False otherwise.
+        """
+        try:
+            update_body = OnlineMeeting()
+            if subject is not None:
+                update_body.subject = subject
+            if start_datetime is not None:
+                if start_datetime.tzinfo is None:
+                    start_datetime = start_datetime.replace(tzinfo=timezone.utc)
+                update_body.start_date_time = start_datetime
+            if end_datetime is not None:
+                if end_datetime.tzinfo is None:
+                    end_datetime = end_datetime.replace(tzinfo=timezone.utc)
+                update_body.end_date_time = end_datetime
+
+            await self.client.users.by_user_id(
+                self.user_id
+            ).online_meetings.by_online_meeting_id(meeting_id).patch(update_body)
+
+            logger.info(f"Successfully updated Teams meeting: {meeting_id}")
+            return True
+
+        except Exception as e:
+            error_detail = self._extract_graph_error(e)
+            logger.error(f"Failed to update Teams meeting {meeting_id}: {error_detail}")
+            return False
+
     async def delete_meeting(self, meeting_id: str) -> bool:
         """
         Delete a Teams meeting

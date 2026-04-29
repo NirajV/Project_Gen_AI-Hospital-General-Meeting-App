@@ -821,9 +821,11 @@ async def update_meeting(meeting_id: str, updates: dict, current_user: dict = De
     if not meeting:
         raise HTTPException(status_code=404, detail="Meeting not found")
     
-    # Permissions: organizer can edit anything. Accepted participants can only
+    # Permissions: organizer can edit anything. Any meeting participant can
     # change `status` (Start/Complete Meeting) — per product requirement so the
-    # meeting can proceed even if the organizer isn't present.
+    # meeting can proceed even if the organizer isn't present and so any
+    # accepted/pending participant can mark the meeting completed once the
+    # Teams call has ended.
     is_org = meeting['organizer_id'] == current_user['id']
     status_only_update = set(updates.keys()) == {"status"}
     participant_doc = None
@@ -831,15 +833,12 @@ async def update_meeting(meeting_id: str, updates: dict, current_user: dict = De
         participant_doc = await db.meeting_participants.find_one(
             {"meeting_id": meeting_id, "user_id": current_user['id']}, {"_id": 0}
         )
-    is_accepted_participant = (
-        participant_doc is not None
-        and participant_doc.get("response_status") == "accepted"
-    )
+    is_meeting_participant = participant_doc is not None
 
-    if not is_org and not (status_only_update and is_accepted_participant):
+    if not is_org and not (status_only_update and is_meeting_participant):
         raise HTTPException(
             status_code=403,
-            detail="Only the organizer (or an accepted participant for Start/Complete) can update this meeting",
+            detail="Only the organizer (or a meeting participant for Start/Complete) can update this meeting",
         )
     
     allowed_fields = ['title', 'description', 'meeting_date', 'start_time', 'end_time',
@@ -856,6 +855,46 @@ async def update_meeting(meeting_id: str, updates: dict, current_user: dict = De
     
     if update_data:
         await db.meetings.update_one({"id": meeting_id}, {"$set": update_data})
+
+    # Sync date/time changes to the Teams onlineMeeting so calendar invites
+    # opened later show the new schedule (Bug fix: Teams was holding the
+    # original startDateTime even after we updated MongoDB).
+    if datetime_changed and meeting.get('teams_meeting_id'):
+        try:
+            organizer_user = await db.users.find_one(
+                {"id": meeting['organizer_id']}, {"_id": 0}
+            ) or {}
+            organizer_tz_name = organizer_user.get('timezone') or current_user.get('timezone') or 'UTC'
+            try:
+                tz = ZoneInfo(organizer_tz_name)
+            except Exception:
+                tz = ZoneInfo('UTC')
+
+            new_meeting_date = update_data.get('meeting_date', meeting.get('meeting_date'))
+            new_start_time = update_data.get('start_time', meeting.get('start_time'))
+            new_end_time = update_data.get('end_time', meeting.get('end_time')) or new_start_time
+
+            new_start_dt = datetime.strptime(
+                f"{new_meeting_date} {new_start_time[:5]}", "%Y-%m-%d %H:%M"
+            ).replace(tzinfo=tz)
+            new_end_dt = datetime.strptime(
+                f"{new_meeting_date} {new_end_time[:5]}", "%Y-%m-%d %H:%M"
+            ).replace(tzinfo=tz)
+
+            teams_service = get_teams_service()
+            await teams_service.update_online_meeting(
+                meeting_id=meeting['teams_meeting_id'],
+                start_datetime=new_start_dt,
+                end_datetime=new_end_dt,
+                subject=f"{update_data.get('title', meeting.get('title'))} - Hospital Meeting",
+            )
+            logger.info(
+                f"Teams meeting {meeting['teams_meeting_id']} rescheduled to "
+                f"{new_start_dt.isoformat()} – {new_end_dt.isoformat()}"
+            )
+        except Exception as e:
+            logger.error(f"Failed to update Teams meeting time for {meeting_id}: {str(e)}")
+            # Non-fatal — local DB is already updated.
     
     # Send email notification if date/time changed
     if datetime_changed:
@@ -866,8 +905,6 @@ async def update_meeting(meeting_id: str, updates: dict, current_user: dict = De
                 "response_status": {"$ne": "declined"}  # Send to everyone except declined
             }, {"_id": 0}).to_list(100)
             
-            new_date = update_data.get('meeting_date', meeting.get('meeting_date'))
-            new_time = update_data.get('start_time', meeting.get('start_time'))
             old_date = meeting.get('meeting_date')
             old_time = meeting.get('start_time')
 

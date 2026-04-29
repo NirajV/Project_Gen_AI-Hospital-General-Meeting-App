@@ -629,13 +629,12 @@ export default function MeetingDetailPage() {
     };
 
     const isOrganizer = meeting?.organizer_id === user?.id;
-    // Any accepted participant — or the organizer — can start/complete the meeting.
-    // Rationale: organizer may not attend every session.
+    // Any meeting participant — or the organizer — can start/complete the meeting.
+    // Rationale: the organizer may not always attend; any clinician on the
+    // case who is in the Teams call should be able to mark it completed when
+    // the call ends.
     const userParticipant = meeting?.participants?.find((p) => p.user_id === user?.id);
-    const canControlMeeting =
-        isOrganizer ||
-        userParticipant?.response_status === 'accepted' ||
-        userParticipant?.role === 'organizer';
+    const canControlMeeting = isOrganizer || Boolean(userParticipant);
 
     if (loading) {
         return (

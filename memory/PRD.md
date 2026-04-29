@@ -59,6 +59,19 @@ Web-based Hospital General Meeting Scheduler App for healthcare professionals. D
   shortcut button that closes the agenda dialog and opens the participant
   dialog (wired via new `onAddParticipantClick` prop from `MeetingDetailPage`).
 
+## Bug Fix Batch (Apr 29 2026)
+- **Wizard Step 4 — Requested Provider**: replaced free-text input with a
+  Select sourced from the organizer + participants chosen in Step 2 of the
+  wizard (`MeetingWizardPage.js`). Shows an amber hint if no participants
+  were added yet.
+- **Teams datetime sync**: new `TeamsService.update_online_meeting()` method
+  PATCHes the existing onlineMeeting (start/end/subject) when a meeting is
+  rescheduled. Hooked into `update_meeting` API in `server.py`. Bug was that
+  Teams kept the original startDateTime even after the local DB was updated.
+- **Start/Complete by any participant**: `canControlMeeting` (frontend) and
+  the `update_meeting` permission check (backend) now allow ANY meeting
+  participant — not only `accepted` ones — to Start or Complete the meeting.
+
 ## Prioritized Backlog
 ### P0 (External Block)
 - [ ] Wait for MS Teams policy propagation; verify meeting creation generates link

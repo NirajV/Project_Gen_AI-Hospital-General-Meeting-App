@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createMeeting, getUsers, getPatients, createPatient, generateStandaloneTeamsLink } from '@/lib/api';
+import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,6 +26,7 @@ const STEPS = [
 
 export default function MeetingWizardPage() {
     const navigate = useNavigate();
+    const { user: currentUser } = useAuth();
     const [currentStep, setCurrentStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [users, setUsers] = useState([]);
@@ -1123,17 +1125,68 @@ export default function MeetingWizardPage() {
                                 <p className="text-xs text-slate-500">Auto-filled if available, otherwise enter manually</p>
                             </div>
 
-                            {/* Requested Provider */}
+                            {/* Requested Provider — must be a meeting participant (organizer or any selected). */}
                             <div className="space-y-2">
                                 <Label htmlFor="agenda_provider">Requested Provider *</Label>
-                                <Input
-                                    id="agenda_provider"
-                                    value={newAgendaItem.requested_provider}
-                                    onChange={(e) => setNewAgendaItem({ ...newAgendaItem, requested_provider: e.target.value })}
-                                    placeholder="e.g., Dr. John Smith"
-                                    className="h-11 bg-slate-50"
-                                    data-testid="agenda-provider-input"
-                                />
+                                {(() => {
+                                    const providerCandidates = [];
+                                    if (currentUser) {
+                                        providerCandidates.push({
+                                            id: currentUser.id,
+                                            name: currentUser.name,
+                                            specialty: currentUser.specialty,
+                                            isOrganizer: true,
+                                        });
+                                    }
+                                    formData.participant_ids.forEach((pid) => {
+                                        if (currentUser && pid === currentUser.id) return;
+                                        const u = users.find((x) => x.id === pid);
+                                        if (u) {
+                                            providerCandidates.push({
+                                                id: u.id,
+                                                name: u.name,
+                                                specialty: u.specialty,
+                                                isOrganizer: false,
+                                            });
+                                        }
+                                    });
+
+                                    if (providerCandidates.length === 0) {
+                                        return (
+                                            <div
+                                                className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800"
+                                                data-testid="wizard-no-providers-hint"
+                                            >
+                                                Add at least one participant in Step 2 — the Requested Provider must be a meeting participant.
+                                            </div>
+                                        );
+                                    }
+
+                                    return (
+                                        <Select
+                                            value={newAgendaItem.requested_provider}
+                                            onValueChange={(value) => setNewAgendaItem({ ...newAgendaItem, requested_provider: value })}
+                                        >
+                                            <SelectTrigger
+                                                id="agenda_provider"
+                                                className="h-11 bg-slate-50"
+                                                data-testid="agenda-provider-select"
+                                            >
+                                                <SelectValue placeholder="Select a participant" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {providerCandidates.map((p) => (
+                                                    <SelectItem key={p.id} value={p.name}>
+                                                        {p.name}
+                                                        {p.specialty ? ` — ${p.specialty}` : ''}
+                                                        {p.isOrganizer ? ' (Organizer)' : ''}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    );
+                                })()}
+                                <p className="text-xs text-slate-500">Pick one of the meeting participants (organizer included).</p>
                             </div>
 
                             {/* Diagnosis */}
