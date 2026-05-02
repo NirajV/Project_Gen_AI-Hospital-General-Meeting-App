@@ -88,11 +88,15 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        - REACT_APP_BACKEND_URL=http://${SERVER_IP:-localhost}:3000
+        # IMPORTANT: leave EMPTY so the React app calls same-origin /api/*
+        # and nginx (inside this container) proxies to backend:8001.
+        # This makes the app work over LAN IP, Tailscale IP, AND Cloudflare
+        # tunnel without a rebuild — no hostname is baked into the JS bundle.
+        - REACT_APP_BACKEND_URL=
     container_name: hospital_frontend
     restart: unless-stopped
     environment:
-      - REACT_APP_BACKEND_URL=http://${SERVER_IP:-localhost}:3000
+      - REACT_APP_BACKEND_URL=
     ports:
       - "3000:80"
     depends_on:

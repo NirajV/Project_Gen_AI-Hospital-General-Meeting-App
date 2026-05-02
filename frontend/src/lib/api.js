@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL;
+// Empty string => same-origin requests (`/api/...`). Useful when nginx
+// proxies /api/* to the backend container, so the frontend works over any
+// hostname (LAN IP, Tailscale, Cloudflare tunnel, etc.) without a rebuild.
+const API_URL = process.env.REACT_APP_BACKEND_URL ?? '';
 
 const api = axios.create({
     baseURL: `${API_URL}/api`,
