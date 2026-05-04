@@ -33,8 +33,11 @@ export default function AddAgendaDialog({
     onAdd,
     onAddParticipantClick,
 }) {
-    const nonOrganizerParticipants = meetingParticipants.filter((p) => p.role !== 'organizer');
-    const hasNoProviders = nonOrganizerParticipants.length === 0;
+    // Requested Provider candidates: EVERY meeting participant (organizer
+    // included). Consistency: the organizer should always be selectable as a
+    // provider — they commonly own the case even when they invited others.
+    const providerCandidates = meetingParticipants;
+    const hasNoProviders = providerCandidates.length === 0;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -59,7 +62,7 @@ export default function AddAgendaDialog({
                                 No participants available as Requested Provider
                             </p>
                             <p className="text-sm text-amber-800">
-                                The Requested Provider must be a meeting participant (other than the organizer).
+                                The Requested Provider must be a meeting participant (organizer or invited clinicians).
                                 Please add at least one participant first, then come back to create this agenda item.
                             </p>
                             {onAddParticipantClick && (
@@ -124,21 +127,22 @@ export default function AddAgendaDialog({
                                 <SelectValue placeholder="Select a provider from meeting participants" />
                             </SelectTrigger>
                             <SelectContent>
-                                {nonOrganizerParticipants.length === 0 ? (
+                                {providerCandidates.length === 0 ? (
                                     <SelectItem value="no-participants" disabled>
                                         No participants in this meeting
                                     </SelectItem>
                                 ) : (
-                                    nonOrganizerParticipants.map((participant) => (
+                                    providerCandidates.map((participant) => (
                                         <SelectItem key={participant.user_id} value={participant.name}>
                                             {participant.name}
-                                            {participant.specialty ? ` - ${participant.specialty}` : ''}
+                                            {participant.specialty ? ` — ${participant.specialty}` : ''}
+                                            {participant.role === 'organizer' ? ' (Organizer)' : ''}
                                         </SelectItem>
                                     ))
                                 )}
                             </SelectContent>
                         </Select>
-                        <p className="text-xs text-slate-500">Select from invited doctors/participants</p>
+                        <p className="text-xs text-slate-500">Pick one of the meeting participants (organizer included).</p>
                     </div>
 
                     <div className="space-y-2">

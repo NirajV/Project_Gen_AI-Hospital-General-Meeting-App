@@ -72,6 +72,31 @@ Web-based Hospital General Meeting Scheduler App for healthcare professionals. D
   the `update_meeting` permission check (backend) now allow ANY meeting
   participant — not only `accepted` ones — to Start or Complete the meeting.
 
+## Bug Fix Batch (May 04 2026)
+- **AddAgendaDialog Requested Provider consistency**: the post-creation
+  dialog previously excluded the organizer (filter `p.role !== 'organizer'`).
+  Now shows ALL meeting participants — organizer included — tagged with
+  `(Organizer)` for clarity. Keeps wizard Step 4 and post-creation dialogs
+  consistent.
+- **Register form hardening**: added **Confirm Password** field (only in
+  register mode) with its own show/hide toggle, plus a show/hide toggle on
+  the main Password field. Added client-side validation: passwords must
+  match and be ≥ 8 chars. `autoComplete` hints set appropriately
+  (`current-password` for login, `new-password` for register).
+- **Post-registration UX**: successful registration now navigates to
+  `/settings` (Profile → Settings tab) and fires a success toast
+  *"Account created successfully! Please complete your preferences."* —
+  so new users immediately land on regional/timezone setup.
+
+## Deployment Config Fix (May 02 2026)
+- `docker-compose.mongodb.yml` → `REACT_APP_BACKEND_URL=` (empty) for both
+  build-arg and runtime env, so the JS bundle makes same-origin `/api/*`
+  requests. Nginx inside the frontend container proxies to `backend:8001`.
+  Now works for LAN IP, Tailscale, and Cloudflare tunnel without rebuild per
+  hostname.
+- `frontend/src/lib/api.js` + `AuthContext.js`: `?? ''` fallback so missing
+  env won't become `undefined/api/...`.
+
 ## Prioritized Backlog
 ### P0 (External Block)
 - [ ] Wait for MS Teams policy propagation; verify meeting creation generates link

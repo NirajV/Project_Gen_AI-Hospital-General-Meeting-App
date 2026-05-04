@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Activity, Mail, Lock, User, Building, Stethoscope } from 'lucide-react';
+import { toast } from '@/components/ui/sonner';
+import { Activity, Mail, Lock, User, Building, Stethoscope, Eye, EyeOff } from 'lucide-react';
 import ForcePasswordChangeModal from '@/components/ForcePasswordChangeModal';
 
 export default function LoginPage() {
@@ -14,10 +15,13 @@ export default function LoginPage() {
     const [isLogin, setIsLogin] = useState(true);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [showPasswordChangeModal, setShowPasswordChangeModal] = useState(false);
     const [formData, setFormData] = useState({
         email: '',
         password: '',
+        confirm_password: '',
         name: '',
         specialty: '',
         organization: ''
@@ -30,20 +34,37 @@ export default function LoginPage() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setLoading(true);
         setError('');
+
+        if (!isLogin) {
+            // Registration-only validation: confirm password must match.
+            if (formData.password !== formData.confirm_password) {
+                setError('Passwords do not match. Please re-enter your confirm password.');
+                return;
+            }
+            if (formData.password.length < 8) {
+                setError('Password must be at least 8 characters long.');
+                return;
+            }
+        }
+
+        setLoading(true);
         try {
             if (isLogin) {
                 const result = await login(formData.email, formData.password);
                 if (result.requires_password_change) {
-                    // Show password change modal
                     setShowPasswordChangeModal(true);
                 } else {
                     navigate('/dashboard');
                 }
             } else {
-                await register(formData);
-                navigate('/dashboard');
+                // Don't send confirm_password to the backend.
+                const { confirm_password: _ignored, ...registerPayload } = formData;
+                await register(registerPayload);
+                toast.success('Account created successfully! Please complete your preferences.', {
+                    duration: 6000,
+                });
+                navigate('/settings');
             }
         } catch (err) {
             setError(err.response?.data?.detail || 'Authentication failed');
@@ -161,16 +182,61 @@ export default function LoginPage() {
                                     <Input
                                         id="password"
                                         name="password"
-                                        type="password"
+                                        type={showPassword ? 'text' : 'password'}
                                         placeholder="••••••••"
-                                        className="pl-10 h-11 bg-slate-50"
+                                        className="pl-10 pr-10 h-11 bg-slate-50"
                                         value={formData.password}
                                         onChange={handleChange}
                                         required
+                                        autoComplete={isLogin ? 'current-password' : 'new-password'}
                                         data-testid="password-input"
                                     />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword((v) => !v)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                        tabIndex={-1}
+                                        data-testid="toggle-password-visibility"
+                                    >
+                                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    </button>
                                 </div>
                             </div>
+
+                            {!isLogin && (
+                                <div className="space-y-2">
+                                    <Label htmlFor="confirm_password">Confirm Password</Label>
+                                    <div className="relative">
+                                        <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            id="confirm_password"
+                                            name="confirm_password"
+                                            type={showConfirmPassword ? 'text' : 'password'}
+                                            placeholder="Re-enter your password"
+                                            className="pl-10 pr-10 h-11 bg-slate-50"
+                                            value={formData.confirm_password}
+                                            onChange={handleChange}
+                                            required
+                                            autoComplete="new-password"
+                                            data-testid="confirm-password-input"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowConfirmPassword((v) => !v)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                            aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                                            tabIndex={-1}
+                                            data-testid="toggle-confirm-password-visibility"
+                                        >
+                                            {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                        </button>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">
+                                        Must be at least 8 characters and match the password above.
+                                    </p>
+                                </div>
+                            )}
 
                             {error && (
                                 <p className="text-sm text-destructive bg-destructive/10 p-2 rounded" data-testid="auth-error">{error}</p>
@@ -228,7 +294,13 @@ export default function LoginPage() {
                             <button
                                 type="button"
                                 className="text-primary hover:underline font-medium"
-                                onClick={() => setIsLogin(!isLogin)}
+                                onClick={() => {
+                                    setIsLogin(!isLogin);
+                                    setError('');
+                                    setShowPassword(false);
+                                    setShowConfirmPassword(false);
+                                    setFormData((prev) => ({ ...prev, password: '', confirm_password: '' }));
+                                }}
                                 data-testid="toggle-auth-mode"
                             >
                                 {isLogin ? 'Register' : 'Sign In'}
