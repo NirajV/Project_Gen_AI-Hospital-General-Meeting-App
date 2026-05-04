@@ -216,7 +216,7 @@ export default function ParticipantsPage() {
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-display font-bold text-slate-900 flex items-center gap-3">
+                        <h1 className="text-3xl font-display font-bold text-foreground tracking-tight flex items-center gap-3">
                             <Users className="w-8 h-8 text-primary" />
                             Participants
                         </h1>

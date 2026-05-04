@@ -68,20 +68,23 @@ export default function PatientsPage() {
     return (
         <Layout>
             <div className="space-y-6" data-testid="patients-page">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-display font-bold text-foreground tracking-tight">Patients</h1>
+                        <h1 className="text-3xl font-display font-bold text-foreground tracking-tight flex items-center gap-3">
+                            <User className="w-8 h-8 text-primary" />
+                            Patients
+                        </h1>
                         <p className="text-muted-foreground mt-1">Manage patient records and case history</p>
                     </div>
                     <Link to="/patients/new">
                         <Button 
-                            className="shadow-md hover:shadow-lg transition-all duration-200 font-semibold" 
+                            className="gap-2 shadow-md hover:shadow-lg transition-all duration-200 font-semibold" 
                             style={{ backgroundColor: '#694e20', color: '#ffffff' }}
                             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#523c19'}
                             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#694e20'}
                             data-testid="new-patient-btn"
                         >
-                            <Plus className="w-4 h-4 mr-2" />
+                            <Plus className="w-4 h-4" />
                             Add Patient
                         </Button>
                     </Link>

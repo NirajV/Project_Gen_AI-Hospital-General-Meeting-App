@@ -88,6 +88,18 @@ Web-based Hospital General Meeting Scheduler App for healthcare professionals. D
   *"Account created successfully! Please complete your preferences."* —
   so new users immediately land on regional/timezone setup.
 
+## Cosmetic Consistency Pass (May 04 2026)
+- Page headers unified: `MeetingsPage`, `PatientsPage`, `ParticipantsPage`
+  now share identical `<h1>` markup (`text-3xl font-display font-bold
+  text-foreground tracking-tight flex items-center gap-3`) with a matching
+  `w-8 h-8 text-primary` leading icon (Calendar / User / Users respectively).
+- CTA buttons unified: same `gap-2 shadow-md hover:shadow-lg transition-all
+  duration-200 font-semibold` base; each keeps its section theme color
+  (Meetings #3b6658 green, Patients #694e20 olive, Participants #68517d
+  purple). Dashboard's "New Meeting" CTA updated to match Meetings theme.
+- Header layout now `flex-col sm:flex-row sm:items-center sm:justify-between
+  gap-4` across all three pages — better mobile wrapping and visual rhythm.
+
 ## Deployment Config Fix (May 02 2026)
 - `docker-compose.mongodb.yml` → `REACT_APP_BACKEND_URL=` (empty) for both
   build-arg and runtime env, so the JS bundle makes same-origin `/api/*`

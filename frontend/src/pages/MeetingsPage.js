@@ -156,14 +156,23 @@ export default function MeetingsPage() {
     return (
         <Layout>
             <div className="space-y-6" data-testid="meetings-page">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-display font-bold text-foreground tracking-tight">Meetings</h1>
+                        <h1 className="text-3xl font-display font-bold text-foreground tracking-tight flex items-center gap-3">
+                            <Calendar className="w-8 h-8 text-primary" />
+                            Meetings
+                        </h1>
                         <p className="text-muted-foreground mt-1">View and manage your case meetings</p>
                     </div>
                     <Link to="/meetings/new">
-                        <Button className="bg-primary hover:bg-primary/90" data-testid="new-meeting-btn">
-                            <Plus className="w-4 h-4 mr-2" />
+                        <Button
+                            className="gap-2 shadow-md hover:shadow-lg transition-all duration-200 font-semibold"
+                            style={{ backgroundColor: '#3b6658', color: '#ffffff' }}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#2f5246'}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#3b6658'}
+                            data-testid="new-meeting-btn"
+                        >
+                            <Plus className="w-4 h-4" />
                             New Meeting
                         </Button>
                     </Link>

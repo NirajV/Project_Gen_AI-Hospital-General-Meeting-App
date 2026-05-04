@@ -101,8 +101,14 @@ export default function DashboardPage() {
                         </p>
                     </div>
                     <Link to="/meetings/new">
-                        <Button className="bg-primary hover:bg-primary/90" data-testid="new-meeting-btn">
-                            <Plus className="w-4 h-4 mr-2" />
+                        <Button
+                            className="gap-2 shadow-md hover:shadow-lg transition-all duration-200 font-semibold"
+                            style={{ backgroundColor: '#3b6658', color: '#ffffff' }}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#2f5246'}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#3b6658'}
+                            data-testid="new-meeting-btn"
+                        >
+                            <Plus className="w-4 h-4" />
                             New Meeting
                         </Button>
                     </Link>
