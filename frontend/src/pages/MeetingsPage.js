@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Layout from '@/components/Layout';
 import { 
-    Calendar, Plus, Video, MapPin, Users, Clock, ArrowRight,
+    Calendar, Plus, CalendarPlus, Video, MapPin, Users, Clock, ArrowRight,
     CheckCircle2, XCircle, HelpCircle, Loader2
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
@@ -172,7 +172,7 @@ export default function MeetingsPage() {
                             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#3b6658'}
                             data-testid="new-meeting-btn"
                         >
-                            <Plus className="w-4 h-4" />
+                            <CalendarPlus className="w-4 h-4" />
                             New Meeting
                         </Button>
                     </Link>

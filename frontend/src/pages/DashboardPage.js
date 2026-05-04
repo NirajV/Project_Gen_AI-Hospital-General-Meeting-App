@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Layout from '@/components/Layout';
 import { 
-    Calendar, Users, UserPlus, Clock, Plus, Video, MapPin,
+    Calendar, Users, UserPlus, Clock, Plus, CalendarPlus, Video, MapPin,
     ArrowRight, CheckCircle2, XCircle, HelpCircle, Check, X, Minus
 } from 'lucide-react';
 import { format, parseISO, isToday, isTomorrow, isThisWeek } from 'date-fns';
@@ -108,7 +108,7 @@ export default function DashboardPage() {
                             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#3b6658'}
                             data-testid="new-meeting-btn"
                         >
-                            <Plus className="w-4 h-4" />
+                            <CalendarPlus className="w-4 h-4" />
                             New Meeting
                         </Button>
                     </Link>

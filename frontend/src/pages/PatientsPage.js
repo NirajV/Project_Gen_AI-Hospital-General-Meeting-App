@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import Layout from '@/components/Layout';
 import { 
-    Users, Plus, Search, ArrowRight, User, Calendar, Building,
+    Users, Plus, UserPlus, Search, ArrowRight, User, Calendar, Building,
     FileText, Loader2, Trash2, AlertCircle
 } from 'lucide-react';
 import { format, parseISO, differenceInYears } from 'date-fns';
@@ -84,7 +84,7 @@ export default function PatientsPage() {
                             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#694e20'}
                             data-testid="new-patient-btn"
                         >
-                            <Plus className="w-4 h-4" />
+                            <UserPlus className="w-4 h-4" />
                             Add Patient
                         </Button>
                     </Link>

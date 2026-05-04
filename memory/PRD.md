@@ -99,6 +99,22 @@ Web-based Hospital General Meeting Scheduler App for healthcare professionals. D
   purple). Dashboard's "New Meeting" CTA updated to match Meetings theme.
 - Header layout now `flex-col sm:flex-row sm:items-center sm:justify-between
   gap-4` across all three pages — better mobile wrapping and visual rhythm.
+- **Button icons themed**: "+ New Meeting" uses `CalendarPlus`, "+ Add
+  Patient" uses `UserPlus` (matches Participants' single-themed-icon pattern).
+
+## Cheat Sheet PDF Refresh (May 04 2026)
+- New `/app/scripts/generate_cheatsheet_pdf.py` — reproducible reportlab
+  script. Run `python3 scripts/generate_cheatsheet_pdf.py` anytime to
+  regenerate `/app/frontend/public/docs/MedMeet_CheatSheet.pdf`.
+- Updated to **v1.1 · May 2026** (was v1.0 · April 2026).
+- Primary URL now `https://biomedmeet.com/` (was LAN IP).
+- New section: **7. Invite Emails (new layout)** — documents the Teams-link
+  inside the details box, single-row Accept/Decline/View buttons, and the
+  UPDATED banner on reschedule notifications.
+- Updated sections reflect: Confirm Password field on registration,
+  post-registration `/settings` redirect, organizer-included Requested
+  Provider dropdown, any-participant Start/Complete, auto Teams
+  rescheduling, first-time holiday setup toast.
 
 ## Deployment Config Fix (May 02 2026)
 - `docker-compose.mongodb.yml` → `REACT_APP_BACKEND_URL=` (empty) for both
