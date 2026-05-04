@@ -90,7 +90,7 @@ export default function LoginPage() {
                 <div className="text-center mb-8">
                     <div className="inline-flex items-center gap-2 mb-4">
                         <Activity className="w-8 h-8 text-primary" />
-                        <span className="text-2xl font-display font-bold text-primary">MedMeet</span>
+                        <span className="text-2xl font-display font-bold text-primary">BioMedMeet</span>
                     </div>
                     <p className="text-muted-foreground">Hospital Case Meeting Scheduler</p>
                 </div>

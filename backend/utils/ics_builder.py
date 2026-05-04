@@ -114,7 +114,7 @@ def build_meeting_ics(
     lines = [
         "BEGIN:VCALENDAR",
         "VERSION:2.0",
-        "PRODID:-//MedMeet//Hospital Meeting Scheduler//EN",
+        "PRODID:-//BioMedMeet//Hospital Meeting Scheduler//EN",
         "METHOD:REQUEST",
         "CALSCALE:GREGORIAN",
         "BEGIN:VEVENT",

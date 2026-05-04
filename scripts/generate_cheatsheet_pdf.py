@@ -1,9 +1,9 @@
 """
-Generator for /app/frontend/public/docs/MedMeet_CheatSheet.pdf
+Generator for /app/frontend/public/docs/BioMedMeet_CheatSheet.pdf
 
 Run with:  cd /app && python3 scripts/generate_cheatsheet_pdf.py
 
-Outputs the PDF in place so the frontend can serve it at /docs/MedMeet_CheatSheet.pdf.
+Outputs the PDF in place so the frontend can serve it at /docs/BioMedMeet_CheatSheet.pdf.
 """
 from pathlib import Path
 from datetime import date
@@ -17,7 +17,7 @@ from reportlab.platypus import (
 )
 from reportlab.lib.enums import TA_LEFT
 
-OUTPUT = Path("/app/frontend/public/docs/MedMeet_CheatSheet.pdf")
+OUTPUT = Path("/app/frontend/public/docs/BioMedMeet_CheatSheet.pdf")
 APP_URL = "https://biomedmeet.com/"
 VERSION = f"v1.1 · May {date.today().year}"
 
@@ -90,12 +90,12 @@ def main():
         str(OUTPUT), pagesize=A4,
         leftMargin=16 * mm, rightMargin=16 * mm,
         topMargin=14 * mm, bottomMargin=14 * mm,
-        title="MedMeet – Quick Reference",
-        author="MedMeet",
+        title="BioMedMeet – Quick Reference",
+        author="BioMedMeet",
     )
 
     story = []
-    story.append(Paragraph("MedMeet – Quick Reference", styles["title"]))
+    story.append(Paragraph("BioMedMeet – Quick Reference", styles["title"]))
     story.append(Paragraph(
         f"Hospital Case Meeting Scheduler · {VERSION}", styles["subtitle"]))
     story.append(HRFlowable(width="100%", thickness=1, color=NAVY,
@@ -103,7 +103,7 @@ def main():
 
     story.append(section(styles, "1. Getting Started", [
         ("Login", [
-            f"Open your MedMeet URL — <b><font color='#0b0b30'>{APP_URL}</font></b>",
+            f"Open your BioMedMeet URL — <b><font color='#0b0b30'>{APP_URL}</font></b>",
             "Enter email and password, or click <b>Google</b> for Google SSO.",
             "Registering? Fill Email, Password, <b>Confirm Password</b>, name, specialty, organization. "
             "Click the 👁 icon on either password field to reveal what you typed.",
@@ -276,7 +276,7 @@ def main():
     ]))
 
     story.append(Paragraph(
-        f"This cheat sheet covers MedMeet {VERSION}. Primary URL: "
+        f"This cheat sheet covers BioMedMeet {VERSION}. Primary URL: "
         f"<b><font color='#0b0b30'>{APP_URL}</font></b>", styles["footer"]))
 
     doc.build(story)

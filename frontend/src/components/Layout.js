@@ -51,7 +51,7 @@ export default function Layout({ children }) {
                         <Link to="/dashboard" className="flex items-center gap-2 group" data-testid="logo">
                             <Activity className="w-7 h-7 text-primary group-hover:scale-110 transition-transform duration-200" />
                             <span className="text-xl font-display font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                                MedMeet
+                                BioMedMeet
                             </span>
                             <span className="text-xs font-medium text-muted-foreground ml-1 hidden sm:block">Hospital Case Meeting Scheduler</span>
                         </Link>
