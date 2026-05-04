@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Security &amp; compliance — BioMedMeet</title>
+    <meta name="description" content="How BioMedMeet protects clinical data: TLS 1.3 encryption, role-based access, audit trail, Microsoft Entra app-only auth, self-hosted or managed cloud. HIPAA and GDPR posture." />
+    <link rel="icon" type="image/svg+xml" href="/marketing/assets/favicon.svg" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/marketing/assets/brand.css" />
+</head>
+<body>
+    <div data-bm-nav></div>
+
+    <main>
+        <header class="bm-hero" style="padding: 72px 0 48px;">
+            <div class="bm-container" style="max-width: 880px; text-align: center;">
+                <span class="bm-eyebrow">Security &amp; compliance</span>
+                <h1 class="bm-h1">Built so hospitals can trust it. Documented so procurement can approve it.</h1>
+                <p class="bm-lead" style="margin: 0 auto;">
+                    BioMedMeet handles patient identifiers, diagnoses, and clinical decisions. We treat the underlying architecture and operational practices with the seriousness that responsibility demands.
+                </p>
+            </div>
+        </header>
+
+        <!-- Pillars -->
+        <section class="bm-section">
+            <div class="bm-container">
+                <div class="bm-grid bm-grid-2" style="gap: 32px;">
+                    <div class="bm-card">
+                        <div class="bm-icon-tile bm-icon-navy">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                        </div>
+                        <h3 class="bm-h3">Encryption in transit</h3>
+                        <p style="font-size: 15px; margin: 0;">TLS 1.3 between client and server, between server and Microsoft Graph, between server and your SMTP relay. HSTS preload-ready. No plaintext credentials anywhere on the wire.</p>
+                    </div>
+                    <div class="bm-card">
+                        <div class="bm-icon-tile bm-icon-green">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                        </div>
+                        <h3 class="bm-h3">Role-based access control</h3>
+                        <p style="font-size: 15px; margin: 0;">Four roles — organiser, doctor, nurse, guest — gate every API call. Patient additions go through an organiser approval step. Treatment plans have a seven-day post-completion edit window with the responsible clinician on the record.</p>
+                    </div>
+                    <div class="bm-card">
+                        <div class="bm-icon-tile bm-icon-olive">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="9" y1="13" x2="15" y2="13"></line><line x1="9" y1="17" x2="13" y2="17"></line></svg>
+                        </div>
+                        <h3 class="bm-h3">Auditable by default</h3>
+                        <p style="font-size: 15px; margin: 0;">Decisions, treatment plans, file uploads, patient approvals and meeting state changes capture who, what, and when. Exportable for the medical record and for clinical governance review.</p>
+                    </div>
+                    <div class="bm-card">
+                        <div class="bm-icon-tile bm-icon-purple">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v6m0 0l-3-3m3 3l3-3m-9 7v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"></path></svg>
+                        </div>
+                        <h3 class="bm-h3">Microsoft Entra app-only auth</h3>
+                        <p style="font-size: 15px; margin: 0;">Teams meeting creation uses a single application identity in your Microsoft tenant — no per-user OAuth handover, no consent fatigue. Permissions are scoped to <code>OnlineMeetings.ReadWrite.All</code> with policy-based access for a designated organiser identity.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Deployment options -->
+        <section class="bm-section" style="background: var(--bm-navy-50);">
+            <div class="bm-container">
+                <div style="text-align: center; max-width: 720px; margin: 0 auto 48px;">
+                    <span class="bm-eyebrow">Where your data lives</span>
+                    <h2 class="bm-h2">Self-host or managed — your choice.</h2>
+                </div>
+
+                <div class="bm-grid bm-grid-2" style="gap: 32px;">
+                    <div class="bm-card">
+                        <h3 class="bm-h3">Self-hosted (recommended for hospitals)</h3>
+                        <ul class="bm-bullet-list">
+                            <li>Docker Compose stack runs on your own server, on your network.</li>
+                            <li>Patient data never leaves your perimeter.</li>
+                            <li>Cloudflare Tunnel / Tailscale supported for secure remote access without exposing ports.</li>
+                            <li>Backup &amp; restore documented; you own the MongoDB volume.</li>
+                        </ul>
+                    </div>
+                    <div class="bm-card">
+                        <h3 class="bm-h3">Managed cloud (for fast onboarding)</h3>
+                        <ul class="bm-bullet-list">
+                            <li>Hosted on a regional cloud you nominate (US, EU, India).</li>
+                            <li>Encrypted at rest with provider-managed keys; customer-managed key support on the roadmap.</li>
+                            <li>Daily snapshots, point-in-time recovery, 99.9% target SLA.</li>
+                            <li>Same Docker images as self-hosted — zero lock-in.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Compliance -->
+        <section class="bm-section">
+            <div class="bm-container">
+                <div class="bm-grid bm-grid-2" style="gap: 48px;">
+                    <div>
+                        <h2 class="bm-h2">HIPAA posture</h2>
+                        <p style="font-size: 16px;">
+                            BioMedMeet's architecture aligns with the HIPAA Security Rule's administrative, physical, and technical safeguards. We do not yet hold a formal HIPAA certification — no software product does, since HIPAA compliance is an operational state of the covered entity. We can sign a Business Associate Agreement once your hospital is on a paid plan.
+                        </p>
+                    </div>
+                    <div>
+                        <h2 class="bm-h2">GDPR posture</h2>
+                        <p style="font-size: 16px;">
+                            BioMedMeet supports lawful data processing under Article 9(2)(h) of the GDPR (necessary for medical diagnosis, the provision of health care). We provide data-processing-agreement (DPA) terms, support data subject access and deletion requests, and offer EU-region managed hosting on request.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sub-processors -->
+        <section class="bm-section-tight" style="background: var(--bm-slate-50);">
+            <div class="bm-container">
+                <div style="text-align: center; max-width: 720px; margin: 0 auto 32px;">
+                    <span class="bm-eyebrow">Transparency</span>
+                    <h2 class="bm-h2">Sub-processors.</h2>
+                    <p style="font-size: 15px; color: var(--bm-slate-600);">A complete list, kept current. Self-hosted deployments avoid most of these by definition.</p>
+                </div>
+                <div style="max-width: 800px; margin: 0 auto;">
+                    <table style="width: 100%; border-collapse: collapse; background: #fff; border-radius: 10px; overflow: hidden; border: 1px solid var(--bm-slate-200);">
+                        <thead style="background: var(--bm-slate-100);">
+                            <tr>
+                                <th style="text-align: left; padding: 14px; font-size: 13px; color: var(--bm-slate-700);">Vendor</th>
+                                <th style="text-align: left; padding: 14px; font-size: 13px; color: var(--bm-slate-700);">Purpose</th>
+                                <th style="text-align: left; padding: 14px; font-size: 13px; color: var(--bm-slate-700);">Region</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-top: 1px solid var(--bm-slate-200);">
+                                <td style="padding: 14px; font-size: 14px;"><b>Microsoft Graph / Teams</b></td>
+                                <td style="padding: 14px; font-size: 14px; color: var(--bm-slate-600);">Online meeting creation</td>
+                                <td style="padding: 14px; font-size: 14px; color: var(--bm-slate-600);">Your tenant region</td>
+                            </tr>
+                            <tr style="border-top: 1px solid var(--bm-slate-200);">
+                                <td style="padding: 14px; font-size: 14px;"><b>Your SMTP relay</b></td>
+                                <td style="padding: 14px; font-size: 14px; color: var(--bm-slate-600);">Outbound notification email</td>
+                                <td style="padding: 14px; font-size: 14px; color: var(--bm-slate-600);">Your choice</td>
+                            </tr>
+                            <tr style="border-top: 1px solid var(--bm-slate-200);">
+                                <td style="padding: 14px; font-size: 14px;"><b>Cloudflare</b></td>
+                                <td style="padding: 14px; font-size: 14px; color: var(--bm-slate-600);">CDN / tunnel (only if you choose)</td>
+                                <td style="padding: 14px; font-size: 14px; color: var(--bm-slate-600);">Global edge</td>
+                            </tr>
+                            <tr style="border-top: 1px solid var(--bm-slate-200);">
+                                <td style="padding: 14px; font-size: 14px;"><b>Managed cloud host</b></td>
+                                <td style="padding: 14px; font-size: 14px; color: var(--bm-slate-600);">App + database hosting (managed plan only)</td>
+                                <td style="padding: 14px; font-size: 14px; color: var(--bm-slate-600);">Region of your choice</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Disclosure -->
+        <section style="background: var(--bm-navy); padding: 56px 0; color: #fff;">
+            <div class="bm-container" style="text-align: center; max-width: 800px;">
+                <h2 class="bm-h2" style="color: #fff;">Responsible disclosure.</h2>
+                <p style="color: var(--bm-slate-300); font-size: 16px;">
+                    Found a security issue? Email us at <a href="mailto:Niraj.k.vishwakarma@gmail.com" style="color: #fff; text-decoration: underline;">Niraj.k.vishwakarma@gmail.com</a>. We acknowledge within two business days, fix critical issues within seven, and credit responsible reporters in our changelog.
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <div data-bm-footer></div>
+    <script src="/marketing/assets/layout.js"></script>
+</body>
+</html>

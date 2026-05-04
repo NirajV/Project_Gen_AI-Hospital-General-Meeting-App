@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, UploadFile, File, Form, Request, Response
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, UploadFile, File, Form, Request, Response, Body
 from starlette.middleware.cors import CORSMiddleware
 import logging
 from typing import List, Optional
@@ -1810,6 +1810,63 @@ async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
     }
 
 # ============== Feedback Routes ==============
+
+@api_router.post("/contact")
+async def submit_marketing_contact(payload: dict = Body(...)):
+    """
+    Public lead-capture endpoint for biomedmeet.com (demo requests + cheat-sheet
+    downloads). Stores the lead in the `marketing_leads` collection AND emails
+    the owner. Intentionally permissive: no auth (this is a public form),
+    minimal validation (any extra fields the page sends are stored as-is).
+    """
+    name = (payload.get("name") or "").strip()
+    email = (payload.get("email") or "").strip()
+    if not name or not email:
+        raise HTTPException(status_code=400, detail="Name and email are required")
+
+    form_type = (payload.get("form_type") or "general").strip()[:64]
+    lead = {
+        "id": str(uuid.uuid4()),
+        "name": name[:120],
+        "email": email[:200],
+        "hospital": (payload.get("hospital") or "").strip()[:200],
+        "role": (payload.get("role") or "").strip()[:120],
+        "message": (payload.get("message") or "").strip()[:2000],
+        "form_type": form_type,
+        "source": (payload.get("source") or "biomedmeet.com")[:120],
+        "created_at": datetime.now(timezone.utc),
+    }
+    await db.marketing_leads.insert_one(lead)
+
+    # Notify the owner. Best-effort: form should still succeed if SMTP is down.
+    try:
+        from utils.email import send_email
+        owner_email = os.environ.get("OWNER_EMAIL", "Niraj.K.Vishwakarma@gmail.com")
+        subject_prefix = {
+            "demo": "[BioMedMeet] Demo request",
+            "cheat-sheet": "[BioMedMeet] Cheat-sheet download",
+        }.get(form_type, "[BioMedMeet] Contact form")
+        html = f"""
+        <h3>{subject_prefix}</h3>
+        <p><b>Name:</b> {lead['name']}<br/>
+           <b>Email:</b> {lead['email']}<br/>
+           <b>Hospital:</b> {lead['hospital'] or '—'}<br/>
+           <b>Role:</b> {lead['role'] or '—'}<br/>
+           <b>Source:</b> {lead['source']}<br/>
+           <b>Form:</b> {lead['form_type']}</p>
+        {f'<p><b>Message:</b><br/>{lead["message"]}</p>' if lead['message'] else ''}
+        <hr/><p style="color:#888;font-size:12px;">Lead id: {lead['id']}</p>
+        """
+        send_email(
+            to_email=owner_email,
+            subject=f"{subject_prefix} — {lead['name']}",
+            html_content=html,
+        )
+    except Exception as e:
+        logger.warning(f"Failed to email owner about marketing lead {lead['id']}: {e}")
+
+    return {"ok": True, "id": lead["id"]}
+
 
 @api_router.post("/feedback")
 async def submit_feedback(

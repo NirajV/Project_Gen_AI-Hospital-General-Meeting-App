@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>How it works — BioMedMeet</title>
+    <meta name="description" content="A four-step walkthrough of BioMedMeet: schedule a meeting, add participants and patients, build the agenda, and run the case discussion in Microsoft Teams." />
+    <link rel="icon" type="image/svg+xml" href="/marketing/assets/favicon.svg" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/marketing/assets/brand.css" />
+</head>
+<body>
+    <div data-bm-nav></div>
+
+    <main>
+        <!-- Hero -->
+        <header class="bm-hero" style="padding: 72px 0 48px;">
+            <div class="bm-container" style="max-width: 880px; text-align: center;">
+                <span class="bm-eyebrow">Product walkthrough</span>
+                <h1 class="bm-h1">From empty calendar slot to logged decision — in four steps.</h1>
+                <p class="bm-lead" style="margin: 0 auto;">
+                    BioMedMeet's wizard mirrors the way clinicians actually plan multidisciplinary case meetings. No training day required.
+                </p>
+            </div>
+        </header>
+
+        <!-- Step 1 -->
+        <section class="bm-section">
+            <div class="bm-container">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center;">
+                    <div>
+                        <span class="bm-pill" style="background: rgba(59, 102, 88, 0.08); color: var(--bm-green); border-color: rgba(59, 102, 88, 0.2);">Step 1 of 4</span>
+                        <h2 class="bm-h2" style="margin-top: 16px;">Set the meeting.</h2>
+                        <p style="font-size: 17px; color: var(--bm-slate-600);">
+                            Title, date, time, location, recurrence. One click generates a Microsoft Teams meeting and binds it to the event. Holiday-aware: the calendar refuses to schedule on national holidays for your country and on the custom days your hospital configures.
+                        </p>
+                        <ul class="bm-bullet-list" style="margin-top: 20px;">
+                            <li>Daily, weekly, fortnightly, monthly, quarterly or yearly recurrence — all RFC-5545 compliant.</li>
+                            <li>Microsoft Teams link auto-generated through Microsoft Graph (application-only auth — no per-user OAuth dance).</li>
+                            <li>Time-zone of the organiser stored on the meeting; recipients see their own local time.</li>
+                        </ul>
+                    </div>
+                    <div class="bm-card" style="padding: 24px;">
+                        <div style="font-size: 11px; font-weight: 700; color: var(--bm-green); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px;">Step 1 — Title &amp; time</div>
+                        <div style="display: grid; gap: 14px;">
+                            <div><div style="font-size: 12px; color: var(--bm-slate-500); margin-bottom: 4px;">Meeting title</div><div style="background: var(--bm-slate-50); border: 1px solid var(--bm-slate-200); border-radius: 6px; padding: 10px 12px; font-size: 14px;">Oncology Tumour Board · Week 18</div></div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                <div><div style="font-size: 12px; color: var(--bm-slate-500); margin-bottom: 4px;">Date</div><div style="background: var(--bm-slate-50); border: 1px solid var(--bm-slate-200); border-radius: 6px; padding: 10px 12px; font-size: 14px;">Wed, 14 May 2026</div></div>
+                                <div><div style="font-size: 12px; color: var(--bm-slate-500); margin-bottom: 4px;">Time</div><div style="background: var(--bm-slate-50); border: 1px solid var(--bm-slate-200); border-radius: 6px; padding: 10px 12px; font-size: 14px;">10:00 — 11:30 IST</div></div>
+                            </div>
+                            <button class="bm-btn bm-btn-green" style="margin-top: 6px; justify-content: center;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+                                Generate Microsoft Teams link
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Step 2 -->
+        <section class="bm-section" style="background: var(--bm-navy-50);">
+            <div class="bm-container">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center;">
+                    <div class="bm-card" style="padding: 24px; order: 2;">
+                        <div style="font-size: 11px; font-weight: 700; color: var(--bm-purple); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px;">Step 2 — Participants</div>
+                        <div style="display: grid; gap: 10px;">
+                            <div style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--bm-slate-200); border-radius: 8px;">
+                                <span style="width: 32px; height: 32px; border-radius: 50%; background: var(--bm-purple); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 12px;">DR</span>
+                                <div style="flex: 1;"><div style="font-size: 14px; font-weight: 600; color: var(--bm-navy);">Dr. R. Iyer</div><div style="font-size: 12px; color: var(--bm-slate-500);">Medical Oncology</div></div>
+                                <span class="bm-pill" style="background: rgba(59,102,88,0.1); color: var(--bm-green); border-color: rgba(59,102,88,0.2);">Accepted</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--bm-slate-200); border-radius: 8px;">
+                                <span style="width: 32px; height: 32px; border-radius: 50%; background: var(--bm-green); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 12px;">SC</span>
+                                <div style="flex: 1;"><div style="font-size: 14px; font-weight: 600; color: var(--bm-navy);">Dr. S. Chen</div><div style="font-size: 12px; color: var(--bm-slate-500);">Radiology</div></div>
+                                <span class="bm-pill" style="background: rgba(59,102,88,0.1); color: var(--bm-green); border-color: rgba(59,102,88,0.2);">Accepted</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--bm-slate-200); border-radius: 8px;">
+                                <span style="width: 32px; height: 32px; border-radius: 50%; background: var(--bm-olive); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 12px;">MJ</span>
+                                <div style="flex: 1;"><div style="font-size: 14px; font-weight: 600; color: var(--bm-navy);">Dr. M. Joshi</div><div style="font-size: 12px; color: var(--bm-slate-500);">Surgical Oncology</div></div>
+                                <span class="bm-pill" style="background: var(--bm-amber-50); color: var(--bm-amber); border-color: rgba(180,83,9,0.2);">Pending</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="bm-pill" style="background: rgba(104, 81, 125, 0.08); color: var(--bm-purple); border-color: rgba(104, 81, 125, 0.2);">Step 2 of 4</span>
+                        <h2 class="bm-h2" style="margin-top: 16px;">Invite the team.</h2>
+                        <p style="font-size: 17px; color: var(--bm-slate-600);">
+                            Pick from existing colleagues, or invite by email — BioMedMeet creates the account and emails setup instructions automatically. Each participant gets a calendar invite with the .ics attachment in their own time-zone.
+                        </p>
+                        <ul class="bm-bullet-list" style="margin-top: 20px;">
+                            <li>Role-aware: organiser, doctor, nurse, guest. Permissions follow the role.</li>
+                            <li>One-click "Invite by email" creates a user account and emails credentials.</li>
+                            <li>Response status tracked: pending, accepted, declined — visible to the organiser.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Step 3 -->
+        <section class="bm-section">
+            <div class="bm-container">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center;">
+                    <div>
+                        <span class="bm-pill" style="background: rgba(105, 78, 32, 0.08); color: var(--bm-olive); border-color: rgba(105, 78, 32, 0.2);">Step 3 of 4</span>
+                        <h2 class="bm-h2" style="margin-top: 16px;">Add the patients.</h2>
+                        <p style="font-size: 17px; color: var(--bm-slate-600);">
+                            Select patients from your hospital roster, or create a new patient record on the spot — fourteen clinically meaningful fields covering identity, MRN, diagnosis, allergies and current medications. Non-organiser additions go through an organiser approval step.
+                        </p>
+                        <ul class="bm-bullet-list" style="margin-top: 20px;">
+                            <li>Each patient is a first-class object with their own profile, history and file vault.</li>
+                            <li>MRN, primary diagnosis and clinical question travel with the case.</li>
+                            <li>Patient approval workflow keeps the organiser in control of who joins the agenda.</li>
+                        </ul>
+                    </div>
+                    <div class="bm-card" style="padding: 24px;">
+                        <div style="font-size: 11px; font-weight: 700; color: var(--bm-olive); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px;">Step 3 — Patients on agenda</div>
+                        <div style="display: grid; gap: 12px;">
+                            <div style="padding: 14px; border: 1px solid var(--bm-slate-200); border-radius: 8px; border-left: 3px solid var(--bm-olive);">
+                                <div style="font-size: 14px; font-weight: 700; color: var(--bm-navy);">Patient A · MRN 1029384</div>
+                                <div style="font-size: 12px; color: var(--bm-slate-500); margin-top: 2px;">Stage IIIB lung adenocarcinoma · Post-RT progression</div>
+                            </div>
+                            <div style="padding: 14px; border: 1px solid var(--bm-slate-200); border-radius: 8px; border-left: 3px solid var(--bm-olive);">
+                                <div style="font-size: 14px; font-weight: 700; color: var(--bm-navy);">Patient B · MRN 1029421</div>
+                                <div style="font-size: 12px; color: var(--bm-slate-500); margin-top: 2px;">Carcinoma breast · Considering re-excision</div>
+                            </div>
+                            <div style="padding: 14px; border: 1px solid var(--bm-slate-200); border-radius: 8px; border-left: 3px solid var(--bm-olive);">
+                                <div style="font-size: 14px; font-weight: 700; color: var(--bm-navy);">Patient C · MRN 1029507</div>
+                                <div style="font-size: 12px; color: var(--bm-slate-500); margin-top: 2px;">Pancreatic mass · Awaiting pathology review</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Step 4 -->
+        <section class="bm-section" style="background: var(--bm-navy-50);">
+            <div class="bm-container">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center;">
+                    <div class="bm-card" style="padding: 24px; order: 2;">
+                        <div style="font-size: 11px; font-weight: 700; color: var(--bm-navy); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px;">Step 4 — Agenda items</div>
+                        <div style="padding: 14px; border: 1px solid var(--bm-slate-200); border-radius: 8px;">
+                            <div style="font-size: 14px; font-weight: 700; color: var(--bm-navy);">Patient A — Restaging discussion</div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; font-size: 12px; color: var(--bm-slate-600);">
+                                <div><b>Provider:</b> Dr. R. Iyer</div>
+                                <div><b>Diagnosis:</b> Lung adeno IIIB</div>
+                                <div><b>Pathology:</b> Required ✓</div>
+                                <div><b>Radiology:</b> Required ✓</div>
+                            </div>
+                            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--bm-slate-200); font-size: 12px; color: var(--bm-slate-600);">
+                                <b>Reason:</b> Decide between systemic therapy escalation vs. salvage RT after recent progression on imaging.
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="bm-pill" style="background: rgba(11, 11, 48, 0.06); color: var(--bm-navy); border-color: rgba(11, 11, 48, 0.15);">Step 4 of 4</span>
+                        <h2 class="bm-h2" style="margin-top: 16px;">Build the agenda.</h2>
+                        <p style="font-size: 17px; color: var(--bm-slate-600);">
+                            For each patient: a Requested Provider chosen from your meeting participants, the diagnosis, the clinical question, and explicit flags for whether pathology and radiology review are required. Treatment plans are added during or after the meeting and remain editable for seven days.
+                        </p>
+                        <ul class="bm-bullet-list" style="margin-top: 20px;">
+                            <li>The Requested Provider dropdown is populated from organiser + participants — no free-text mistakes.</li>
+                            <li>Pathology and radiology flags surface as filters on the meeting dashboard.</li>
+                            <li>Treatment plans are versioned and timestamped; edit window is seven days post-completion.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- After the meeting -->
+        <section class="bm-section">
+            <div class="bm-container" style="text-align: center; max-width: 800px;">
+                <span class="bm-eyebrow">After the call</span>
+                <h2 class="bm-h2">Decisions and treatment plans live where the meeting did.</h2>
+                <p class="bm-lead" style="margin: 0 auto 32px;">
+                    Within ten minutes of the scheduled end, BioMedMeet auto-completes the meeting. Decisions, treatment plans and uploaded files stay attached to both the meeting and the patient — searchable, exportable, audit-trailed.
+                </p>
+                <a href="/marketing/contact.html#demo" class="bm-btn bm-btn-primary bm-btn-lg">Request a demo</a>
+            </div>
+        </section>
+    </main>
+
+    <div data-bm-footer></div>
+    <script src="/marketing/assets/layout.js"></script>
+</body>
+</html>

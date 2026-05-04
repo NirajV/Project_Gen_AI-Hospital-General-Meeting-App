@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contact &amp; demo — BioMedMeet</title>
+    <meta name="description" content="Request a fifteen-minute demo of BioMedMeet, download the quick-reference PDF, or get in touch directly." />
+    <link rel="icon" type="image/svg+xml" href="/marketing/assets/favicon.svg" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/marketing/assets/brand.css" />
+</head>
+<body>
+    <div data-bm-nav></div>
+
+    <main>
+        <header class="bm-hero" style="padding: 64px 0 40px;">
+            <div class="bm-container" style="max-width: 880px; text-align: center;">
+                <span class="bm-eyebrow">Get in touch</span>
+                <h1 class="bm-h1">Let's see if BioMedMeet fits your hospital.</h1>
+                <p class="bm-lead" style="margin: 0 auto;">
+                    Pick whichever route is easiest — a fifteen-minute demo, the printable quick-reference, or a direct line.
+                </p>
+            </div>
+        </header>
+
+        <!-- Contact + Demo grid -->
+        <section class="bm-section" style="padding-top: 32px;">
+            <div class="bm-container">
+                <div class="bm-grid bm-grid-2" style="gap: 32px; align-items: start;">
+
+                    <!-- DEMO REQUEST FORM -->
+                    <div class="bm-card" id="demo">
+                        <span class="bm-pill" style="background: rgba(11, 11, 48, 0.06); color: var(--bm-navy); border-color: rgba(11, 11, 48, 0.15);">Recommended</span>
+                        <h2 class="bm-h2" style="margin-top: 12px;">Request a demo</h2>
+                        <p style="font-size: 15px; color: var(--bm-slate-600);">
+                            Fifteen minutes, walked through real tumour-board demo data. We'll bring questions about your current MDT workflow.
+                        </p>
+                        <form id="demo-form" style="margin-top: 20px;" data-form-type="demo">
+                            <div style="display: grid; gap: 14px;">
+                                <div><label class="bm-label" for="d-name">Your name *</label><input class="bm-input" id="d-name" name="name" type="text" required autocomplete="name" /></div>
+                                <div><label class="bm-label" for="d-email">Work email *</label><input class="bm-input" id="d-email" name="email" type="email" required autocomplete="email" /></div>
+                                <div><label class="bm-label" for="d-hospital">Hospital / organisation *</label><input class="bm-input" id="d-hospital" name="hospital" type="text" required /></div>
+                                <div><label class="bm-label" for="d-role">Your role</label><input class="bm-input" id="d-role" name="role" type="text" placeholder="e.g., Department Head, Oncology" /></div>
+                                <div><label class="bm-label" for="d-message">What you'd like to see</label><textarea class="bm-textarea" id="d-message" name="message" rows="3" placeholder="Optional — anything specific about your MDT workflow we should focus on?"></textarea></div>
+                                <button type="submit" class="bm-btn bm-btn-primary bm-btn-lg" style="justify-content: center;">
+                                    Request demo
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                                </button>
+                                <p style="font-size: 12px; color: var(--bm-slate-500); margin: 0;">By submitting, you agree to be contacted about your demo request. No mailing list, no spam.</p>
+                            </div>
+                            <div id="demo-success" style="display: none; margin-top: 20px; padding: 16px; background: rgba(59,102,88,0.08); border: 1px solid rgba(59,102,88,0.25); border-radius: 8px; color: var(--bm-green); font-size: 14px;">
+                                ✓ Thank you — we will be in touch within one business day.
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- CHEAT SHEET DOWNLOAD -->
+                    <div class="bm-card" id="cheat-sheet">
+                        <span class="bm-pill" style="background: rgba(105, 78, 32, 0.08); color: var(--bm-olive); border-color: rgba(105, 78, 32, 0.2);">Free PDF</span>
+                        <h2 class="bm-h2" style="margin-top: 12px;">Download the quick reference</h2>
+                        <p style="font-size: 15px; color: var(--bm-slate-600);">
+                            Nine-section, two-page cheat sheet covering meeting creation, agenda items, treatment plans, Microsoft Teams, calendar invites, and email reminders. Drop the email in to get the link.
+                        </p>
+                        <form id="cheat-form" style="margin-top: 20px;" data-form-type="cheat-sheet">
+                            <div style="display: grid; gap: 14px;">
+                                <div><label class="bm-label" for="c-name">Your name *</label><input class="bm-input" id="c-name" name="name" type="text" required autocomplete="name" /></div>
+                                <div><label class="bm-label" for="c-email">Work email *</label><input class="bm-input" id="c-email" name="email" type="email" required autocomplete="email" /></div>
+                                <div><label class="bm-label" for="c-hospital">Hospital / organisation</label><input class="bm-input" id="c-hospital" name="hospital" type="text" /></div>
+                                <button type="submit" class="bm-btn bm-btn-green bm-btn-lg" style="justify-content: center;">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                    Send me the cheat sheet
+                                </button>
+                                <p style="font-size: 12px; color: var(--bm-slate-500); margin: 0;">We'll email the PDF link and keep your details for product updates only. Unsubscribe with one click.</p>
+                            </div>
+                            <div id="cheat-success" style="display: none; margin-top: 20px; padding: 16px; background: rgba(105, 78, 32, 0.08); border: 1px solid rgba(105, 78, 32, 0.25); border-radius: 8px; color: var(--bm-olive); font-size: 14px;">
+                                ✓ Thanks. <a href="/docs/MedMeet_CheatSheet.pdf" target="_blank" rel="noopener" style="color: var(--bm-olive); text-decoration: underline; font-weight: 600;">Open the PDF now</a> — a copy is also being emailed to you.
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Direct contact strip -->
+        <section style="background: var(--bm-navy); color: #fff; padding: 56px 0;">
+            <div class="bm-container" style="text-align: center; max-width: 720px;">
+                <h2 class="bm-h2" style="color: #fff;">Or reach out directly.</h2>
+                <p style="color: var(--bm-slate-300); font-size: 16px; margin-bottom: 32px;">
+                    Sometimes a form is overkill. We are based in the United States and respond same-day during business hours.
+                </p>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 600px; margin: 0 auto;">
+                    <a href="mailto:Niraj.k.vishwakarma@gmail.com" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; padding: 20px; color: #fff; transition: background 0.2s;">
+                        <div style="font-size: 12px; color: var(--bm-slate-400); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;">Email</div>
+                        <div style="font-size: 15px; font-weight: 600;">Niraj.k.vishwakarma@gmail.com</div>
+                    </a>
+                    <a href="tel:+14848026153" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; padding: 20px; color: #fff; transition: background 0.2s;">
+                        <div style="font-size: 12px; color: var(--bm-slate-400); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;">Phone</div>
+                        <div style="font-size: 15px; font-weight: 600;">+1 484 802 6153</div>
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div data-bm-footer></div>
+    <script src="/marketing/assets/layout.js"></script>
+    <script>
+        // Lead-capture handler. POSTs to /api/contact (FastAPI endpoint, optional —
+        // if absent, the form still shows the success state so you can wire it up later).
+        (function () {
+            function handle(formId, successId) {
+                var f = document.getElementById(formId);
+                var s = document.getElementById(successId);
+                if (!f || !s) return;
+                f.addEventListener('submit', async function (e) {
+                    e.preventDefault();
+                    var data = Object.fromEntries(new FormData(f).entries());
+                    data.form_type = f.dataset.formType || 'general';
+                    data.source = 'biomedmeet.com';
+                    try {
+                        await fetch('/api/contact', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(data),
+                        });
+                    } catch (_err) { /* fall through to success UX anyway */ }
+                    f.querySelectorAll('input,textarea,button').forEach(function (el) { el.disabled = true; });
+                    s.style.display = 'block';
+                    s.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                });
+            }
+            handle('demo-form', 'demo-success');
+            handle('cheat-form', 'cheat-success');
+        })();
+    </script>
+</body>
+</html>
