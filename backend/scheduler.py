@@ -1,23 +1,32 @@
 """
-Background email reminder scheduler for Hospital Meeting App.
+Background scheduler for Hospital Meeting App.
 
 Runs as an asyncio background task inside the FastAPI process (started in
-server.py's startup event). Sends a single "1 hour before" email reminder
-to each accepted participant of every scheduled meeting.
+server.py's startup event). Handles:
+  1. Sends a single "1 hour before" email reminder to each accepted
+     participant of every scheduled meeting.
+  2. Auto-marks meetings as `completed` 10 minutes after their scheduled
+     end time, so the UI stays accurate even when participants forget to
+     click the Complete button at the end of the Teams call.
 
 Configuration (env):
-    EMAIL_REMINDERS_ENABLED   "true"/"false"  (default: "true")
-    REMINDER_POLL_SECONDS     poll interval   (default: 300 seconds = 5 min)
+    EMAIL_REMINDERS_ENABLED     "true"/"false"  (default: "true")
+    AUTO_COMPLETE_ENABLED       "true"/"false"  (default: "true")
+    REMINDER_POLL_SECONDS       poll interval   (default: 300 seconds = 5 min)
+    AUTO_COMPLETE_GRACE_MINUTES grace period    (default: 10 minutes after end)
 
 Deduplication:
-    A meeting is marked with `reminder_1h_sent: True` once its 1h reminders
-    have been dispatched, so reminders are never sent twice for the same meeting.
+    - A meeting is marked with `reminder_1h_sent: True` once its 1h reminders
+      have been dispatched.
+    - Auto-complete only targets meetings with status in {scheduled, in_progress},
+      so each meeting is flipped to `completed` at most once.
 """
 
 import asyncio
 import logging
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 
 from utils.email import send_meeting_reminder
 
@@ -149,29 +158,109 @@ async def _send_one_hour_reminders(db) -> None:
         )
 
 
+async def _auto_complete_ended_meetings(db) -> None:
+    """
+    Flip meetings to `completed` once their scheduled end time + grace period
+    has passed. Uses the organizer's timezone (same TZ logic as the create /
+    reschedule flows). Works for Teams and non-Teams meetings alike.
+    """
+    if os.environ.get("AUTO_COMPLETE_ENABLED", "true").lower() != "true":
+        return
+
+    try:
+        grace_min = int(os.environ.get("AUTO_COMPLETE_GRACE_MINUTES", "10"))
+    except ValueError:
+        grace_min = 10
+
+    now_utc = datetime.now(timezone.utc)
+
+    # Only look at meetings that *could* still need auto-completing.
+    cursor = db.meetings.find(
+        {"status": {"$in": ["scheduled", "in_progress"]}},
+        {"_id": 0},
+    )
+
+    for meeting in await cursor.to_list(1000):
+        meeting_date = meeting.get("meeting_date")
+        end_time = meeting.get("end_time") or meeting.get("start_time")
+        if not meeting_date or not end_time:
+            continue
+
+        # Resolve organizer's timezone (fallback: UTC).
+        organizer_tz_name = "UTC"
+        organizer = await db.users.find_one(
+            {"id": meeting.get("organizer_id")}, {"_id": 0, "timezone": 1}
+        )
+        if organizer and organizer.get("timezone"):
+            organizer_tz_name = organizer["timezone"]
+        try:
+            tz = ZoneInfo(organizer_tz_name)
+        except Exception:
+            tz = ZoneInfo("UTC")
+
+        try:
+            end_dt_local = datetime.strptime(
+                f"{meeting_date} {end_time[:5]}", "%Y-%m-%d %H:%M"
+            ).replace(tzinfo=tz)
+        except ValueError:
+            logger.warning(
+                "auto-complete: skip meeting %s — bad date/time (%s %s)",
+                meeting.get("id"), meeting_date, end_time,
+            )
+            continue
+
+        end_dt_utc = end_dt_local.astimezone(timezone.utc)
+        if now_utc < end_dt_utc + timedelta(minutes=grace_min):
+            continue  # not yet past the grace window
+
+        meeting_id = meeting["id"]
+        await db.meetings.update_one(
+            {"id": meeting_id, "status": {"$in": ["scheduled", "in_progress"]}},
+            {
+                "$set": {
+                    "status": "completed",
+                    "completed_at": now_utc.isoformat(),
+                    "auto_completed": True,
+                    "auto_completed_reason": f"Scheduled end + {grace_min} min grace elapsed",
+                }
+            },
+        )
+        logger.info(
+            "Auto-completed meeting %s (end=%s local, grace=%dmin)",
+            meeting_id, end_dt_local.isoformat(), grace_min,
+        )
+
+
 async def reminder_loop(db) -> None:
     """Long-running background loop. Started from server.py startup hook."""
-    if not _is_enabled():
-        logger.info("Email reminder scheduler disabled (EMAIL_REMINDERS_ENABLED=false)")
+    reminders_on = _is_enabled()
+    auto_complete_on = os.environ.get("AUTO_COMPLETE_ENABLED", "true").lower() == "true"
+
+    if not reminders_on and not auto_complete_on:
+        logger.info("Scheduler disabled (EMAIL_REMINDERS_ENABLED=false and AUTO_COMPLETE_ENABLED=false)")
         return
 
     interval = _poll_interval()
     logger.info(
-        "Email reminder scheduler started (1h reminders, poll every %ss)", interval
+        "Scheduler started — reminders=%s, auto_complete=%s, poll=%ss",
+        reminders_on, auto_complete_on, interval,
     )
 
     while True:
         try:
-            await _send_one_hour_reminders(db)
+            if reminders_on:
+                await _send_one_hour_reminders(db)
+            if auto_complete_on:
+                await _auto_complete_ended_meetings(db)
         except asyncio.CancelledError:
-            logger.info("Email reminder scheduler cancelled")
+            logger.info("Scheduler cancelled")
             raise
         except Exception as e:
             # Never let a single iteration error kill the loop.
-            logger.exception("Reminder loop iteration failed: %s", e)
+            logger.exception("Scheduler iteration failed: %s", e)
 
         try:
             await asyncio.sleep(interval)
         except asyncio.CancelledError:
-            logger.info("Email reminder scheduler cancelled during sleep")
+            logger.info("Scheduler cancelled during sleep")
             raise

@@ -116,6 +116,28 @@ Web-based Hospital General Meeting Scheduler App for healthcare professionals. D
   Provider dropdown, any-participant Start/Complete, auto Teams
   rescheduling, first-time holiday setup toast.
 
+## Locale Pre-fill + Auto-Complete Scheduler (May 04 2026)
+- **Browser-locale defaults on Settings**: new `frontend/src/lib/localeDetection.js`
+  extracts the user's IANA timezone (`Intl.DateTimeFormat().resolvedOptions().timeZone`)
+  and ISO-3166 country from `navigator.language`. Only values in our supported
+  `COUNTRIES`/`TIMEZONES` lists are accepted — invalid detections fall back to
+  `US` / `America/New_York` so the dropdowns never get an unselectable seed.
+  `SettingsTab` now seeds its form from these defaults whenever the user hasn't
+  set country/timezone yet, and shows an amber "We pre-filled your country and
+  timezone from your browser" hint (with a Sparkles icon).
+- **Auto-complete meetings after grace period**: `scheduler.py` got a new
+  `_auto_complete_ended_meetings()` step that flips meetings from `scheduled`
+  /`in_progress` → `completed` when `now >= meeting.end_time + grace` (default
+  10 min). Uses the organizer's timezone (same logic as create / reschedule).
+  Writes `auto_completed: True` + `auto_completed_reason` + `completed_at` on
+  the record. Config flags: `AUTO_COMPLETE_ENABLED` (default true) and
+  `AUTO_COMPLETE_GRACE_MINUTES` (default 10). Both are honoured by the
+  atomic `update_one({... status: in {scheduled, in_progress}})` so the flip
+  is race-safe.
+- **New pytest**: `backend/tests/test_scheduler_auto_complete.py` — 4 cases
+  (past → completed, future → untouched, disabled flag → no-op, already
+  completed → untouched). All 4 pass.
+
 ## Deployment Config Fix (May 02 2026)
 - `docker-compose.mongodb.yml` → `REACT_APP_BACKEND_URL=` (empty) for both
   build-arg and runtime env, so the JS bundle makes same-origin `/api/*`

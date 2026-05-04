@@ -1,30 +1,38 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Save, Globe } from 'lucide-react';
+import { Loader2, Save, Globe, Sparkles } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import { updateUser } from '@/lib/api';
 import { LANGUAGES, COUNTRIES, TIMEZONES } from '@/lib/regionalData';
+import { pickLocaleDefaults } from '@/lib/localeDetection';
 import HolidaysCard from '@/components/profile/HolidaysCard';
 
 export default function SettingsTab({ user, onUpdated }) {
     const [saving, setSaving] = useState(false);
+
+    // When the user hasn't picked a country/timezone yet, seed the form
+    // from their browser — that turns onboarding from an empty dropdown
+    // into a one-click confirmation for most new users.
+    const localeDefaults = useMemo(() => pickLocaleDefaults(), []);
+    const usingBrowserDefaults = !user?.country && !user?.timezone;
+
     const [form, setForm] = useState({
         language: user?.language || 'en-US',
-        country: user?.country || 'US',
-        timezone: user?.timezone || 'America/New_York',
+        country: user?.country || localeDefaults.country,
+        timezone: user?.timezone || localeDefaults.timezone,
     });
 
     useEffect(() => {
         if (!user) return;
         setForm({
             language: user.language || 'en-US',
-            country: user.country || 'US',
-            timezone: user.timezone || 'America/New_York',
+            country: user.country || localeDefaults.country,
+            timezone: user.timezone || localeDefaults.timezone,
         });
-    }, [user]);
+    }, [user, localeDefaults.country, localeDefaults.timezone]);
 
     const onSubmit = async (e) => {
         e.preventDefault();
@@ -63,6 +71,17 @@ export default function SettingsTab({ user, onUpdated }) {
             </CardHeader>
             <CardContent>
                 <form onSubmit={onSubmit} className="space-y-5 max-w-2xl">
+                    {usingBrowserDefaults && (
+                        <div
+                            className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3"
+                            data-testid="locale-prefill-hint"
+                        >
+                            <Sparkles className="w-4 h-4 text-amber-700 flex-shrink-0 mt-0.5" />
+                            <div className="text-sm text-amber-900 leading-relaxed">
+                                We pre-filled your <b>country</b> and <b>timezone</b> from your browser. Review and click <b>Save</b> to confirm — or change them below.
+                            </div>
+                        </div>
+                    )}
                     <div className="space-y-2">
                         <Label htmlFor="language">Language</Label>
                         <Select
