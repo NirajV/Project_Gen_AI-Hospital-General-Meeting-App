@@ -3,8 +3,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Upload, FileText, Download, Trash2 } from 'lucide-react';
-import { getFileUrl } from '@/lib/api';
+import { downloadFile } from '@/lib/api';
 import { colorAt } from '@/lib/meetingColors';
+import { toast } from '@/components/ui/sonner';
 
 const DEFAULT_FILE_ICONS = {
     radiology: '🩻',
@@ -88,18 +89,27 @@ export default function FilesTab({
                                             </div>
                                         </div>
                                         <div className="flex gap-1">
-                                            <Button variant="ghost" size="icon" asChild>
-                                                <a
-                                                    href={getFileUrl(file.id)}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    data-testid={`file-download-${idx}`}
-                                                >
-                                                    <Download
-                                                        className="w-4 h-4"
-                                                        style={{ color: colors.dark }}
-                                                    />
-                                                </a>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={async () => {
+                                                    try {
+                                                        await downloadFile(file.id, file.original_name);
+                                                    } catch (e) {
+                                                        toast.error(
+                                                            e?.response?.status === 401
+                                                                ? 'Please sign in to download files.'
+                                                                : 'Failed to download file. Please try again.'
+                                                        );
+                                                    }
+                                                }}
+                                                data-testid={`file-download-${idx}`}
+                                                aria-label={`Download ${file.original_name}`}
+                                            >
+                                                <Download
+                                                    className="w-4 h-4"
+                                                    style={{ color: colors.dark }}
+                                                />
                                             </Button>
                                             <Button
                                                 variant="ghost"

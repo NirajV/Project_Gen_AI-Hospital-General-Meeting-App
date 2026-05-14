@@ -153,11 +153,12 @@ def send_meeting_invite(
         meeting, participant.get('timezone')
     )
     
-    # Create accept/decline links
-    meeting_id = meeting.get('id', '')
-    accept_link = f"{frontend_url}/meetings/{meeting_id}?action=accept"
-    decline_link = f"{frontend_url}/meetings/{meeting_id}?action=decline"
-    view_link = f"{frontend_url}/meetings/{meeting_id}"
+    # Invite-email buttons route to the public /home/ landing page.
+    # Recipients who aren't signed in to BioMedMeet land on the marketing
+    # page first; from there they can request access / sign in.
+    accept_link = f"{frontend_url}/home/"
+    decline_link = f"{frontend_url}/home/"
+    view_link = f"{frontend_url}/home/"
 
     # Prefer the auto-generated Teams link; fall back to manually pasted video link.
     meeting_join_url = meeting.get('teams_join_url') or meeting.get('video_link') or ''
@@ -396,10 +397,12 @@ def send_datetime_change_email(
         meeting, participant.get('timezone')
     )
 
-    meeting_id = meeting.get('id', '')
-    accept_link = f"{frontend_url}/meetings/{meeting_id}?action=accept"
-    decline_link = f"{frontend_url}/meetings/{meeting_id}?action=decline"
-    view_link = f"{frontend_url}/meetings/{meeting_id}"
+    # Invite-email buttons route to the public /home/ landing page.
+    # Recipients who aren't signed in to BioMedMeet land on the marketing
+    # page first; from there they can request access / sign in.
+    accept_link = f"{frontend_url}/home/"
+    decline_link = f"{frontend_url}/home/"
+    view_link = f"{frontend_url}/home/"
 
     meeting_join_url = meeting.get('teams_join_url') or meeting.get('video_link') or ''
 

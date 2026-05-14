@@ -93,6 +93,31 @@ export const uploadFile = (meetingId, formData) => api.post(`/meetings/${meeting
     headers: { 'Content-Type': 'multipart/form-data' }
 });
 export const deleteFile = (fileId) => api.delete(`/files/${fileId}`);
+// Files
+// Note: getFileUrl returns a raw URL but cannot be used as <a href> because
+// /api/files/{id} requires Bearer auth — a plain browser navigation has no
+// header. Use downloadFile() instead (fetches with auth and triggers a
+// Blob-based download in the browser).
 export const getFileUrl = (fileId) => `${API_URL}/api/files/${fileId}`;
+
+export const downloadFile = async (fileId, fallbackName = 'download') => {
+    const response = await api.get(`/files/${fileId}`, { responseType: 'blob' });
+    // Derive a filename from the Content-Disposition header if the server sent one.
+    const disp = response.headers['content-disposition'] || '';
+    const match = disp.match(/filename\*?=(?:UTF-8'')?["']?([^;"']+)["']?/i);
+    const filename = match ? decodeURIComponent(match[1]) : fallbackName;
+
+    const blobUrl = window.URL.createObjectURL(new Blob([response.data], {
+        type: response.headers['content-type'] || 'application/octet-stream',
+    }));
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    // Defer revoke so Safari/Firefox finish the download.
+    setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1500);
+};
 
 export default api;

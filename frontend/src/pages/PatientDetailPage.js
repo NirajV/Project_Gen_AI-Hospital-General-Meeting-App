@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { getPatient, updatePatient, getFileUrl } from '@/lib/api';
+import { getPatient, updatePatient, downloadFile } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from '@/components/ui/sonner';
 import {
     Dialog,
     DialogContent,
@@ -383,10 +384,23 @@ export default function PatientDetailPage() {
                                                             )}
                                                         </div>
                                                     </div>
-                                                    <Button variant="ghost" size="icon" asChild>
-                                                        <a href={getFileUrl(file.id)} target="_blank" rel="noopener noreferrer">
-                                                            <Download className="w-4 h-4" style={{ color: colors.dark }} />
-                                                        </a>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={async () => {
+                                                            try {
+                                                                await downloadFile(file.id, file.original_name);
+                                                            } catch (e) {
+                                                                toast.error(
+                                                                    e?.response?.status === 401
+                                                                        ? 'Please sign in to download files.'
+                                                                        : 'Failed to download file. Please try again.'
+                                                                );
+                                                            }
+                                                        }}
+                                                        aria-label={`Download ${file.original_name}`}
+                                                    >
+                                                        <Download className="w-4 h-4" style={{ color: colors.dark }} />
                                                     </Button>
                                                 </div>
                                             </CardContent>

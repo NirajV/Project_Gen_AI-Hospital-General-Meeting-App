@@ -116,7 +116,7 @@
                     e.preventDefault();
                     var data = Object.fromEntries(new FormData(f).entries());
                     data.form_type = f.dataset.formType || 'general';
-                    data.source = 'biomedmeet.com';
+                    data.source = 'https://biomedmeet.com/home/';
                     try {
                         await fetch('/api/contact', {
                             method: 'POST',
