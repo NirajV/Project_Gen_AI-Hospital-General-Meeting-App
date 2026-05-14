@@ -72,6 +72,39 @@ Web-based Hospital General Meeting Scheduler App for healthcare professionals. D
   the `update_meeting` permission check (backend) now allow ANY meeting
   participant — not only `accepted` ones — to Start or Complete the meeting.
 
+## Account-Setup Email + Dead-Code Cleanup + Recreation Doc (May 13 2026)
+- **Account-setup email** (`utils/email.py`, 4 call sites): `platform_url` now
+  rendered as `{frontend_url}/home/` (was bare `{frontend_url}`). The
+  `Platform URL` field and `Access Platform` button in the new-user
+  invitation email now both land on the public marketing page, where the
+  recipient can sign in.
+- **Lead-capture forms** (`home/contact.html`): the `source` field sent with
+  every demo / cheat-sheet POST is now the full URL `https://biomedmeet.com/home/`.
+- **Invite-email action buttons**: Accept / Decline / View Meeting all now
+  point to `{frontend_url}/home/` (both invite + reschedule paths).
+- **Authenticated file download** (`lib/api.js` + `FilesTab.js` +
+  `PatientDetailPage.js`): replaced `<a href=getFileUrl(id)>` (which fails
+  401 because plain browser nav can't carry the JWT) with a new
+  `downloadFile()` helper that uses the authenticated axios client +
+  `responseType: 'blob'` + a Blob-URL download trigger.
+- **Dead code removed**:
+  - `backend/server_backup.py` (80 KB)
+  - `frontend/src/lib/tipsContent.js` (already inlined into `TipsDrawer.js`)
+  - `frontend/src/components/EmptyState.js`
+  - `frontend/src/components/StatusBadges.js`
+  - Auto-fixed 43 ruff warnings (f-string-no-placeholder, unused-var) in
+    `backend/tests/`.
+- **New** `docs/TECHNICAL_RECREATION_PROMPT.md` — single exhaustive prompt
+  (≈ 600 lines) that contains everything needed to recreate the application
+  from scratch: tech stack & versions, repo layout, env vars, MongoDB
+  schema for every collection, every REST endpoint, frontend pages &
+  dialogs, email templates, Teams integration, scheduler logic, ICS rules,
+  holiday checker, Docker compose, marketing site spec, test inventory,
+  and a 13-item acceptance checklist.
+- **README.md** rewritten clean for the BioMedMeet brand + current repo
+  layout. Doc index pointing at the topic-specific reference docs.
+- **CHANGELOG.md** brought up to date through v2.4.0.
+
 ## Bug Fix Batch (May 04 2026)
 - **AddAgendaDialog Requested Provider consistency**: the post-creation
   dialog previously excluded the organizer (filter `p.role !== 'organizer'`).

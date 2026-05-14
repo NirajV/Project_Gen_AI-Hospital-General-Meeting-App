@@ -8,7 +8,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from typing import List, Dict, Optional
-from datetime import datetime, timedelta
+from datetime import datetime
 from jinja2 import Template
 import logging
 from dotenv import load_dotenv
@@ -478,7 +478,7 @@ def send_account_setup_email(
     html_content = template_obj.render(
         participant_name=user.get('name', user.get('email', 'there')),
         meeting_title=meeting.get('title', 'Hospital Case Meeting'),
-        platform_url=frontend_url,
+        platform_url=f"{frontend_url}/home/",
         user_email=user.get('email'),
         temp_password=temp_password,
         organizer_name=organizer.get('name', 'Meeting Organizer')
@@ -518,7 +518,7 @@ def send_password_reset_email(
         user_name=user.get('name', user.get('email', 'there')),
         user_email=user.get('email'),
         new_password=new_password,
-        platform_url=frontend_url
+        platform_url=f"{frontend_url}/home/"
     )
     
     subject = "Password Reset: Hospital Case Meeting Scheduler"
@@ -566,7 +566,7 @@ def send_combined_account_setup_and_invite(
         meeting_date=meeting.get('meeting_date', meeting.get('date', 'TBD')),
         meeting_time=meeting.get('start_time', meeting.get('time', 'TBD')),
         meeting_location=meeting.get('location', 'To be announced'),
-        platform_url=frontend_url,
+        platform_url=f"{frontend_url}/home/",
         user_email=user.get('email'),
         temp_password=temp_password,
         organizer_name=organizer.get('name', 'Meeting Organizer'),
@@ -608,7 +608,7 @@ def send_simple_account_setup_email(
     template_obj = Template(template)
     html_content = template_obj.render(
         user_name=user.get('name', user.get('email', 'there')),
-        platform_url=frontend_url,
+        platform_url=f"{frontend_url}/home/",
         user_email=user.get('email'),
         temp_password=temp_password
     )

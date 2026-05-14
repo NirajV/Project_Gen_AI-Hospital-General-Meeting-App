@@ -142,8 +142,8 @@ class TestOrganizerPermissions:
         assert response.status_code == 200, f"Update failed: {response.status_code} - {response.text}"
         
         data = response.json()
-        assert data["email"] == new_email, f"Email mismatch"
-        assert data["specialty"] == new_specialty, f"Specialty mismatch"
+        assert data["email"] == new_email, "Email mismatch"
+        assert data["specialty"] == new_specialty, "Specialty mismatch"
         print(f"✅ Organizer successfully updated both email ({new_email}) and specialty ({new_specialty})")
     
     def test_update_persists_in_database(self, organizer_token, test_user, api_client):
@@ -169,8 +169,8 @@ class TestOrganizerPermissions:
         assert get_response.status_code == 200
         fetched_data = get_response.json()
         assert fetched_data["email"] == new_email, f"Email not persisted. Expected {new_email}, got {fetched_data['email']}"
-        assert fetched_data["specialty"] == new_specialty, f"Specialty not persisted"
-        print(f"✅ Updates verified as persisted in database")
+        assert fetched_data["specialty"] == new_specialty, "Specialty not persisted"
+        print("✅ Updates verified as persisted in database")
 
 
 class TestDuplicateEmailValidation:
@@ -187,7 +187,7 @@ class TestDuplicateEmailValidation:
         
         assert response.status_code == 400, f"Should reject duplicate email with 400. Got: {response.status_code}"
         assert "already in use" in response.text.lower() or "already exists" in response.text.lower(), f"Error message should mention email is in use: {response.text}"
-        print(f"✅ Correctly rejected duplicate email update")
+        print("✅ Correctly rejected duplicate email update")
 
 
 class TestNonOrganizerPermissions:
@@ -205,7 +205,7 @@ class TestNonOrganizerPermissions:
             pytest.skip("Could not login as test user")
         
         user_token = login_response.json()["access_token"]
-        user_id = login_response.json()["user"]["id"]
+        login_response.json()["user"]["id"]
         
         # Try to update organizer's details - should be rejected
         # First, get list of users to find organizer ID
@@ -229,7 +229,7 @@ class TestNonOrganizerPermissions:
         )
         
         assert response.status_code == 403, f"Non-organizer should get 403 when editing others. Got: {response.status_code}"
-        print(f"✅ Correctly blocked non-organizer from editing others")
+        print("✅ Correctly blocked non-organizer from editing others")
     
     def test_user_can_update_own_profile(self, test_user, api_client):
         """Users should be able to update their own profile"""
@@ -253,7 +253,7 @@ class TestNonOrganizerPermissions:
         )
         
         assert response.status_code == 200, f"User should be able to update own profile. Got: {response.status_code}"
-        print(f"✅ User can update their own profile")
+        print("✅ User can update their own profile")
 
 
 if __name__ == "__main__":

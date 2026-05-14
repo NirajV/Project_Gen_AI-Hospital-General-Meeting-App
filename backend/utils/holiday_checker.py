@@ -6,7 +6,6 @@ Validates meeting dates against configured public holidays
 import json
 import os
 from datetime import datetime, date
-from pathlib import Path
 from typing import Optional, Dict, List, Tuple
 
 class HolidayChecker:

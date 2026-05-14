@@ -6,7 +6,6 @@ from fastapi.security import HTTPBearer
 from datetime import datetime, timezone, timedelta
 import jwt
 import bcrypt
-import secrets
 import string
 import random
 from .config import JWT_SECRET, JWT_ALGORITHM, JWT_EXPIRATION_HOURS

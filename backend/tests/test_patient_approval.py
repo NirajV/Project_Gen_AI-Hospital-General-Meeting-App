@@ -471,7 +471,7 @@ class TestPatientApprovalSystem:
             assert 'approved_by_name' in patient, "Missing approved_by_name field for approved patient"
             assert 'approved_at' in patient, "Missing approved_at field for approved patient"
         
-        print(f"✓ Meeting detail includes all approval fields:")
+        print("✓ Meeting detail includes all approval fields:")
         print(f"  - approval_status: {patient.get('approval_status')}")
         print(f"  - added_by_name: {patient.get('added_by_name')}")
         print(f"  - approved_by_name: {patient.get('approved_by_name')}")

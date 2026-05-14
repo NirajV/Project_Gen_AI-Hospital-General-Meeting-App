@@ -1,10 +1,10 @@
 from fastapi import FastAPI, APIRouter, HTTPException, Depends, UploadFile, File, Form, Request, Response, Body
 from starlette.middleware.cors import CORSMiddleware
 import logging
-from typing import List, Optional
+from typing import Optional
 from pathlib import Path
 import uuid
-from datetime import datetime, timezone, timedelta, date, time
+from datetime import datetime, timezone, timedelta
 from zoneinfo import ZoneInfo
 import secrets
 import aiofiles
@@ -16,16 +16,13 @@ import asyncio
 from core import (
     db, client, serialize_doc,
     hash_password, verify_password, create_jwt_token, get_current_user, generate_secure_password,
-    JWT_SECRET, JWT_ALGORITHM, JWT_EXPIRATION_HOURS,
-    UPLOAD_DIR, FRONTEND_URL, CORS_ORIGINS, security
+    UPLOAD_DIR, FRONTEND_URL, CORS_ORIGINS
 )
 
 # Model imports (refactored schemas)
 from models import (
     UserCreate, UserLogin, UserResponse, TokenResponse,
-    PatientCreate, PatientBase,
-    MeetingCreate, MeetingBase,
-    ParticipantInvite, ParticipantResponse,
+    PatientCreate, MeetingCreate, ParticipantInvite, ParticipantResponse,
     MeetingPatientCreate, AgendaItemCreate, DecisionLogCreate,
     FeedbackRequest
 )
@@ -35,12 +32,9 @@ from pydantic import BaseModel
 from utils.email import (
     send_meeting_invite,
     send_response_alert,
-    send_meeting_reminder,
-    send_daily_digest,
     send_datetime_change_email,
     send_account_setup_email,
     send_password_reset_email,
-    send_combined_account_setup_and_invite,
     send_simple_account_setup_email
 )
 from utils.pdf_generator import generate_meeting_summary_pdf
@@ -49,7 +43,6 @@ from utils.holiday_checker import (
     validate_meeting_date,
     validate_meeting_date_for_user,
     get_default_holidays_for_country,
-    country_to_key,
 )
 from services.teams_service import get_teams_service
 

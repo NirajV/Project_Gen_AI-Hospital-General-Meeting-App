@@ -1,185 +1,138 @@
-# 🏥 Hospital General Meeting App
+# BioMedMeet — Hospital Case Meeting Scheduler
 
-A full-stack web application for managing hospital general meetings with patient case discussions.
+A production-ready, time-zone-aware web application for planning, running, and
+documenting hospital multidisciplinary case meetings (tumour boards, MDTs, case
+conferences) with built-in Microsoft Teams, calendar invites, patient cards,
+agenda items, decisions, treatment plans, and an automatic-reminder scheduler.
 
-## ⚡ Quick Start
+> **Public marketing site:** <https://biomedmeet.com/home/>
+> **Application:** <https://biomedmeet.com/>
 
-**For complete setup instructions, see:** [SETUP.md](./SETUP.md)
+---
 
-### Quick Deploy (3 Commands)
+## Tech stack
+
+| Layer       | Stack                                                     |
+| ----------- | --------------------------------------------------------- |
+| Frontend    | React 18 (CRA), React Router 6, Tailwind, shadcn/ui, axios |
+| Backend     | FastAPI, Pydantic, motor (async MongoDB), uvicorn          |
+| Database    | MongoDB (single replica set or standalone)                 |
+| Integrations| Microsoft Graph (Teams), Gmail / SMTP, .ics RFC-5545       |
+| Deployment  | Docker Compose (frontend + backend + mongo), nginx        |
+
+---
+
+## Quick deploy (production / LAN host)
 
 ```bash
-cd ~/hospital-meeting-app/Project_Gen_AI-Hospital-General-Meeting-App
+git clone <your-fork> biomedmeet && cd biomedmeet
 
-# 1. Build images
-sudo docker compose -f docker-compose.mongodb.yml build
+# 1. Populate the ROOT .env (next to docker-compose) — NOT backend/.env.
+#    Docker Compose substitutes ${VAR} values from this file at build/run time.
+cp .env.example .env
+$EDITOR .env   # fill in MONGO_URL, SMTP_*, GRAPH_*, etc.
 
-# 2. Start services
-sudo docker compose -f docker-compose.mongodb.yml up -d
+# 2. Build + start
+sudo docker compose -f docker-compose.mongodb.yml up -d --build
 
-# 3. Initialize database (see SETUP.md Step 7)
+# 3. Visit
+#    https://biomedmeet.com/          → application login
+#    https://biomedmeet.com/home/     → marketing site
+#    https://biomedmeet.com/api/health → expects 200
 ```
 
-Access at: `http://YOUR-SERVER-IP:3000`
+For the full reproducible recipe, see [`docs/TECHNICAL_RECREATION_PROMPT.md`](./docs/TECHNICAL_RECREATION_PROMPT.md).
 
 ---
 
-## 🎯 Features
-
-- 👥 **User Management** - Organizers, participants with role-based access
-- 📅 **Meeting Scheduler** - Create and manage meetings with multiple participants
-- 🏥 **Patient Management** - Add patients with medical details, approval workflow
-- 📄 **Document Management** - Upload medical reports and related documents
-- 📧 **Email Notifications** - Automated meeting reminders (optional)
-- 🔐 **Secure Authentication** - JWT-based auth with Google OAuth support
-
----
-
-## 🛠️ Tech Stack
-
-- **Frontend:** React 19, TailwindCSS, Shadcn UI components
-- **Backend:** Python FastAPI, Motor (async MongoDB driver)
-- **Database:** MongoDB 6.0
-- **Deployment:** Docker + Docker Compose + Nginx
-
----
-
-## 📚 Documentation
-
-| Document | Purpose |
-|----------|---------|
-| [SETUP.md](./SETUP.md) | **Complete setup guide** - Start here! |
-| [GMAIL_SMTP_SETUP.md](./GMAIL_SMTP_SETUP.md) | Email notification configuration |
-| [docs/API_REFERENCE.md](./docs/API_REFERENCE.md) | Backend API documentation |
-| [docs/FEATURES.md](./docs/FEATURES.md) | Feature documentation |
-| [docs/PATIENT_APPROVAL_SYSTEM.md](./docs/PATIENT_APPROVAL_SYSTEM.md) | Patient approval workflow |
-
----
-
-## 🔑 Default Login
-
-After setup, login with:
-- **Email:** `organizer@hospital.com`
-- **Password:** `password123`
-
-**⚠️ Change password after first login!**
-
----
-
-## 🏗️ Project Structure
-
-```
-/app
-├── backend/           # FastAPI backend
-│   ├── core/         # Config, database, auth modules
-│   ├── models/       # Pydantic schemas
-│   └── server.py     # Main API routes
-├── frontend/         # React frontend
-│   └── src/
-│       ├── pages/    # Page components
-│       └── components/ # Reusable UI components
-├── database/         # MongoDB setup scripts
-├── docs/             # Documentation
-└── docker-compose.mongodb.yml  # Docker orchestration
-```
-
----
-
-## 🚀 Quick Commands
+## Local development (without Docker)
 
 ```bash
-# Start services
-sudo docker compose -f docker-compose.mongodb.yml up -d
+# Backend
+cd backend
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env   # fill in
+uvicorn server:app --host 0.0.0.0 --port 8001 --reload
 
-# Stop services
-sudo docker compose -f docker-compose.mongodb.yml down
-
-# View logs
-sudo docker compose -f docker-compose.mongodb.yml logs -f
-
-# Restart services
-sudo docker compose -f docker-compose.mongodb.yml restart
-
-# Check status
-sudo docker ps
+# Frontend (new terminal)
+cd frontend
+yarn install
+yarn start          # http://localhost:3000
 ```
 
 ---
 
-## 🔍 Troubleshooting
+## Feature highlights
 
-See [SETUP.md](./SETUP.md) for detailed troubleshooting steps.
+- **4-step meeting wizard** — title, participants, patients, agenda
+- **One-click Microsoft Teams meeting** — generated & auto-rescheduled via Graph
+- **Time-zone-aware invites** — recipients see local time in body, `.ics`, and UI
+- **Holiday-aware scheduling** — US, UK, India defaults + per-hospital custom days
+- **Patient cards & approval workflow** — first-class patient records, organiser approval
+- **Decisions & treatment plans** — versioned, audited, 7-day post-meeting edit window
+- **File attachments** — radiology / pathology / lab / consult notes, tagged by type
+- **Automatic 1-hour reminder** — deduplicated background job
+- **Auto-complete meetings** — flip to "completed" 10 min after end (configurable)
+- **Lead capture marketing site** — public `/home/` with demo-request + gated cheat-sheet
+- **Authenticated file downloads** — Blob-URL flow keeps `/api/files/*` protected by Bearer auth
 
-**Quick checks:**
-```bash
-# Check all containers are healthy
-sudo docker ps
+---
 
-# View specific service logs
-sudo docker logs hospital_mongodb
-sudo docker logs hospital_backend
-sudo docker logs hospital_frontend
+## Repository layout
+
+```
+.
+├── backend/                FastAPI app
+│   ├── core/               settings & wiring
+│   ├── models/             pydantic schemas
+│   ├── routes/             (some routes live in server.py — see CHANGELOG for ongoing split)
+│   ├── services/           teams_service.py, pdf services
+│   ├── templates/emails/   Jinja HTML for invite / reminder / digest / response-change / account-setup
+│   ├── utils/              email, ics_builder, timezone_utils, holiday_checker, pdf_generator
+│   ├── tests/              pytest regression suite
+│   ├── scheduler.py        background reminder + auto-complete loop
+│   └── server.py           FastAPI app + routes
+├── frontend/
+│   ├── public/
+│   │   ├── home/           static marketing site (BioMedMeet.com/home/)
+│   │   └── docs/           public PDFs (BioMedMeet_CheatSheet.pdf)
+│   ├── src/
+│   │   ├── components/     UI + shadcn primitives + meeting / profile / help
+│   │   ├── pages/          MeetingDetailPage, MeetingWizardPage, ProfilePage, etc.
+│   │   ├── context/        AuthContext (JWT, optional Google OAuth)
+│   │   └── lib/            api client, regional data, locale detection, helpers
+│   ├── nginx.conf          Docker frontend nginx (SPA fallback + /api proxy)
+│   └── Dockerfile
+├── scripts/
+│   └── generate_cheatsheet_pdf.py   reportlab generator for the gated PDF
+├── docs/                   topic-specific reference docs (see below)
+├── memory/                 PRD + test credentials (used by automated agents)
+├── docker-compose.mongodb.yml
+└── nginx.conf              (optional reverse-proxy in front of the stack)
 ```
 
 ---
 
-## 🌐 Network Access
+## Documentation index
 
-- **Port 3000:** Web interface (frontend + API)
-- **Port 8001:** Backend API (internal only)
-- **Port 27017:** MongoDB (internal only)
-
-Only port 3000 needs to be accessible from your LAN.
-
----
-
-## 📝 Environment Variables
-
-Key variables in `.env`:
-- `SERVER_IP` - Your LAN server IP address
-- `MONGO_ROOT_PASSWORD` - MongoDB admin password
-- `JWT_SECRET` - Secret for JWT token signing
-- `SMTP_USER/SMTP_PASSWORD` - Email credentials (optional)
-
----
-
-## 🔐 Security
-
-- Change default passwords after first login
-- Use strong JWT_SECRET (32+ characters)
-- Configure firewall for LAN-only access
-- Regular database backups recommended
+| Doc                                                | What's in it                                      |
+| -------------------------------------------------- | ------------------------------------------------- |
+| [`SETUP.md`](./SETUP.md)                           | Step-by-step first-time setup                     |
+| [`docs/TECHNICAL_RECREATION_PROMPT.md`](./docs/TECHNICAL_RECREATION_PROMPT.md) | **Full prompt to recreate the app from scratch** |
+| [`docs/CHANGELOG.md`](./docs/CHANGELOG.md)         | Dated change log                                  |
+| [`docs/FEATURES.md`](./docs/FEATURES.md)           | User-facing feature list                          |
+| [`docs/API_REFERENCE.md`](./docs/API_REFERENCE.md) | Backend route reference                           |
+| [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md)       | Production deploy (Docker, Cloudflare tunnel)     |
+| [`docs/TEAMS_INTEGRATION.md`](./docs/TEAMS_INTEGRATION.md) | Microsoft Entra app + Graph permissions    |
+| [`docs/EMAIL_INTEGRATION.md`](./docs/EMAIL_INTEGRATION.md) | SMTP / Gmail App Password setup            |
+| [`docs/TIMEZONE_CONFIGURATION.md`](./docs/TIMEZONE_CONFIGURATION.md) | TZ data model & rendering rules      |
+| [`docs/HOLIDAY_CALENDAR.md`](./docs/HOLIDAY_CALENDAR.md) | Holiday packs + per-user customisation     |
+| [`docs/PATIENT_APPROVAL_SYSTEM.md`](./docs/PATIENT_APPROVAL_SYSTEM.md) | Non-organiser → organiser approval flow |
+| [`memory/PRD.md`](./memory/PRD.md)                 | Long-form product requirements + ongoing roadmap  |
 
 ---
 
-## 📦 Data Persistence
+## License
 
-Data is stored in Docker volumes:
-- `hospital_mongodb_data` - Database
-- `hospital_uploads_data` - File uploads
-
-**Backup command:**
-```bash
-sudo docker exec hospital_mongodb mongodump --out=/tmp/backup
-sudo docker cp hospital_mongodb:/tmp/backup ./mongodb_backup
-```
-
----
-
-## 🎓 Getting Started
-
-1. Read [SETUP.md](./SETUP.md)
-2. Follow the step-by-step instructions
-3. Access the app at `http://YOUR-SERVER-IP:3000`
-4. Login with default credentials
-5. Create your first meeting!
-
----
-
-## 📄 License
-
-MIT License
-
----
-
-**For complete setup instructions:** See [SETUP.md](./SETUP.md)
+Proprietary. Contact <Niraj.k.vishwakarma@gmail.com> for licensing.

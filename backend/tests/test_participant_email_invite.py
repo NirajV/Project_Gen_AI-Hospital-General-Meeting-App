@@ -224,7 +224,7 @@ class TestEmailContents:
         # Location can be optional but should have fallback
         location = meeting.get("location") or "To be announced"
         
-        print(f"Meeting has all required email fields:")
+        print("Meeting has all required email fields:")
         print(f"  - Title: {meeting['title']}")
         print(f"  - Date: {meeting['meeting_date']}")
         print(f"  - Time: {meeting['start_time']}")
@@ -357,7 +357,7 @@ class TestE2EFlow:
         )
         
         assert add_response.status_code == 200, f"Failed to add participant: {add_response.text}"
-        print(f"Step 3: Added participant to meeting")
+        print("Step 3: Added participant to meeting")
         
         # Step 4: Verify participant in meeting details
         get_response = requests.get(f"{BASE_URL}/api/meetings/{meeting_id}", headers=auth_headers)
@@ -370,14 +370,14 @@ class TestE2EFlow:
         assert added_participant is not None, "Participant not found in meeting"
         assert added_participant.get("response_status") == "pending"
         
-        print(f"Step 4: Verified participant added with status='pending'")
+        print("Step 4: Verified participant added with status='pending'")
         print("")
         print("=" * 60)
         print("E2E TEST COMPLETE")
         print(f"- Meeting: {meeting['title']}")
         print(f"- Date: {meeting_data['meeting_date']} at {meeting_data['start_time']}")
         print(f"- Participant Added: {new_user['email']}")
-        print(f"- Email should be sent (check backend logs)")
+        print("- Email should be sent (check backend logs)")
         print("=" * 60)
         
         # Cleanup

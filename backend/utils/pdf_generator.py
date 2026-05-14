@@ -1,9 +1,9 @@
 from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter, A4
+from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
-from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+from reportlab.lib.enums import TA_CENTER
 from datetime import datetime
 import io
 
@@ -62,7 +62,7 @@ def generate_meeting_summary_pdf(meeting_data, participants, patients, agenda_it
     normal_style = styles['Normal']
     
     # Title
-    title = Paragraph(f"<b>Meeting Summary Report</b>", title_style)
+    title = Paragraph("<b>Meeting Summary Report</b>", title_style)
     elements.append(title)
     elements.append(Spacer(1, 0.2*inch))
     

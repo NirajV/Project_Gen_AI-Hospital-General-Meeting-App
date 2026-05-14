@@ -19,7 +19,6 @@ import requests
 import os
 import uuid
 from datetime import datetime, timedelta
-import re
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL')
 if BASE_URL:
@@ -390,7 +389,7 @@ class TestE2EAccountSetupFlow:
         )
         
         assert add_response.status_code == 200, f"Add participant failed: {add_response.text}"
-        print(f"Step 2: Added user as participant to meeting")
+        print("Step 2: Added user as participant to meeting")
         
         # Step 3: Verify participant in meeting
         meeting_response = requests.get(f"{BASE_URL}/api/meetings/{meeting_id}", headers=auth_headers)
@@ -403,7 +402,7 @@ class TestE2EAccountSetupFlow:
         assert added_participant is not None, "Participant not found in meeting"
         assert added_participant.get("response_status") == "pending"
         
-        print(f"Step 3: Verified participant added with pending status")
+        print("Step 3: Verified participant added with pending status")
         
         print("")
         print("=" * 60)
@@ -411,7 +410,7 @@ class TestE2EAccountSetupFlow:
         print(f"- User: {test_email}")
         print(f"- Role: {new_user['role']}")
         print(f"- Meeting: {future_meeting['title']}")
-        print(f"- Account setup email should be sent (check backend logs)")
+        print("- Account setup email should be sent (check backend logs)")
         print("=" * 60)
 
 
@@ -449,7 +448,7 @@ class TestE2EPasswordResetFlow:
             json={"email": test_email, "password": original_password}
         )
         assert login_response.status_code == 200
-        print(f"Step 2: Successfully logged in with original password")
+        print("Step 2: Successfully logged in with original password")
         
         # Step 3: Request password reset
         reset_response = requests.post(
@@ -457,7 +456,7 @@ class TestE2EPasswordResetFlow:
             json={"email": test_email}
         )
         assert reset_response.status_code == 200
-        print(f"Step 3: Password reset requested")
+        print("Step 3: Password reset requested")
         
         # Step 4: Verify old password no longer works
         login_old = requests.post(
@@ -465,14 +464,14 @@ class TestE2EPasswordResetFlow:
             json={"email": test_email, "password": original_password}
         )
         assert login_old.status_code == 401
-        print(f"Step 4: Verified old password no longer works")
+        print("Step 4: Verified old password no longer works")
         
         print("")
         print("=" * 60)
         print("E2E PASSWORD RESET FLOW COMPLETE")
         print(f"- User: {test_email}")
-        print(f"- Original password invalidated")
-        print(f"- New password sent via email (check backend logs)")
+        print("- Original password invalidated")
+        print("- New password sent via email (check backend logs)")
         print("=" * 60)
 
 
@@ -501,7 +500,7 @@ class TestSecurePasswordGeneration:
         # The password is sent via email and not returned in response (secure)
         assert "password" not in data["user"]  # Password should not be in response
         
-        print(f"User with auto-generated password created: PASS")
+        print("User with auto-generated password created: PASS")
         print("Password is sent via email, not exposed in API response: SECURE")
 
 
