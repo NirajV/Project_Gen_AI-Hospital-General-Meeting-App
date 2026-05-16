@@ -18,7 +18,7 @@ from reportlab.platypus import (
 from reportlab.lib.enums import TA_LEFT
 
 OUTPUT = Path("/app/frontend/public/docs/BioMedMeet_CheatSheet.pdf")
-APP_URL = "https://biomedmeet.com/"
+APP_URL = "https://biomedmeet.com/home/"
 VERSION = f"v1.1 · May {date.today().year}"
 
 # Brand palette (matches the frontend section themes).
