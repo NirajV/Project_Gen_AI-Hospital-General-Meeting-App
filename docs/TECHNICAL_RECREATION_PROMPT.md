@@ -29,7 +29,7 @@ When following this prompt, the implementer **MUST**:
 8. Exclude `_id` from every MongoDB read (`{"_id": 0}` projection).
 9. Email sending is best-effort: API calls succeed even when SMTP fails;
    log a warning, never raise.
-10. All env vars come from `.env` (root, next to `docker-compose.mongodb.yml`)
+10. All env vars come from `.env` (root, next to `docker-compose.yml`)
     and are referenced via `${VAR}` in compose. Backend `.env` is for local
     development only and is **not** read by Docker.
 
@@ -60,7 +60,7 @@ When following this prompt, the implementer **MUST**:
 ```
 biomedmeet/
 ├── .env                           # root env — read by docker-compose
-├── docker-compose.mongodb.yml
+├── docker-compose.yml
 ├── nginx.conf                     # optional outer reverse proxy
 ├── README.md
 ├── SETUP.md
@@ -213,7 +213,7 @@ GRAPH_USER_ID=service-account@yourtenant.onmicrosoft.com
 FRONTEND_PUBLIC_URL=https://biomedmeet.com
 ```
 
-`docker-compose.mongodb.yml` uses `${VAR}` to substitute these into each
+`docker-compose.yml` uses `${VAR}` to substitute these into each
 service's environment. **Do not put SMTP/GRAPH credentials in `backend/.env`**
 — Docker doesn't read that file.
 
@@ -611,7 +611,7 @@ the SPA fallback rule (`try_files $uri $uri/ /index.html`).
 
 ## 13. Docker Compose
 
-### `docker-compose.mongodb.yml`
+### `docker-compose.yml`
 3 services: `mongo`, `backend`, `frontend`. The frontend is a single `nginx:1.27-alpine` container that serves the `yarn build` output AND proxies `/api` → `backend:8001`.
 
 Critical compose snippets:
@@ -657,7 +657,7 @@ server {
 
 ### Deploy
 ```bash
-sudo docker compose -f docker-compose.mongodb.yml up -d --build
+sudo docker compose up -d --build
 ```
 
 ---

@@ -15,7 +15,7 @@ The application uses Gmail SMTP for sending:
 
 ### 1. For Docker Deployment (LAN Server)
 
-**File:** `/app/.env` (or `.env.docker.example`)
+**File:** `/app/.env` (copy from `.env.example`)
 
 ```bash
 # Email Configuration
@@ -117,7 +117,7 @@ SMTP_PASSWORD=abcdefghijklmnop
 **Save and restart:**
 ```bash
 # Docker
-docker compose -f docker-compose.mongodb.yml restart backend
+docker compose restart backend
 
 # Local development
 sudo supervisorctl restart backend

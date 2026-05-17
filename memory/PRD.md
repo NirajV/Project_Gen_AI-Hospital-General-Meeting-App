@@ -172,7 +172,7 @@ Web-based Hospital General Meeting Scheduler App for healthcare professionals. D
   completed → untouched). All 4 pass.
 
 ## Deployment Config Fix (May 02 2026)
-- `docker-compose.mongodb.yml` → `REACT_APP_BACKEND_URL=` (empty) for both
+- `docker-compose.yml` → `REACT_APP_BACKEND_URL=` (empty) for both
   build-arg and runtime env, so the JS bundle makes same-origin `/api/*`
   requests. Nginx inside the frontend container proxies to `backend:8001`.
   Now works for LAN IP, Tailscale, and Cloudflare tunnel without rebuild per

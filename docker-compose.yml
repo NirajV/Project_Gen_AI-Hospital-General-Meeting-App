@@ -1,36 +1,27 @@
-version: '3.8'
-
 services:
-  # MySQL Database
-  mysql:
-    image: mysql:8.0
-    container_name: hospital_mysql
-    restart: always
+  # MongoDB Database
+  mongodb:
+    image: mongo:6.0
+    container_name: hospital_mongodb
+    restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-hospital_meeting_scheduler}
-      MYSQL_USER: ${MYSQL_USER:-hospital_user}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-hospital_pass}
-      TZ: UTC
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-changeme123}
+      MONGO_INITDB_DATABASE: ${DB_NAME:-hospital_meeting_scheduler}
     ports:
-      - "${MYSQL_PORT:-3306}:3306"
+      - "27017:27017"
     volumes:
-      - mysql_data:/var/lib/mysql
-      - ./database/ddl.sql:/docker-entrypoint-initdb.d/init.sql:ro
-    command:
-      - --default-authentication-plugin=mysql_native_password
-      - --character-set-server=utf8mb4
-      - --collation-server=utf8mb4_unicode_ci
-      - --max-connections=200
-      - --default-time-zone=+00:00
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-rootpassword}"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+      - ./database/DDL_Mongo.js:/docker-entrypoint-initdb.d/init.js:ro
     networks:
       - hospital_network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')", "--quiet"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
 
   # Backend API (FastAPI)
   backend:
@@ -38,94 +29,100 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: hospital_backend
-    restart: always
+    restart: unless-stopped
     environment:
-      # Database Configuration
-      - DATABASE_TYPE=mysql
-      - MYSQL_HOST=mysql
-      - MYSQL_PORT=3306
-      - MYSQL_DATABASE=${MYSQL_DATABASE:-hospital_meeting_scheduler}
-      - MYSQL_USER=${MYSQL_USER:-hospital_user}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-hospital_pass}
+      # MongoDB Configuration
+      - MONGO_URL=mongodb://${MONGO_ROOT_USER:-admin}:${MONGO_ROOT_PASSWORD:-changeme123}@mongodb:27017
+      - DB_NAME=${DB_NAME:-hospital_meeting_scheduler}
       
       # JWT Configuration
-      - JWT_SECRET=${JWT_SECRET:-change-this-secret-in-production}
+      - JWT_SECRET=${JWT_SECRET:-change-this-secret-key-in-production-minimum-32-chars}
       - JWT_ALGORITHM=HS256
-      - ACCESS_TOKEN_EXPIRE_HOURS=24
+      - JWT_EXPIRATION_HOURS=24
       
       # CORS Configuration
-      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000}
       
-      # Email Configuration
-      - EMAIL_ENABLED=${EMAIL_ENABLED:-false}
+      # Email Configuration (Optional)
+      - EMAIL_ENABLED=${EMAIL_ENABLED:-true}
       - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
       - SMTP_PORT=${SMTP_PORT:-587}
       - SMTP_USER=${SMTP_USER:-}
       - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SMTP_FROM=${SMTP_FROM:-}
+      - SMTP_USE_TLS=${SMTP_USE_TLS:-true}
 
-      # Email Reminder Scheduler
+      # Email Reminder Scheduler (1h-before reminders)
       - EMAIL_REMINDERS_ENABLED=${EMAIL_REMINDERS_ENABLED:-true}
       - REMINDER_POLL_SECONDS=${REMINDER_POLL_SECONDS:-300}
-      
-      # Application Configuration
-      - OWNER_EMAIL=${OWNER_EMAIL:-Niraj.K.Vishwakarma@gmail.com}
-      - ENVIRONMENT=${ENVIRONMENT:-development}
 
-      # Microsoft Teams / Graph API Configuration
-      # Obtain these from Azure Entra ID App registration
+      # Microsoft Teams / Graph API Configuration (Optional)
+      # Obtain these from Azure Entra ID > App Registrations.
+      # Required for auto-generating Teams meeting links.
       - GRAPH_CLIENT_ID=${GRAPH_CLIENT_ID:-}
       - GRAPH_TENANT_ID=${GRAPH_TENANT_ID:-}
       - GRAPH_CLIENT_SECRET=${GRAPH_CLIENT_SECRET:-}
       - GRAPH_USER_ID=${GRAPH_USER_ID:-}
+
+      # Upload Directory
+      - UPLOAD_DIR=/app/uploads
     ports:
-      - "${BACKEND_PORT:-8001}:8001"
-    depends_on:
-      mysql:
-        condition: service_healthy
+      - "8001:8001"
     volumes:
-      - ./backend/uploads:/app/uploads
-      - ./backend/templates:/app/templates:ro
+      - uploads_data:/app/uploads
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - hospital_network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-    networks:
-      - hospital_network
 
-  # Frontend (React)
+  # Frontend (React + Nginx)
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        - REACT_APP_BACKEND_URL=${REACT_APP_BACKEND_URL:-http://localhost:8001}
+        # IMPORTANT: leave EMPTY so the React app calls same-origin /api/*
+        # and nginx (inside this container) proxies to backend:8001.
+        # This makes the app work over LAN IP, Tailscale IP, AND Cloudflare
+        # tunnel without a rebuild — no hostname is baked into the JS bundle.
+        - REACT_APP_BACKEND_URL=
     container_name: hospital_frontend
-    restart: always
+    restart: unless-stopped
     environment:
-      - REACT_APP_BACKEND_URL=${REACT_APP_BACKEND_URL:-http://localhost:8001}
-      - NODE_ENV=${NODE_ENV:-production}
+      - REACT_APP_BACKEND_URL=
     ports:
-      - "${FRONTEND_PORT:-3000}:3000"
+      - "3000:80"
     depends_on:
       backend:
         condition: service_healthy
+    networks:
+      - hospital_network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 60s
-    networks:
-      - hospital_network
-
-volumes:
-  mysql_data:
-    driver: local
-    name: hospital_mysql_data
+      start_period: 10s
 
 networks:
   hospital_network:
     driver: bridge
     name: hospital_network
+
+volumes:
+  mongodb_data:
+    driver: local
+    name: hospital_mongodb_data
+  mongodb_config:
+    driver: local
+    name: hospital_mongodb_config
+  uploads_data:
+    driver: local
+    name: hospital_uploads_data

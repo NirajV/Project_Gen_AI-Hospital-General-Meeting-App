@@ -33,7 +33,7 @@ cp .env.example .env
 $EDITOR .env   # fill in MONGO_URL, SMTP_*, GRAPH_*, etc.
 
 # 2. Build + start
-sudo docker compose -f docker-compose.mongodb.yml up -d --build
+sudo docker compose up -d --build
 
 # 3. Visit
 #    https://biomedmeet.com/          → application login
@@ -108,7 +108,7 @@ yarn start          # http://localhost:3000
 │   └── generate_cheatsheet_pdf.py   reportlab generator for the gated PDF
 ├── docs/                   topic-specific reference docs (see below)
 ├── memory/                 PRD + test credentials (used by automated agents)
-├── docker-compose.mongodb.yml
+├── docker-compose.yml      Docker stack: mongo + backend + frontend
 └── nginx.conf              (optional reverse-proxy in front of the stack)
 ```
 

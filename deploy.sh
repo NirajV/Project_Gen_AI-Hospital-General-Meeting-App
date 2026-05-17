@@ -193,7 +193,7 @@ echo ""
 print_header "STEP 7: Building Docker Images"
 
 echo "This may take 5-10 minutes on first build..."
-docker compose -f docker-compose.mongodb.yml build
+docker compose build
 
 print_success "Docker images built successfully"
 echo ""
@@ -203,7 +203,7 @@ echo ""
 # =================================================================
 print_header "STEP 8: Starting Application"
 
-docker compose -f docker-compose.mongodb.yml up -d
+docker compose up -d
 
 print_success "Containers started"
 echo ""
@@ -219,7 +219,7 @@ print_header "STEP 9: Verifying Deployment"
 
 # Check containers
 echo "Checking container status..."
-docker compose -f docker-compose.mongodb.yml ps
+docker compose ps
 
 echo ""
 echo "Checking service health..."
@@ -296,12 +296,12 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 echo "🔧 Useful Commands:"
 echo ""
-echo "   View logs:    docker compose -f docker-compose.mongodb.yml logs -f"
-echo "   Stop app:     docker compose -f docker-compose.mongodb.yml down"
-echo "   Start app:    docker compose -f docker-compose.mongodb.yml up -d"
-echo "   Restart app:  docker compose -f docker-compose.mongodb.yml restart"
+echo "   View logs:    docker compose logs -f"
+echo "   Stop app:     docker compose down"
+echo "   Start app:    docker compose up -d"
+echo "   Restart app:  docker compose restart"
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
-echo "📖 Full Documentation: ./DOCKER_DEPLOYMENT_GUIDE.md"
+echo "📖 Full Documentation: ./README.md and ./docs/DEPLOYMENT.md"
 echo ""

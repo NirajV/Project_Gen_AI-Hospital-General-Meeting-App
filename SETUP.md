@@ -60,34 +60,10 @@ ip addr show | grep "inet " | grep -v 127.0.0.1
 
 ---
 
-## 🔧 Step 3: Fix docker-compose Health Check
-
-Edit `docker-compose.mongodb.yml`:
+## 🏗️ Step 3: Build Docker Images
 
 ```bash
-nano docker-compose.mongodb.yml
-```
-
-Find line 22 (mongodb healthcheck section) and change:
-
-**FROM:**
-```yaml
-test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
-```
-
-**TO:**
-```yaml
-test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')", "--quiet"]
-```
-
-Save (Ctrl+X, Y, Enter)
-
----
-
-## 🏗️ Step 4: Build Docker Images
-
-```bash
-sudo docker compose -f docker-compose.mongodb.yml build
+sudo docker compose build
 ```
 
 **This takes 5-10 minutes.** You'll see:
@@ -100,7 +76,7 @@ sudo docker compose -f docker-compose.mongodb.yml build
 ## 🚀 Step 5: Start Services
 
 ```bash
-sudo docker compose -f docker-compose.mongodb.yml up -d
+sudo docker compose up -d
 ```
 
 **Wait 30-60 seconds for all services to start.**
@@ -185,7 +161,7 @@ Your Hospital Meeting App is now running on your LAN server.
 ### Check Logs
 ```bash
 # All services
-sudo docker compose -f docker-compose.mongodb.yml logs -f
+sudo docker compose logs -f
 
 # Specific service
 sudo docker logs hospital_mongodb
@@ -195,19 +171,19 @@ sudo docker logs hospital_frontend
 
 ### Restart Services
 ```bash
-sudo docker compose -f docker-compose.mongodb.yml restart
+sudo docker compose restart
 ```
 
 ### Stop Services
 ```bash
-sudo docker compose -f docker-compose.mongodb.yml down
+sudo docker compose down
 ```
 
 ### Rebuild After Code Changes
 ```bash
-sudo docker compose -f docker-compose.mongodb.yml down
-sudo docker compose -f docker-compose.mongodb.yml build --no-cache
-sudo docker compose -f docker-compose.mongodb.yml up -d
+sudo docker compose down
+sudo docker compose build --no-cache
+sudo docker compose up -d
 ```
 
 ---
@@ -256,8 +232,8 @@ sudo ufw allow 3000
 # Check MongoDB logs
 sudo docker logs hospital_mongodb
 
-# If mongosh not found, edit docker-compose.mongodb.yml line 22:
-test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')", "--quiet"]
+# If mongosh is missing in your mongo image, the healthcheck in
+# docker-compose.yml can be switched to use `mongo` instead.
 ```
 
 ### Issue 3: "Port 27017 already in use"
@@ -305,7 +281,7 @@ See `/app/GMAIL_SMTP_SETUP.md` for configuring Gmail for meeting reminders.
 
 **Need Help?** Check logs first:
 ```bash
-sudo docker compose -f docker-compose.mongodb.yml logs -f
+sudo docker compose logs -f
 ```
 
 **Success Indicators:**
