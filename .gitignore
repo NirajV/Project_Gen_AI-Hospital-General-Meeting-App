@@ -603,3 +603,12 @@ credentials.json
 scripts/video/audio/
 scripts/video/slides/
 scripts/video/segments/
+-e 
+# Environment and credential files
+.env
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials
