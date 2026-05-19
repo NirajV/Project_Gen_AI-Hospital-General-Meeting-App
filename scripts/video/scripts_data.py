@@ -409,4 +409,86 @@ VIDEOS = [
             },
         ],
     },
+
+    # =====================================================================
+    # 7. Feature — Profile (My Profile · Password · Settings · Feedback)
+    # =====================================================================
+    {
+        "id": "06-profile-and-settings",
+        "title": "Your profile — personal · secure · regional · feedback",
+        "segments": [
+            {
+                "scene_id": "feat_intro_profile",
+                "caption": "Make BioMedMeet · yours",
+                "hold": 4.0,
+                "narration": (
+                    "Every clinician works differently. BioMedMeet lets "
+                    "each user shape their own workspace — in four tabs."
+                ),
+            },
+            {
+                "scene_id": "feat_profile_info",
+                "caption": "Profile Information",
+                "hold": 8.0,
+                "narration": (
+                    "Tab one — Profile Information. Update your first "
+                    "name, last name, email, and organisation. Your "
+                    "username is locked for traceability and audit. One "
+                    "click to save."
+                ),
+            },
+            {
+                "scene_id": "feat_change_password",
+                "caption": "Change Password · 8 char minimum",
+                "hold": 7.5,
+                "narration": (
+                    "Tab two — Change Password. Enter your current "
+                    "password, the new one, and confirm. Minimum eight "
+                    "characters, server-side bcrypt hashed."
+                ),
+            },
+            {
+                "scene_id": "feat_regional_settings",
+                "caption": "Regional Settings · language · country · timezone",
+                "hold": 8.5,
+                "narration": (
+                    "Tab three — Settings. Pick your language, country "
+                    "and timezone. Every meeting invite, reminder and "
+                    "calendar entry is automatically converted to your "
+                    "local clock."
+                ),
+            },
+            {
+                "scene_id": "feat_holidays",
+                "caption": "Holidays · block scheduling on the days you observe",
+                "hold": 8.5,
+                "narration": (
+                    "Still in Settings — choose which national holidays "
+                    "you observe, add your own custom dates like a "
+                    "hospital foundation day, and BioMedMeet refuses to "
+                    "schedule meetings on those days."
+                ),
+            },
+            {
+                "scene_id": "feat_feedback",
+                "caption": "Feedback · feature · bug · general",
+                "hold": 8.0,
+                "narration": (
+                    "Tab four — Feedback. A feature request, a bug "
+                    "report, general thoughts or something else. Every "
+                    "submission lands in the owner's inbox. We read "
+                    "every message."
+                ),
+            },
+            {
+                "scene_id": "feat_outro_profile",
+                "caption": "Your profile · your way",
+                "hold": 4.0,
+                "narration": (
+                    "Personal. Secure. Regional. Heard. Your profile, "
+                    "your way — in BioMedMeet."
+                ),
+            },
+        ],
+    },
 ]

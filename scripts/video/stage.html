@@ -688,6 +688,180 @@ const SCENES = {
       <div class="big">Your <em>team</em>.<br/>One <em>workspace</em>.</div>
       <div class="url-pill">biomedmeet.com</div>
     </div>`,
+
+  // ---- Feature: Profile (My Profile · Password · Settings · Feedback) ----
+  feat_intro_profile: () => `
+    <div class="body" style="top: 220px;">
+      <h1>Make BioMedMeet · <em>yours</em>.</h1>
+      <div class="lead">Four tabs. Profile, password, regional settings, and feedback — all under one roof.</div>
+    </div>`,
+
+  feat_profile_info: () => `
+    <div class="body" style="top: 160px;">
+      <div style="display:flex; align-items:center; gap:22px;">
+        <div class="avatar" style="background: var(--navy); width:88px; height:88px; font-size:32px;">HO</div>
+        <div>
+          <div style="font-family:'Manrope'; font-size:48px; font-weight:800; color: var(--navy);">My Profile</div>
+          <div style="color:#6b7280; font-size:22px; margin-top:4px;">organizer@hospital.com</div>
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:14px; margin-top:28px;">
+        <div style="background:#dbeafe; color:#1e40af; padding:18px 22px; border-radius:14px; font-weight:800; font-size:22px; text-align:center; border-bottom:4px solid #1e40af;">Profile Information</div>
+        <div style="background:#dcfce7; color: var(--sage); padding:18px 22px; border-radius:14px; font-weight:700; font-size:22px; text-align:center;">Change Password</div>
+        <div style="background:#fef3c7; color: var(--amber); padding:18px 22px; border-radius:14px; font-weight:700; font-size:22px; text-align:center;">Settings</div>
+        <div style="background:#ede9fe; color: var(--plum); padding:18px 22px; border-radius:14px; font-weight:700; font-size:22px; text-align:center;">Feedback</div>
+      </div>
+      <div class="ui-card" style="padding:28px 32px; margin-top:22px;">
+        <div style="font-family:'Manrope'; font-size:30px; font-weight:800; color:#1e40af;">Profile Information</div>
+        <div style="color:#6b7280; font-size:18px; margin-top:4px;">Update your personal details. Your username cannot be changed.</div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-top:22px;">
+          <div>
+            <div style="color:#1a1c2e; font-weight:700; font-size:18px;">First Name</div>
+            <div style="background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px 18px; margin-top:6px; color:#1a1c2e; font-size:20px;">Hospital</div>
+          </div>
+          <div>
+            <div style="color:#1a1c2e; font-weight:700; font-size:18px;">Last Name</div>
+            <div style="background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px 18px; margin-top:6px; color:#1a1c2e; font-size:20px;">Organizer</div>
+          </div>
+        </div>
+        <div style="margin-top:18px;">
+          <div style="color:#1a1c2e; font-weight:700; font-size:18px;">Email Address</div>
+          <div style="background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px 18px; margin-top:6px; color:#1a1c2e; font-size:20px;">organizer@hospital.com</div>
+        </div>
+        <div style="margin-top:18px;">
+          <div style="color:#1a1c2e; font-weight:700; font-size:18px;">Organization</div>
+          <div style="background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px 18px; margin-top:6px; color:#6b7280; font-size:20px;">Hospital / Clinic name</div>
+        </div>
+        <div style="display:flex; justify-content:flex-end; margin-top:22px;">
+          <div style="background: var(--navy); color:#fff; padding:14px 26px; border-radius:10px; font-weight:800; font-size:20px; display:flex; align-items:center; gap:10px;">💾 Save Changes</div>
+        </div>
+      </div>
+    </div>`,
+
+  feat_change_password: () => `
+    <div class="body" style="top: 180px;">
+      <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:14px;">
+        <div style="background:#dbeafe; color:#1e40af; padding:18px 22px; border-radius:14px; font-weight:700; font-size:22px; text-align:center;">Profile Information</div>
+        <div style="background:#dcfce7; color: var(--sage); padding:18px 22px; border-radius:14px; font-weight:800; font-size:22px; text-align:center; border-bottom:4px solid var(--sage);">Change Password</div>
+        <div style="background:#fef3c7; color: var(--amber); padding:18px 22px; border-radius:14px; font-weight:700; font-size:22px; text-align:center;">Settings</div>
+        <div style="background:#ede9fe; color: var(--plum); padding:18px 22px; border-radius:14px; font-weight:700; font-size:22px; text-align:center;">Feedback</div>
+      </div>
+      <div class="ui-card" style="padding:30px 34px; margin-top:22px; background:#f0fdf4;">
+        <div style="font-family:'Manrope'; font-size:34px; font-weight:800; color: var(--sage);">Change Password</div>
+        <div style="color:#6b7280; font-size:18px; margin-top:4px;">Choose a strong password (minimum 8 characters).</div>
+        <div style="margin-top:24px;">
+          <div style="color:#1a1c2e; font-weight:700; font-size:18px;">Current Password</div>
+          <div style="background:#fff; border:1px solid var(--line); border-radius:10px; padding:18px 20px; margin-top:6px; color:#9ca3af; font-size:22px; letter-spacing:0.3em;">••••••••</div>
+        </div>
+        <div style="margin-top:18px;">
+          <div style="color:#1a1c2e; font-weight:700; font-size:18px;">New Password</div>
+          <div style="background:#fff; border:2px solid var(--sage); border-radius:10px; padding:18px 20px; margin-top:6px; color:#9ca3af; font-size:22px; letter-spacing:0.3em;">••••••••••••</div>
+        </div>
+        <div style="margin-top:18px;">
+          <div style="color:#1a1c2e; font-weight:700; font-size:18px;">Confirm New Password</div>
+          <div style="background:#fff; border:2px solid var(--sage); border-radius:10px; padding:18px 20px; margin-top:6px; color:#9ca3af; font-size:22px; letter-spacing:0.3em;">••••••••••••</div>
+        </div>
+        <div style="display:flex; justify-content:center; margin-top:24px;">
+          <div style="background: var(--navy); color:#fff; padding:16px 32px; border-radius:10px; font-weight:800; font-size:22px; display:flex; align-items:center; gap:12px;">🔑 Update Password</div>
+        </div>
+      </div>
+    </div>`,
+
+  feat_regional_settings: () => `
+    <div class="body" style="top: 180px;">
+      <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:14px;">
+        <div style="background:#dbeafe; color:#1e40af; padding:18px 22px; border-radius:14px; font-weight:700; font-size:22px; text-align:center;">Profile Information</div>
+        <div style="background:#dcfce7; color: var(--sage); padding:18px 22px; border-radius:14px; font-weight:700; font-size:22px; text-align:center;">Change Password</div>
+        <div style="background:#fef3c7; color: var(--amber); padding:18px 22px; border-radius:14px; font-weight:800; font-size:22px; text-align:center; border-bottom:4px solid var(--amber);">Settings</div>
+        <div style="background:#ede9fe; color: var(--plum); padding:18px 22px; border-radius:14px; font-weight:700; font-size:22px; text-align:center;">Feedback</div>
+      </div>
+      <div class="ui-card" style="padding:28px 32px; margin-top:22px; background:#fffbeb;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div style="font-family:'Manrope'; font-size:30px; font-weight:800; color: var(--amber);">🌐 Regional Settings</div>
+        </div>
+        <div style="color:#6b7280; font-size:18px; margin-top:4px;">Your timezone is used to format meeting invites, reminders, and calendar entries.</div>
+        <div style="margin-top:22px;">
+          <div style="color:#1a1c2e; font-weight:700; font-size:18px;">Language</div>
+          <div style="background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px 18px; margin-top:6px; color:#1a1c2e; font-size:20px; display:flex; justify-content:space-between;">English (United States) — en-US <span>▾</span></div>
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:18px; margin-top:18px;">
+          <div>
+            <div style="color:#1a1c2e; font-weight:700; font-size:18px;">Country</div>
+            <div style="background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px 18px; margin-top:6px; color:#1a1c2e; font-size:20px; display:flex; justify-content:space-between;">United States <span>▾</span></div>
+          </div>
+          <div>
+            <div style="color:#1a1c2e; font-weight:700; font-size:18px;">Timezone</div>
+            <div style="background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px 18px; margin-top:6px; color:#1a1c2e; font-size:20px; display:flex; justify-content:space-between;">Eastern Time (EST/EDT) — America/New_York <span>▾</span></div>
+          </div>
+        </div>
+        <div style="margin-top:18px; padding:14px 18px; background:#fef3c7; border-radius:12px; color: var(--amber); font-weight:700; font-size:18px;">
+          ✓ Times in emails and meeting cards convert to this timezone — automatically.
+        </div>
+      </div>
+    </div>`,
+
+  feat_holidays: () => `
+    <div class="body" style="top: 200px;">
+      <div class="ui-card" style="padding:28px 32px; background:#fffbeb;">
+        <div style="display:flex; align-items:center; justify-content:space-between;">
+          <div>
+            <div style="font-family:'Manrope'; font-size:30px; font-weight:800; color: var(--amber);">🗓️ Holidays</div>
+            <div style="color:#6b7280; font-size:18px; margin-top:4px;">Block meeting scheduling on holidays you observe.</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div style="color:#1a1c2e; font-weight:700; font-size:18px;">Enforcement on</div>
+            <div style="width:54px; height:28px; background: var(--sage); border-radius:999px; position:relative;"><div style="width:22px; height:22px; background:#fff; border-radius:50%; position:absolute; top:3px; right:3px;"></div></div>
+          </div>
+        </div>
+        <div style="margin-top:18px; color:#6b7280; font-weight:800; font-size:16px; letter-spacing:0.06em;">DEFAULT HOLIDAYS (US)</div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
+          ${["New Year's Day","Martin Luther King Jr. Day","Presidents' Day","Memorial Day","Juneteenth","Independence Day","Labor Day","Columbus Day","Veterans Day","Thanksgiving Day","Christmas Day"].slice(0,8).map((h,i) => `
+            <div style="background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px 18px; display:flex; align-items:center; gap:12px;">
+              <div style="width:22px; height:22px; border:2px solid ${i<3?'var(--sage)':'#cbd5e1'}; border-radius:6px; ${i<3?'background:var(--sage);':''} display:grid; place-items:center; color:#fff; font-weight:800;">${i<3?'✓':''}</div>
+              <div style="font-size:18px; color:#1a1c2e;">${h}</div>
+            </div>
+          `).join('')}
+        </div>
+        <div style="margin-top:18px; color:#6b7280; font-weight:800; font-size:16px; letter-spacing:0.06em;">ADD CUSTOM HOLIDAY</div>
+        <div style="display:grid; grid-template-columns: 1.5fr 1fr 0.5fr; gap:12px; margin-top:8px;">
+          <div style="background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px 18px; color:#1a1c2e; font-size:18px;">Hospital Foundation Day</div>
+          <div style="background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px 18px; color:#1a1c2e; font-size:18px;">10/14/2026 📅</div>
+          <div style="background: var(--amber); color:#fff; border-radius:10px; padding:14px; font-weight:800; font-size:18px; display:grid; place-items:center;">+ Add</div>
+        </div>
+      </div>
+    </div>`,
+
+  feat_feedback: () => `
+    <div class="body" style="top: 180px;">
+      <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:14px;">
+        <div style="background:#dbeafe; color:#1e40af; padding:18px 22px; border-radius:14px; font-weight:700; font-size:22px; text-align:center;">Profile Information</div>
+        <div style="background:#dcfce7; color: var(--sage); padding:18px 22px; border-radius:14px; font-weight:700; font-size:22px; text-align:center;">Change Password</div>
+        <div style="background:#fef3c7; color: var(--amber); padding:18px 22px; border-radius:14px; font-weight:700; font-size:22px; text-align:center;">Settings</div>
+        <div style="background:#ede9fe; color: var(--plum); padding:18px 22px; border-radius:14px; font-weight:800; font-size:22px; text-align:center; border-bottom:4px solid var(--plum);">Feedback</div>
+      </div>
+      <div class="ui-card" style="padding:30px 34px; margin-top:22px; background:#faf5ff;">
+        <div style="font-family:'Manrope'; font-size:32px; font-weight:800; color: var(--plum);">Send Feedback</div>
+        <div style="color:#6b7280; font-size:18px; margin-top:4px;">Found a bug? Have an idea? Tell us — we read every message.</div>
+        <div style="margin-top:22px;">
+          <div style="color:#1a1c2e; font-weight:700; font-size:18px;">Type</div>
+          <div style="background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:0 16px 40px rgba(11,11,48,0.12); margin-top:6px;">
+            <div style="background: var(--sage); color:#fff; padding:16px 20px; border-radius:10px 10px 0 0; font-weight:800; font-size:22px; display:flex; justify-content:space-between;">Feature Request <span>✓</span></div>
+            <div style="padding:14px 20px; font-size:20px; color:#1a1c2e;">Bug Report</div>
+            <div style="padding:14px 20px; font-size:20px; color:#1a1c2e;">General Feedback</div>
+            <div style="padding:14px 20px; font-size:20px; color:#1a1c2e; border-radius:0 0 10px 10px;">Other</div>
+          </div>
+        </div>
+        <div style="margin-top:22px; display:flex; justify-content:flex-end;">
+          <div style="background: var(--navy); color:#fff; padding:14px 26px; border-radius:10px; font-weight:800; font-size:20px; display:flex; align-items:center; gap:10px;">✈ Submit Feedback</div>
+        </div>
+      </div>
+    </div>`,
+
+  feat_outro_profile: () => `
+    <div class="center">
+      <div class="big">Your <em>profile</em>.<br/>Your <em>way</em>.</div>
+      <div class="url-pill">biomedmeet.com</div>
+    </div>`,
 };
 
 // API used by the renderer
