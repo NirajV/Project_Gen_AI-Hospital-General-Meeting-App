@@ -20,7 +20,7 @@ SPEED = 1.0
 VIDEOS = [
     # =====================================================================
     # 1. Marketing hero — technical pitch
-    # =====================================================================
+    # ====================================================================
     {
         "id": "00-marketing-hero",
         "title": "BioMedMeet — Hospital Case Meeting Scheduler",
@@ -332,6 +332,79 @@ VIDEOS = [
                 "hold": 3.5,
                 "narration": (
                     "Schedule once. BioMedMeet handles the rest."
+                ),
+            },
+        ],
+    },
+
+    # =====================================================================
+    # 6. Feature — Participants & team management
+    # =====================================================================
+    {
+        "id": "05-participants-and-roles",
+        "title": "Manage your hospital team — Participants & roles",
+        "segments": [
+            {
+                "scene_id": "feat_intro_participants",
+                "caption": "Your hospital team",
+                "hold": 4.0,
+                "narration": (
+                    "Every hospital is a team. BioMedMeet gives you one "
+                    "place to manage that team — with roles, specialties, "
+                    "and instant onboarding."
+                ),
+            },
+            {
+                "scene_id": "feat_participants_overview",
+                "caption": "Participants · at a glance",
+                "hold": 7.5,
+                "narration": (
+                    "The Participants page shows the whole hospital at a "
+                    "glance — total members, doctors, nurses, and admins. "
+                    "Search by name, email or specialty. Filter by role "
+                    "with a single click."
+                ),
+            },
+            {
+                "scene_id": "feat_role_assignment",
+                "caption": "Four roles · click to change",
+                "hold": 8.0,
+                "narration": (
+                    "Every member has a clearly assigned role: Doctor, "
+                    "Nurse, Admin or Organiser. Change a role inline with "
+                    "one click — permissions update everywhere across the "
+                    "app, instantly."
+                ),
+            },
+            {
+                "scene_id": "feat_create_participant",
+                "caption": "Create a participant in seconds",
+                "hold": 9.0,
+                "narration": (
+                    "Adding a new staff member is a single form. Name, "
+                    "email, role, specialty and phone — done. BioMedMeet "
+                    "creates the account, assigns a temporary password, "
+                    "and prepares the onboarding email."
+                ),
+            },
+            {
+                "scene_id": "feat_credentials_email",
+                "caption": "Auto-onboarding email · forced password change",
+                "hold": 8.5,
+                "narration": (
+                    "The new participant receives a welcome email with "
+                    "their temporary password and a login link. On first "
+                    "sign-in, they're prompted to set their own password "
+                    "before anything else."
+                ),
+            },
+            {
+                "scene_id": "feat_outro_participants",
+                "caption": "Your whole team · one workspace",
+                "hold": 4.0,
+                "narration": (
+                    "Your whole hospital team — onboarded, organised, and "
+                    "ready to meet. In BioMedMeet."
                 ),
             },
         ],

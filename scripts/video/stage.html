@@ -528,6 +528,166 @@ const SCENES = {
       <div class="big">Schedule once.<br/><em>That's it</em>.</div>
       <div class="url-pill">biomedmeet.com</div>
     </div>`,
+
+  // ---- Feature: Participants & roles ----
+  feat_intro_participants: () => `
+    <div class="body" style="top: 220px;">
+      <h1>Your hospital <em>team</em>.</h1>
+      <div class="lead">Manage staff, roles and specialties in one workspace. Onboard a new doctor in seconds — permissions sync everywhere.</div>
+    </div>`,
+
+  feat_participants_overview: () => `
+    <div class="body" style="top: 180px;">
+      <div style="display:flex; align-items:flex-end; justify-content:space-between;">
+        <div>
+          <div style="font-family:'Manrope'; font-size:60px; font-weight:800; color: var(--navy); letter-spacing:-0.02em;">Participants</div>
+          <div style="color:#6b7280; font-size:22px; margin-top:4px;">Manage hospital staff and meeting participants</div>
+        </div>
+        <div style="background: var(--plum); color:#fff; padding:16px 28px; border-radius:12px; font-weight:800; font-size:22px; display:flex; align-items:center; gap:10px;">${ICONS.plus} Create Participant</div>
+      </div>
+      <div class="stat-row" style="margin-top:28px;">
+        <div class="stat s4"><div><div class="lbl">Total</div><div class="num">8</div></div><div class="icn">${ICONS.users}</div></div>
+        <div class="stat s1"><div><div class="lbl">Doctors</div><div class="num">5</div></div><div class="icn">${ICONS.plus}</div></div>
+        <div class="stat s2"><div><div class="lbl">Nurses</div><div class="num">0</div></div><div class="icn">${ICONS.users}</div></div>
+        <div class="stat s3"><div><div class="lbl">Admins</div><div class="num">3</div></div><div class="icn">${ICONS.bell}</div></div>
+      </div>
+      <div class="ui-card" style="margin-top:24px; padding:18px 22px; display:flex; align-items:center; gap:18px;">
+        <div style="flex:1; background:#f3edf5; padding:14px 18px; border-radius:12px; color:#6b7280; font-size:20px;">🔍 &nbsp;Search by name, email, or specialty…</div>
+        <div style="display:flex; gap:10px;">
+          <div class="chip active" style="padding:12px 22px; font-size:18px;">All</div>
+          <div class="chip" style="padding:12px 22px; font-size:18px;">Doctor</div>
+          <div class="chip" style="padding:12px 22px; font-size:18px;">Organizer</div>
+          <div class="chip" style="padding:12px 22px; font-size:18px;">Admin</div>
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:16px; margin-top:18px;">
+        <div style="background:#e8f5f0; padding:18px 20px; border-radius:16px; display:flex; align-items:center; gap:14px;">
+          <div class="avatar" style="background: var(--sage); width:54px; height:54px; font-size:22px;">DA</div>
+          <div style="flex:1;"><div style="font-weight:800; font-size:22px;">Dhruv Anil</div><div style="color:#6b7280; font-size:16px;">dhruvanil10@gmail.com</div></div>
+          <div style="background:#dbeafe; color:#1e40af; border-radius:8px; padding:6px 12px; font-weight:700; font-size:14px;">Doctor</div>
+        </div>
+        <div style="background:#f5f0e8; padding:18px 20px; border-radius:16px; display:flex; align-items:center; gap:14px;">
+          <div class="avatar" style="background: var(--amber); width:54px; height:54px; font-size:22px;">DK</div>
+          <div style="flex:1;"><div style="font-weight:800; font-size:22px;">Dr Shailendra Kumar</div><div style="color:#6b7280; font-size:16px;">Oncology</div></div>
+          <div style="background:#dbeafe; color:#1e40af; border-radius:8px; padding:6px 12px; font-weight:700; font-size:14px;">Doctor</div>
+        </div>
+        <div style="background:#f3edf5; padding:18px 20px; border-radius:16px; display:flex; align-items:center; gap:14px;">
+          <div class="avatar" style="background: var(--plum); width:54px; height:54px; font-size:22px;">HO</div>
+          <div style="flex:1;"><div style="font-weight:800; font-size:22px;">Hospital Organizer</div><div style="color:#6b7280; font-size:16px;">organizer@hospital.com</div></div>
+          <div style="background:#f3edf5; color: var(--plum); border-radius:8px; padding:6px 12px; font-weight:700; font-size:14px;">Organizer</div>
+        </div>
+        <div style="background:#e8e8f5; padding:18px 20px; border-radius:16px; display:flex; align-items:center; gap:14px;">
+          <div class="avatar" style="background: var(--navy); width:54px; height:54px; font-size:22px;">NV</div>
+          <div style="flex:1;"><div style="font-weight:800; font-size:22px;">Navin Vishwakarma</div><div style="color:#6b7280; font-size:16px;">Application Reviewer</div></div>
+          <div style="background:#f3edf5; color: var(--plum); border-radius:8px; padding:6px 12px; font-weight:700; font-size:14px;">Admin</div>
+        </div>
+        <div style="background:#e8f5f0; padding:18px 20px; border-radius:16px; display:flex; align-items:center; gap:14px;">
+          <div class="avatar" style="background: var(--sage); width:54px; height:54px; font-size:22px;">NK</div>
+          <div style="flex:1;"><div style="font-weight:800; font-size:22px;">Niraj KV</div><div style="color:#6b7280; font-size:16px;">Cardiology</div></div>
+          <div style="background:#dbeafe; color:#1e40af; border-radius:8px; padding:6px 12px; font-weight:700; font-size:14px;">Doctor</div>
+        </div>
+        <div style="background:#f5f0e8; padding:18px 20px; border-radius:16px; display:flex; align-items:center; gap:14px;">
+          <div class="avatar" style="background: var(--amber); width:54px; height:54px; font-size:22px;">NV</div>
+          <div style="flex:1;"><div style="font-weight:800; font-size:22px;">Niraj Vishwakarma</div><div style="color:#6b7280; font-size:16px;">Oncology</div></div>
+          <div style="background:#f3edf5; color: var(--plum); border-radius:8px; padding:6px 12px; font-weight:700; font-size:14px;">Admin</div>
+        </div>
+      </div>
+    </div>`,
+
+  feat_role_assignment: () => `
+    <div class="body" style="top: 180px;">
+      <h1>Four roles · <em>one click</em>.</h1>
+      <div style="display:flex; gap:48px; align-items:flex-start; margin-top:30px;">
+        <div class="ui-card" style="padding:24px 26px; flex:1; max-width:760px; background:#e8f5f0;">
+          <div style="display:flex; align-items:center; gap:18px;">
+            <div class="avatar" style="background: var(--sage); width:80px; height:80px; font-size:30px;">DA</div>
+            <div style="flex:1;">
+              <div style="font-family:'Manrope'; font-size:38px; font-weight:800; color: var(--ink);">Dhruv Anil</div>
+              <div style="color:#6b7280; font-size:20px; margin-top:6px;">✉ dhruvanil10@gmail.com</div>
+            </div>
+            <div style="background:#fff; border:1px solid var(--line); border-radius:10px; padding:12px 18px; font-weight:700; font-size:20px; color: var(--sage);">Doctor ▾</div>
+          </div>
+        </div>
+        <div style="background:#fff; border:1px solid var(--line); border-radius:14px; box-shadow:0 22px 50px rgba(11,11,48,0.18); width:280px; padding:8px;">
+          <div style="background: var(--sage); color:#fff; padding:16px 22px; border-radius:10px; font-weight:800; font-size:22px; display:flex; justify-content:space-between;">Doctor <span>✓</span></div>
+          <div style="padding:16px 22px; font-weight:700; font-size:22px; color:#1a1c2e;">Nurse</div>
+          <div style="padding:16px 22px; font-weight:700; font-size:22px; color:#1a1c2e;">Admin</div>
+          <div style="padding:16px 22px; font-weight:700; font-size:22px; color:#1a1c2e;">Organizer</div>
+        </div>
+      </div>
+      <div style="margin-top:28px; padding:18px 22px; background: #f3edf5; border-radius:14px; color: var(--plum); font-weight:700; font-size:22px;">
+        ✓ Permissions update across meetings, patients and decisions — instantly.
+      </div>
+    </div>`,
+
+  feat_create_participant: () => `
+    <div class="body" style="top: 160px;">
+      <div style="display:flex; gap:48px; align-items:flex-start;">
+        <div class="ui-card" style="padding:36px 40px; max-width:760px;">
+          <div style="display:flex; align-items:center; gap:14px;">
+            <div style="background:#0b0b30; color:#fff; padding:10px; border-radius:10px;">${ICONS.plus}</div>
+            <div>
+              <div style="font-family:'Manrope'; font-size:38px; font-weight:800; color: var(--navy);">Create New Participant</div>
+              <div style="color:#6b7280; font-size:18px; margin-top:2px;">Add a new staff member to the hospital system</div>
+            </div>
+          </div>
+          <div style="margin-top:24px;">
+            <div style="color:#1a1c2e; font-weight:700; font-size:18px;">Full Name *</div>
+            <div style="background:#fff; border:2px solid var(--plum); border-radius:10px; padding:14px 18px; margin-top:6px; color:#1a1c2e; font-size:20px; font-weight:600;">Dr. Anita Rao</div>
+          </div>
+          <div style="margin-top:18px;">
+            <div style="color:#1a1c2e; font-weight:700; font-size:18px;">Email *</div>
+            <div style="background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px 18px; margin-top:6px; color:#1a1c2e; font-size:20px;">anita.rao@hospital.com</div>
+          </div>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:18px; margin-top:18px;">
+            <div>
+              <div style="color:#1a1c2e; font-weight:700; font-size:18px;">Role *</div>
+              <div style="background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px 18px; margin-top:6px; color:#1a1c2e; font-size:20px; display:flex; justify-content:space-between;">Doctor <span>▾</span></div>
+            </div>
+            <div>
+              <div style="color:#1a1c2e; font-weight:700; font-size:18px;">Specialty</div>
+              <div style="background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px 18px; margin-top:6px; color:#1a1c2e; font-size:20px;">Pulmonology</div>
+            </div>
+          </div>
+          <div style="margin-top:22px; padding:14px 18px; background:#fff3d6; border:1px solid #f3d27a; border-radius:10px; color:#7a5712; font-size:18px;">
+            <b>!</b> &nbsp;Default password will be: <b>TempPass123!</b>
+          </div>
+          <div style="display:flex; gap:12px; margin-top:22px; justify-content:flex-end;">
+            <div style="background:#fff; border:1px solid var(--line); padding:14px 22px; border-radius:10px; font-weight:700; font-size:20px;">Cancel</div>
+            <div style="background: var(--plum); color:#fff; padding:14px 22px; border-radius:10px; font-weight:800; font-size:20px; display:flex; align-items:center; gap:10px;">${ICONS.plus} Create Participant</div>
+          </div>
+        </div>
+        <div style="max-width:520px; padding-top:24px;">
+          <div style="font-family:'Manrope'; font-size:54px; font-weight:800; color: var(--navy); line-height:1.05;">Onboard a doctor<br/><em style="font-style:normal; color: var(--plum);">in seconds</em>.</div>
+          <div style="color:#4b5063; font-size:22px; margin-top:20px;">Account + temporary password + welcome email — all in one submit.</div>
+        </div>
+      </div>
+    </div>`,
+
+  feat_credentials_email: () => `
+    <div class="body" style="top: 200px;">
+      <h1>Welcome email · <em>auto-sent</em>.</h1>
+      <div style="display:flex; gap:36px; align-items:flex-start; margin-top:24px;">
+        <div class="email">
+          <div class="from">from: BioMedMeet · noreply@biomedmeet.com</div>
+          <div class="subj">Welcome to BioMedMeet — set up your account</div>
+          <div style="color:#4b5063; margin-top:8px; font-size:20px;">Hi Anita, your hospital admin just added you to BioMedMeet.</div>
+          <div style="margin-top:20px; padding:16px 20px; background:#f3edf5; border-radius:12px; color: var(--plum); font-weight:700; font-size:20px;">
+            ▸ Temporary password: <b>TempPass123!</b>
+          </div>
+          <div class="btns">
+            <div class="btn view">Sign in &amp; set password</div>
+          </div>
+          <div style="margin-top:18px; color:#6b7280; font-size:16px;">First sign-in forces a password change for security.</div>
+        </div>
+      </div>
+    </div>`,
+
+  feat_outro_participants: () => `
+    <div class="center">
+      <div class="big">Your <em>team</em>.<br/>One <em>workspace</em>.</div>
+      <div class="url-pill">biomedmeet.com</div>
+    </div>`,
 };
 
 // API used by the renderer
