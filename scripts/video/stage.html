@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>BioMedMeet — Slide</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --plum: #68517d;
+    --plum-deep: #4b3a5c;
+    --navy: #0b0b30;
+    --sage: #3b6658;
+    --amber: #694e20;
+    --ink: #1a1c2e;
+    --paper: #f8f5fa;
+    --paper-2: #f3edf5;
+    --line: #e6e1ea;
+  }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--paper); font-family: 'Inter', sans-serif; color: var(--ink); }
+  .stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+  /* Background grid + radial glow */
+  .bg-grid {
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(1100px circle at 90% 10%, rgba(104,81,125,0.22), transparent 60%),
+      radial-gradient(900px circle at 5% 95%, rgba(59,102,88,0.18), transparent 60%),
+      linear-gradient(to right, rgba(11,11,48,0.045) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(11,11,48,0.045) 1px, transparent 1px);
+    background-size: auto, auto, 48px 48px, 48px 48px;
+  }
+  /* Brand bar (top) */
+  .brand {
+    position: absolute; top: 56px; left: 80px;
+    display: flex; align-items: center; gap: 18px;
+    font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 36px; color: var(--navy);
+  }
+  .brand .pulse { width: 56px; height: 56px; display: grid; place-items: center; background: var(--navy); border-radius: 16px; }
+  .brand .pulse svg { stroke: #fff; }
+  .brand small { display: block; font-size: 16px; color: #6b7280; font-weight: 500; letter-spacing: 0.06em; margin-top: 2px; }
+  /* Hero text block */
+  .body { position: absolute; top: 200px; left: 80px; right: 80px; bottom: 220px; display: flex; flex-direction: column; justify-content: center; }
+  .body h1 {
+    font-family: 'Manrope', sans-serif; font-size: 130px; font-weight: 800; line-height: 1.02; color: var(--navy);
+    letter-spacing: -0.025em;
+  }
+  .body h1 em { font-style: normal; color: var(--plum); }
+  .body .lead { font-size: 32px; color: #4b5063; margin-top: 28px; max-width: 1400px; line-height: 1.45; }
+  /* Bottom caption ribbon */
+  .caption {
+    position: absolute; left: 0; right: 0; bottom: 56px;
+    display: flex; align-items: center; gap: 24px; justify-content: center;
+  }
+  .caption-pill {
+    background: var(--navy); color: #fff;
+    padding: 22px 48px; border-radius: 999px;
+    font-family: 'Manrope', sans-serif; font-weight: 700; font-size: 30px;
+    letter-spacing: 0.01em;
+    box-shadow: 0 18px 50px rgba(11,11,48,0.18);
+  }
+  .url { position: absolute; right: 80px; top: 64px; font-family: 'Manrope', sans-serif; font-weight: 600; font-size: 24px; color: #6b7280; }
+
+  /* Mock UI surfaces */
+  .ui-card {
+    background: #fff;
+    border-radius: 24px;
+    box-shadow: 0 32px 80px rgba(11,11,48,0.10), 0 6px 18px rgba(11,11,48,0.06);
+    border: 1px solid var(--line);
+  }
+  .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; margin-top: 28px; }
+  .stat { padding: 32px; border-radius: 22px; display: flex; align-items: center; justify-content: space-between; }
+  .stat .num { font-family: 'Manrope', sans-serif; font-size: 64px; font-weight: 800; line-height: 1; }
+  .stat .lbl { font-size: 18px; color: #475063; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+  .stat .icn { width: 72px; height: 72px; border-radius: 18px; display: grid; place-items: center; }
+  .stat.s1 { background: #e8e8f5; } .stat.s1 .num { color: var(--navy); } .stat.s1 .icn { background: var(--navy); }
+  .stat.s2 { background: #e8f5f0; } .stat.s2 .num { color: var(--sage); } .stat.s2 .icn { background: var(--sage); }
+  .stat.s3 { background: #f5f0e8; } .stat.s3 .num { color: var(--amber); } .stat.s3 .icn { background: var(--amber); }
+  .stat.s4 { background: #f3edf5; } .stat.s4 .num { color: var(--plum); } .stat.s4 .icn { background: var(--plum); }
+  .stat .icn svg { stroke: #fff; }
+
+  .row-card { padding: 22px 28px; margin-top: 14px; display: flex; align-items: center; gap: 22px; border-radius: 18px; }
+  .row-card .pin { width: 56px; height: 56px; border-radius: 14px; background: var(--sage); display: grid; place-items: center; }
+  .row-card .pin svg { stroke: #fff; }
+  .row-card .meta { color: #4b5063; font-size: 18px; }
+  .row-card .ttl { font-size: 26px; font-weight: 700; color: var(--ink); }
+  .badge { background: #e8e8f5; color: var(--navy); border-radius: 999px; padding: 8px 18px; font-weight: 700; font-size: 16px; margin-left: auto; }
+
+  /* Wizard chips */
+  .chips { display: flex; gap: 18px; margin-top: 30px; }
+  .chip { background: #fff; border: 1px solid var(--line); padding: 18px 26px; border-radius: 999px; font-weight: 600; font-size: 22px; color: #4b5063; }
+  .chip.active { background: var(--plum); color: #fff; border-color: var(--plum); box-shadow: 0 12px 30px rgba(104,81,125,0.30); }
+
+  /* Email mock */
+  .email { width: 1100px; margin: 24px 0 0 0; padding: 36px 44px; border-radius: 22px; background: #fff; border: 1px solid var(--line); box-shadow: 0 20px 50px rgba(11,11,48,0.08); }
+  .email .from { color: #6b7280; font-size: 18px; }
+  .email .subj { font-family: 'Manrope', sans-serif; font-size: 36px; font-weight: 800; color: var(--navy); margin-top: 4px; }
+  .email .btns { display: flex; gap: 14px; margin-top: 26px; }
+  .email .btn { padding: 16px 28px; border-radius: 12px; font-weight: 700; font-size: 20px; }
+  .email .btn.accept { background: var(--sage); color: #fff; }
+  .email .btn.decline { background: #fff; color: var(--ink); border: 1px solid var(--line); }
+  .email .btn.view { background: var(--navy); color: #fff; }
+  .email .ics { margin-top: 20px; padding: 14px 18px; border: 1px dashed var(--line); border-radius: 12px; display: flex; align-items: center; gap: 14px; color: #4b5063; font-size: 18px; }
+
+  /* Patient card */
+  .patient-row { display: flex; gap: 18px; align-items: center; padding: 22px 28px; border-radius: 18px; background: #fff; border: 1px solid var(--line); margin-top: 14px; }
+  .avatar { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; font-family: 'Manrope', sans-serif; font-weight: 700; font-size: 26px; color: #fff; background: var(--plum); }
+  .patient-row .mrn { color: #6b7280; font-size: 18px; margin-top: 2px; }
+  .patient-row .name { font-size: 24px; font-weight: 700; }
+  .tag { margin-left: auto; background: #f3edf5; color: var(--plum); border-radius: 999px; padding: 8px 18px; font-weight: 700; font-size: 16px; }
+
+  /* Decision row */
+  .decision { display: flex; align-items: center; padding: 22px 28px; border-radius: 18px; background: #fff; border-left: 6px solid var(--plum); margin-top: 14px; gap: 22px; box-shadow: 0 12px 30px rgba(11,11,48,0.05); }
+  .decision .who { font-weight: 700; color: var(--navy); }
+  .decision .when { color: #6b7280; font-size: 18px; }
+  .decision .text { font-size: 22px; color: var(--ink); flex: 1; }
+  .decision .status { background: #e8f5f0; color: var(--sage); border-radius: 999px; padding: 8px 18px; font-weight: 700; font-size: 16px; }
+
+  /* PDF preview mock */
+  .pdf { width: 760px; aspect-ratio: 1 / 1.41; background: #fff; border-radius: 20px; box-shadow: 0 30px 80px rgba(11,11,48,0.20); border: 1px solid var(--line); padding: 56px; }
+  .pdf h2 { font-family: 'Manrope', sans-serif; color: var(--navy); font-size: 44px; }
+  .pdf .meta { color: #6b7280; margin-top: 8px; font-size: 20px; }
+  .pdf hr { border: none; border-top: 1px solid var(--line); margin: 22px 0; }
+  .pdf .row { display: flex; justify-content: space-between; padding: 12px 0; font-size: 22px; color: #1a1c2e; }
+  .pdf .row b { color: var(--plum); }
+
+  /* Code/terminal mock for scheduler */
+  .code { background: #0b0b30; color: #cfe8da; border-radius: 18px; padding: 28px 32px; font-family: 'JetBrains Mono', 'Menlo', monospace; font-size: 22px; line-height: 1.6; box-shadow: 0 24px 60px rgba(11,11,48,0.25); }
+  .code .ts { color: #8fa0c9; }
+  .code .ok { color: #8be9a6; }
+  .code .warn { color: #f6c177; }
+  .code .info { color: #cfd5ea; }
+
+  /* Big icon block (outro) */
+  .center {
+    position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .center .big {
+    font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 180px; letter-spacing: -0.04em; color: var(--navy);
+  }
+  .center .big em { font-style: normal; color: var(--plum); }
+  .center .sub { margin-top: 18px; color: #4b5063; font-size: 32px; font-weight: 500; }
+  .center .url-pill { margin-top: 36px; background: var(--plum); color: #fff; padding: 18px 36px; border-radius: 999px; font-family: 'Manrope', sans-serif; font-weight: 700; font-size: 28px; box-shadow: 0 18px 50px rgba(104,81,125,0.40); }
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="bg-grid"></div>
+  <div class="brand">
+    <div class="pulse">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 12h3l2-7 4 14 2-7h7" />
+      </svg>
+    </div>
+    <div>
+      BioMedMeet
+      <small>Hospital Case Meeting Scheduler</small>
+    </div>
+  </div>
+  <div class="url">biomedmeet.com</div>
+  <div id="content"></div>
+  <div class="caption">
+    <div class="caption-pill" id="caption">…</div>
+  </div>
+</div>
+
+<script>
+/* Each renderScene_<scene_id> returns inner HTML that gets injected into #content.
+ * The CLI page navigator sets the caption via ?caption=… and the scene via ?scene=…
+ */
+const ICONS = {
+  cal:  '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',
+  clock:'<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  plus: '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg>',
+  users:'<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  pin:  '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+  vid:  '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="M22 8l-6 4 6 4V8z"/></svg>',
+  bell: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>',
+  doc:  '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+};
+
+const SCENES = {
+  intro_brand: () => `
+    <div class="center">
+      <div class="big">Bio<em>Med</em>Meet</div>
+      <div class="sub">Hospital Case Meeting Scheduler</div>
+      <div class="url-pill">biomedmeet.com</div>
+    </div>`,
+  outro_cta: () => `
+    <div class="center">
+      <div class="big">Book a <em>demo</em></div>
+      <div class="sub">Built by clinicians, for clinicians</div>
+      <div class="url-pill">biomedmeet.com</div>
+    </div>`,
+
+  marketing_dashboard: () => `
+    <div class="body" style="top: 200px;">
+      <h1>Your <em>command centre</em><br/>for case meetings.</h1>
+      <div class="ui-card" style="margin-top:48px; padding:36px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+          <div>
+            <div style="font-family:'Manrope'; font-size:36px; font-weight:800; color: var(--navy);">Welcome back, Dr. Rao</div>
+            <div style="color:#6b7280; margin-top:4px; font-size:20px;">Tuesday, May 19, 2026</div>
+          </div>
+          <div style="background: var(--sage); color:#fff; padding:14px 22px; border-radius:12px; font-weight:700; font-size:20px;">+ New meeting</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat s1"><div><div class="lbl">Upcoming</div><div class="num">8</div></div><div class="icn">${ICONS.cal}</div></div>
+          <div class="stat s2"><div><div class="lbl">This week</div><div class="num">3</div></div><div class="icn">${ICONS.clock}</div></div>
+          <div class="stat s3"><div><div class="lbl">Pending</div><div class="num">2</div></div><div class="icn">${ICONS.plus}</div></div>
+          <div class="stat s4"><div><div class="lbl">Patients</div><div class="num">47</div></div><div class="icn">${ICONS.users}</div></div>
+        </div>
+      </div>
+    </div>`,
+
+  marketing_wizard: () => `
+    <div class="body" style="top: 200px;">
+      <h1>Schedule with <em>Teams</em>,<br/>in one wizard.</h1>
+      <div class="chips">
+        <div class="chip">① Basics</div>
+        <div class="chip active">② Participants</div>
+        <div class="chip">③ Review &amp; Teams</div>
+      </div>
+      <div class="ui-card" style="margin-top:32px; padding:32px; max-width:1300px;">
+        <div style="font-family:'Manrope'; font-size:32px; font-weight:800; color: var(--navy);">Generate Microsoft Teams link</div>
+        <div style="color:#6b7280; margin-top:6px; font-size:20px;">BioMedMeet calls Microsoft Graph API and creates an online meeting on save.</div>
+        <div style="margin-top:24px; display:flex; gap:14px; align-items:center;">
+          <div style="background:#4b53b3; color:#fff; padding:14px 22px; border-radius:12px; display:flex; align-items:center; gap:12px; font-weight:700; font-size:22px;">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="#fff"><path d="M5 5h6v6H5zM5 13h6v6H5zM13 5h6v6h-6zM13 13h6v6h-6z"/></svg>
+            Microsoft Teams
+          </div>
+          <div style="color: var(--sage); font-weight:700; font-size:22px;">✓ Connected</div>
+        </div>
+      </div>
+    </div>`,
+
+  marketing_emails: () => `
+    <div class="body" style="top: 200px;">
+      <h1>Invites that <em>do the work.</em></h1>
+      <div style="display:flex; gap:36px; align-items:flex-start; margin-top:24px;">
+        <div class="email">
+          <div class="from">from: BioMedMeet · noreply@biomedmeet.com</div>
+          <div class="subj">You're invited: Tumour Board · Dec 1 · 10:00 IST</div>
+          <div style="color:#4b5063; margin-top:8px; font-size:20px;">3 cases · Dr. Rao organising · Teams meeting attached</div>
+          <div class="btns">
+            <div class="btn accept">✓ Accept</div>
+            <div class="btn decline">Decline</div>
+            <div class="btn view">View meeting</div>
+          </div>
+          <div class="ics">${ICONS.cal}&nbsp;&nbsp;invite.ics &nbsp;·&nbsp; opens in Outlook, Google Calendar, Apple Calendar</div>
+        </div>
+      </div>
+    </div>`,
+
+  marketing_meeting_detail: () => `
+    <div class="body" style="top: 200px;">
+      <h1>Agenda · decisions ·<br/><em>summary PDF</em>.</h1>
+      <div class="ui-card" style="margin-top:32px; padding:32px;">
+        <div style="display:flex; gap:18px;">
+          <div class="chip active">Agenda</div>
+          <div class="chip">Decisions</div>
+          <div class="chip">Files</div>
+          <div class="chip">Summary PDF</div>
+        </div>
+        <div class="patient-row" style="margin-top:24px;">
+          <div class="avatar">JD</div>
+          <div>
+            <div class="name">John Deo · NSCLC, stage IIIB</div>
+            <div class="mrn">MRN 123451 · Pulmonology</div>
+          </div>
+          <div class="tag">Treatment plan ✓</div>
+        </div>
+        <div class="patient-row">
+          <div class="avatar" style="background: var(--sage);">SA</div>
+          <div>
+            <div class="name">Sara Ahmed · CRC, stage II</div>
+            <div class="mrn">MRN 998273 · Oncology</div>
+          </div>
+          <div class="tag" style="background:#f5f0e8; color: var(--amber);">Awaiting plan</div>
+        </div>
+      </div>
+    </div>`,
+
+  // ---- Feature: schedule ----
+  feat_intro_schedule: () => `
+    <div class="body" style="top: 220px;">
+      <h1>Schedule a meeting<br/><em>in under 60 seconds.</em></h1>
+      <div class="lead">A guided wizard. Three steps. One Teams link, every invite, every calendar — handled.</div>
+    </div>`,
+  feat_open_wizard: () => `
+    <div class="body" style="top: 200px;">
+      <h1>One button:<br/><em>New Meeting</em>.</h1>
+      <div class="ui-card" style="margin-top:36px; padding:30px; max-width:900px; display:flex; align-items:center; justify-content:space-between;">
+        <div>
+          <div style="font-family:'Manrope'; font-size:32px; font-weight:800; color: var(--navy);">Tuesday, May 19</div>
+          <div style="color:#6b7280; font-size:20px; margin-top:4px;">8 upcoming · 2 pending invites</div>
+        </div>
+        <div style="background: var(--sage); color:#fff; padding:18px 32px; border-radius:12px; font-weight:800; font-size:26px;">+ New meeting</div>
+      </div>
+    </div>`,
+  feat_wizard_basics: () => `
+    <div class="body" style="top: 200px;">
+      <h1>Step 1 · <em>Basics</em>.</h1>
+      <div class="chips"><div class="chip active">① Basics</div><div class="chip">② Participants</div><div class="chip">③ Review</div></div>
+      <div class="ui-card" style="margin-top:30px; padding:32px; max-width:1300px;">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px;">
+          <div><div style="color:#6b7280; font-size:18px; text-transform:uppercase; letter-spacing:0.06em;">Title</div><div style="font-size:26px; font-weight:700; margin-top:4px;">Tumour Board — Thoracic</div></div>
+          <div><div style="color:#6b7280; font-size:18px; text-transform:uppercase; letter-spacing:0.06em;">Type</div><div style="font-size:26px; font-weight:700; margin-top:4px;">Tumour Board</div></div>
+          <div><div style="color:#6b7280; font-size:18px; text-transform:uppercase; letter-spacing:0.06em;">Date · Time</div><div style="font-size:26px; font-weight:700; margin-top:4px;">Dec 1, 2026 · 10:00 – 11:00</div></div>
+          <div><div style="color:#6b7280; font-size:18px; text-transform:uppercase; letter-spacing:0.06em;">Timezone</div><div style="font-size:26px; font-weight:700; margin-top:4px;">Asia / Kolkata (IST)</div></div>
+        </div>
+        <div style="margin-top:22px; color: var(--sage); font-weight:700; font-size:20px;">✓ Not a weekend or holiday</div>
+      </div>
+    </div>`,
+  feat_wizard_participants: () => `
+    <div class="body" style="top: 200px;">
+      <h1>Step 2 · <em>Participants &amp; patients</em>.</h1>
+      <div class="chips"><div class="chip">① Basics</div><div class="chip active">② Participants</div><div class="chip">③ Review</div></div>
+      <div class="ui-card" style="margin-top:24px; padding:28px;">
+        <div class="patient-row"><div class="avatar">AR</div><div><div class="name">Dr. Anita Rao</div><div class="mrn">Pulmonology · Organiser</div></div><div class="tag">Owner</div></div>
+        <div class="patient-row"><div class="avatar" style="background: var(--sage);">VK</div><div><div class="name">Dr. Vikram Kumar</div><div class="mrn">Radiology</div></div><div class="tag" style="background:#e8f5f0; color: var(--sage);">Invited</div></div>
+        <div class="patient-row"><div class="avatar" style="background: var(--amber);">PS</div><div><div class="name">Dr. Priya Sharma</div><div class="mrn">Oncology</div></div><div class="tag" style="background:#f5f0e8; color: var(--amber);">Invited</div></div>
+      </div>
+    </div>`,
+  feat_wizard_teams: () => `
+    <div class="body" style="top: 200px;">
+      <h1>Step 3 · <em>Teams</em> link.</h1>
+      <div class="chips"><div class="chip">① Basics</div><div class="chip">② Participants</div><div class="chip active">③ Review</div></div>
+      <div class="ui-card" style="margin-top:24px; padding:32px;">
+        <div style="display:flex; align-items:center; gap:22px;">
+          <div style="background:#4b53b3; color:#fff; padding:16px 24px; border-radius:12px; display:flex; align-items:center; gap:12px; font-weight:800; font-size:22px;">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="#fff"><path d="M5 5h6v6H5zM5 13h6v6H5zM13 5h6v6h-6zM13 13h6v6h-6z"/></svg>
+            Generate Microsoft Teams link
+          </div>
+          <div style="color: var(--sage); font-weight:800; font-size:22px;">✓ Created via Microsoft Graph</div>
+        </div>
+        <div style="margin-top:22px; padding:18px 22px; background: #f3edf5; border-radius:14px; color: var(--plum); font-weight:700; font-size:22px;">
+          Join URL: teams.microsoft.com/l/meetup-join/19%3a…
+        </div>
+        <div style="margin-top:18px; color:#4b5063; font-size:22px;">📧 3 invites sent · 🗓️ .ics attached · 🔔 1h reminder scheduled</div>
+      </div>
+    </div>`,
+  feat_outro_schedule: () => `
+    <div class="center">
+      <div class="big"><em>60 s</em>.</div>
+      <div class="sub">Schedule · invite · Teams · calendar — done.</div>
+      <div class="url-pill">biomedmeet.com</div>
+    </div>`,
+
+  // ---- Feature: patients ----
+  feat_intro_patients: () => `
+    <div class="body" style="top: 220px;">
+      <h1>Patients are <em>first-class</em>.</h1>
+      <div class="lead">Not just rows on an agenda. Full clinical context, every meeting, every treatment plan, every file — in one place.</div>
+    </div>`,
+  feat_patients_list: () => `
+    <div class="body" style="top: 200px;">
+      <h1>Search by name <em>or MRN</em>.</h1>
+      <div class="ui-card" style="margin-top:32px; padding:28px;">
+        <div class="patient-row"><div class="avatar">JD</div><div><div class="name">John Deo · 76 · M</div><div class="mrn">MRN 123451 · Pulmonology · NSCLC</div></div><div class="tag">3 meetings</div></div>
+        <div class="patient-row"><div class="avatar" style="background: var(--sage);">SA</div><div><div class="name">Sara Ahmed · 54 · F</div><div class="mrn">MRN 998273 · Oncology · CRC stage II</div></div><div class="tag" style="background:#e8f5f0; color: var(--sage);">2 meetings</div></div>
+        <div class="patient-row"><div class="avatar" style="background: var(--amber);">RP</div><div><div class="name">Rahul Patel · 62 · M</div><div class="mrn">MRN 776112 · Cardiology · HFrEF</div></div><div class="tag" style="background:#f5f0e8; color: var(--amber);">5 meetings</div></div>
+      </div>
+    </div>`,
+  feat_patient_detail: () => `
+    <div class="body" style="top: 180px;">
+      <h1>One patient · <em>360°</em>.</h1>
+      <div class="ui-card" style="margin-top:24px; padding:30px;">
+        <div style="display:flex; align-items:center; gap:22px;">
+          <div class="avatar" style="width:88px; height:88px; font-size:34px;">JD</div>
+          <div>
+            <div style="font-family:'Manrope'; font-size:42px; font-weight:800; color: var(--navy);">John Deo</div>
+            <div style="color:#6b7280; font-size:22px; margin-top:4px;">MRN 123451 · 76 years · Male · Pulmonology</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:14px; margin-top:24px;">
+          <div class="chip">Overview</div>
+          <div class="chip">Meetings (11)</div>
+          <div class="chip active">Treatment plans (4)</div>
+          <div class="chip">Files (8)</div>
+        </div>
+      </div>
+    </div>`,
+  feat_treatment_plans: () => `
+    <div class="body" style="top: 200px;">
+      <h1>Treatment plans · <em>versioned</em>.</h1>
+      <div class="ui-card" style="margin-top:28px; padding:28px;">
+        <div class="decision">
+          <div>
+            <div class="when">May 4, 2026 · Tumour Board</div>
+            <div class="text"><b>Plan:</b> Carboplatin + paclitaxel × 4, restage 12 wk. Concurrent thoracic RT.</div>
+          </div>
+          <div class="status">Active</div>
+        </div>
+        <div class="decision" style="border-left-color: var(--sage);">
+          <div>
+            <div class="when">Feb 11, 2026 · MDT</div>
+            <div class="text"><b>Plan:</b> Diagnostic VATS biopsy. Hold systemic therapy.</div>
+          </div>
+          <div class="status" style="background:#e8e8f5; color: var(--navy);">Superseded</div>
+        </div>
+      </div>
+    </div>`,
+  feat_outro_patients: () => `
+    <div class="center">
+      <div class="big">Continuity<br/><em>of care</em>.</div>
+      <div class="url-pill">biomedmeet.com</div>
+    </div>`,
+
+  // ---- Feature: decisions / PDF ----
+  feat_intro_decisions: () => `
+    <div class="body" style="top: 220px;">
+      <h1>Every decision · <em>captured</em>.</h1>
+      <div class="lead">Live during the meeting. Owner, due date, status. Audited from day one.</div>
+    </div>`,
+  feat_decisions_log: () => `
+    <div class="body" style="top: 200px;">
+      <h1>Live <em>decision log</em>.</h1>
+      <div class="ui-card" style="margin-top:28px; padding:28px;">
+        <div class="decision">
+          <div><div class="who">Dr. Rao</div><div class="when">10:14 · 3 min ago</div></div>
+          <div class="text">Initiate carboplatin + paclitaxel within 7 days. Owner: Dr. Sharma.</div>
+          <div class="status">Open</div>
+        </div>
+        <div class="decision" style="border-left-color: var(--sage);">
+          <div><div class="who">Dr. Kumar</div><div class="when">10:11 · 6 min ago</div></div>
+          <div class="text">Refer to radiation oncology for thoracic RT planning.</div>
+          <div class="status">In progress</div>
+        </div>
+        <div class="decision" style="border-left-color: var(--amber);">
+          <div><div class="who">Dr. Sharma</div><div class="when">10:07 · 10 min ago</div></div>
+          <div class="text">Repeat CT in 12 weeks. Compare to baseline.</div>
+          <div class="status" style="background:#f5f0e8; color: var(--amber);">Scheduled</div>
+        </div>
+      </div>
+    </div>`,
+  feat_summary_button: () => `
+    <div class="body" style="top: 220px;">
+      <h1>One click · <em>Summary PDF</em>.</h1>
+      <div class="ui-card" style="margin-top:32px; padding:32px; max-width:1200px;">
+        <div style="display:flex; align-items:center; gap:22px;">
+          <div style="background: var(--plum); color:#fff; padding:20px 28px; border-radius:14px; font-weight:800; font-size:24px;">
+            ↓ Generate Summary PDF
+          </div>
+          <div style="color:#4b5063; font-size:22px;">Agenda · Treatment plans · Decisions · Attendees · Files</div>
+        </div>
+        <div style="margin-top:24px; padding:18px 22px; background:#e8f5f0; border-radius:14px; color: var(--sage); font-weight:700; font-size:22px;">
+          ✓ Branded, formatted, ready for the patient record.
+        </div>
+      </div>
+    </div>`,
+  feat_pdf_preview: () => `
+    <div class="body" style="top: 160px; align-items:flex-start;">
+      <div style="display:flex; gap:48px; align-items:flex-start;">
+        <div class="pdf">
+          <h2>Tumour Board — Thoracic</h2>
+          <div class="meta">May 19, 2026 · 10:00 IST · Dr. Anita Rao · 3 cases · 6 attendees</div>
+          <hr/>
+          <div class="row"><div>Patient</div><div><b>John Deo · MRN 123451</b></div></div>
+          <div class="row"><div>Diagnosis</div><div>NSCLC, stage IIIB</div></div>
+          <div class="row"><div>Plan</div><div>Carboplatin + paclitaxel × 4</div></div>
+          <hr/>
+          <div class="row"><div>Decisions</div><div><b>3 logged</b></div></div>
+          <div class="row"><div>Files</div><div>5 attached</div></div>
+          <hr/>
+          <div style="color:#6b7280; font-size:18px;">Generated by BioMedMeet · biomedmeet.com</div>
+        </div>
+        <div style="max-width:600px;">
+          <div style="font-family:'Manrope'; font-size:64px; font-weight:800; color: var(--navy); line-height:1.05;">From <em style="font-style:normal; color: var(--plum);">decision</em> to <em style="font-style:normal; color: var(--plum);">documentation</em>.</div>
+          <div style="color:#4b5063; font-size:24px; margin-top:24px;">No more chasing minutes from three different inboxes.</div>
+        </div>
+      </div>
+    </div>`,
+  feat_outro_decisions: () => `
+    <div class="center">
+      <div class="big">Audit trail.<br/><em>Built-in</em>.</div>
+      <div class="url-pill">biomedmeet.com</div>
+    </div>`,
+
+  // ---- Feature: reminders / .ics ----
+  feat_intro_reminders: () => `
+    <div class="body" style="top: 220px;">
+      <h1>Reminders that<br/><em>run themselves</em>.</h1>
+      <div class="lead">A background scheduler. Every minute. Every meeting. Every participant who accepted — reminded exactly one hour before.</div>
+    </div>`,
+  feat_ics_attached: () => `
+    <div class="body" style="top: 200px;">
+      <h1>.ics that <em>just works</em>.</h1>
+      <div class="ui-card" style="margin-top:28px; padding:30px;">
+        <div style="display:flex; gap:18px; align-items:center;">
+          ${ICONS.cal}
+          <div style="font-family:'Manrope'; font-size:30px; font-weight:800; color: var(--navy);">invite.ics</div>
+          <div style="margin-left:auto; color: var(--sage); font-weight:700; font-size:20px;">RFC 5545 compliant</div>
+        </div>
+        <div style="margin-top:22px; display:flex; gap:18px;">
+          <div style="background:#e8e8f5; padding:18px 24px; border-radius:14px; font-weight:700; color: var(--navy); font-size:20px;">Outlook ✓</div>
+          <div style="background:#e8f5f0; padding:18px 24px; border-radius:14px; font-weight:700; color: var(--sage); font-size:20px;">Google Calendar ✓</div>
+          <div style="background:#f5f0e8; padding:18px 24px; border-radius:14px; font-weight:700; color: var(--amber); font-size:20px;">Apple Calendar ✓</div>
+        </div>
+      </div>
+    </div>`,
+  feat_reminder_scheduler: () => `
+    <div class="body" style="top: 200px;">
+      <h1>The <em>scheduler</em>.</h1>
+      <div class="code" style="margin-top:28px;">
+<span class="ts">[09:00:00]</span> <span class="info">scheduler::tick</span> · checking next 60 min<br/>
+<span class="ts">[09:00:00]</span> <span class="info">found</span> meeting <span class="ok">m_2f1c8d</span> · starts 10:00 IST · 4 accepted<br/>
+<span class="ts">[09:00:01]</span> <span class="ok">→</span> reminder email sent · 4 recipients · template=meeting_reminder<br/>
+<span class="ts">[09:00:01]</span> <span class="ok">→</span> marked reminded_at=2026-05-19T09:00:01Z · idempotent<br/>
+<span class="ts">[09:01:00]</span> <span class="info">scheduler::tick</span> · 0 due<br/>
+<span class="ts">[09:01:00]</span> <span class="warn">auto-complete</span> sweep · 1 meeting past end_time → status=completed<br/>
+      </div>
+    </div>`,
+  feat_auto_complete: () => `
+    <div class="body" style="top: 220px;">
+      <h1>Auto-complete<br/><em>after end-time</em>.</h1>
+      <div class="ui-card" style="margin-top:32px; padding:30px; max-width:1100px;">
+        <div style="display:flex; align-items:center; gap:22px;">
+          <div style="background:#e8f5f0; color: var(--sage); padding:14px 22px; border-radius:12px; font-weight:800; font-size:22px;">✓ Completed automatically</div>
+          <div style="color:#4b5063; font-size:22px;">at 11:10 IST · 10 min after end_time</div>
+        </div>
+        <div style="margin-top:22px; padding:20px 24px; background: #f3edf5; border-radius:14px; color: var(--plum); font-weight:700; font-size:22px;">
+          → Organiser nudged to log treatment plans and generate the summary PDF.
+        </div>
+      </div>
+    </div>`,
+  feat_outro_reminders: () => `
+    <div class="center">
+      <div class="big">Schedule once.<br/><em>That's it</em>.</div>
+      <div class="url-pill">biomedmeet.com</div>
+    </div>`,
+};
+
+// API used by the renderer
+window.renderScene = function (sceneId, caption) {
+  document.getElementById('content').innerHTML = (SCENES[sceneId] || (() => '<div class="body"><h1>scene?</h1></div>'))();
+  document.getElementById('caption').textContent = caption || '';
+};
+
+// Initial paint from query string (handy for previews)
+const q = new URLSearchParams(location.search);
+if (q.get('scene')) window.renderScene(q.get('scene'), q.get('caption') || '');
+</script>
+</body>
+</html>
