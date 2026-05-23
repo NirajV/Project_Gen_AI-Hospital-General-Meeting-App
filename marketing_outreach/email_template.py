@@ -15,6 +15,40 @@ from .legal_footers import get_footer
 APP_URL = "https://biomedmeet.com/"
 MARKETING_URL = "https://biomedmeet.com/marketing/"
 DEMO_URL = "https://biomedmeet.com/home/contact.html#demo"
+HOW_IT_WORKS_URL = "https://biomedmeet.com/home/how-it-works.html"
+
+# Step illustrations hosted on biomedmeet.com (extracted slide thumbnails of
+# the same scenes that appear in the marketing videos — keeps brand consistent).
+HOW_IT_WORKS_STEPS = [
+    {
+        "n": 1,
+        "title": "Set the meeting",
+        "blurb": "Title, date, timezone, location. One click generates a Microsoft Teams link via Microsoft Graph. Holiday- and weekend-aware.",
+        "thumb": f"{MARKETING_URL}thumbs/step1.jpg",
+        "color": "#3b6658",
+    },
+    {
+        "n": 2,
+        "title": "Invite participants & patients",
+        "blurb": "Pull doctors and nurses from your hospital directory; add the patients whose cases will be discussed. Email + .ics invites go out automatically.",
+        "thumb": f"{MARKETING_URL}thumbs/step2.jpg",
+        "color": "#68517d",
+    },
+    {
+        "n": 3,
+        "title": "Build the agenda",
+        "blurb": "One agenda item per patient case — diagnosis, requested provider, discussion notes, treatment plan. Live-editable during the meeting.",
+        "thumb": f"{MARKETING_URL}thumbs/step3.jpg",
+        "color": "#694e20",
+    },
+    {
+        "n": 4,
+        "title": "Run · decide · export",
+        "blurb": "Capture binding decisions live, then generate a styled PDF summary in one click — ready for the patient record and referring physicians.",
+        "thumb": f"{MARKETING_URL}thumbs/step4.jpg",
+        "color": "#0b0b30",
+    },
+]
 
 VIDEOS = [
     {
@@ -107,6 +141,8 @@ def render_html(
     hospital: str,
     team_name: str,
     contact_first_name: str,
+    contact_full_name: str,
+    contact_title: str,
     sender_name: str,
     sender_email: str,
     sender_postal_address: str,
@@ -120,10 +156,47 @@ def render_html(
         sender_email=sender_email,
         sender_postal_address=sender_postal_address,
     )
-    greeting = (
-        f"Dear {contact_first_name},"
-        if contact_first_name and contact_first_name.lower() not in ("team", "")
-        else f"Hello {team_name or hospital + ' team'},"
+
+    # Dynamic greeting — uses real first name if we have it.
+    if contact_first_name and contact_first_name.lower() not in ("team", ""):
+        greeting = f"Dear {contact_first_name},"
+    elif contact_full_name:
+        greeting = f"Dear {contact_full_name},"
+    else:
+        greeting = f"Hello {team_name or hospital + ' team'},"
+
+    # Dynamic opening line — references their job title if we have it.
+    role_phrase = (
+        f"As {contact_title} at <strong>{hospital}</strong>"
+        if contact_title
+        else f"To the team at <strong>{hospital}</strong>"
+    )
+
+    # How-it-works block — 4 steps with image thumbnails
+    steps_html = "".join(
+        f"""
+        <tr>
+          <td style="padding:10px 0;">
+            <table cellpadding="0" cellspacing="0" border="0" width="100%">
+              <tr>
+                <td width="92" valign="top" style="padding-right:14px;">
+                  <a href="{HOW_IT_WORKS_URL}#step{s['n']}" style="text-decoration:none;">
+                    <div style="width:84px; height:84px; background:{s['color']}; border-radius:14px; text-align:center; line-height:84px; font-size:38px; color:#ffffff; font-family:'Helvetica Neue',Arial,sans-serif; font-weight:800;">{s['n']}</div>
+                  </a>
+                </td>
+                <td valign="top">
+                  <a href="{HOW_IT_WORKS_URL}#step{s['n']}" style="text-decoration:none; color:#0b0b30;">
+                    <div style="font-size:11px; font-weight:700; color:{s['color']}; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:2px;">Step {s['n']} of 4</div>
+                    <div style="font-size:17px; font-weight:800; font-family:'Helvetica Neue',Arial,sans-serif; color:#0b0b30;">{s['title']}</div>
+                    <div style="font-size:13.5px; color:#4b5063; line-height:1.55; margin-top:4px;">{s['blurb']}</div>
+                  </a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        """
+        for s in HOW_IT_WORKS_STEPS
     )
 
     return f"""<!doctype html>
@@ -150,9 +223,8 @@ def render_html(
       <tr><td style="padding:8px 36px 8px;">
         <p style="font-size:15px; line-height:1.6; color:#1a1c2e;">{greeting}</p>
         <p style="font-size:15px; line-height:1.6; color:#1a1c2e;">
-          I'm reaching out to <strong>{team_name or 'the digital transformation team'}</strong>
-          at <strong>{hospital}</strong> because I think <strong>BioMedMeet</strong> may be
-          directly relevant to your work.
+          {role_phrase}, I think <strong>BioMedMeet</strong> may be directly relevant
+          to your work on <strong>{team_name or 'digital transformation'}</strong>.
         </p>
         <p style="font-size:15px; line-height:1.6; color:#1a1c2e;">
           BioMedMeet is a purpose-built workflow tool for the multidisciplinary case
@@ -184,13 +256,30 @@ def render_html(
           </tr>
         </table>
 
+        <!-- How it works -->
+        <div style="margin-top:28px; padding-top:24px; border-top:1px solid #e6e1ea;">
+          <div style="font-size:11px; font-weight:700; color:#68517d; letter-spacing:0.1em; text-transform:uppercase;">How it works</div>
+          <div style="font-size:22px; font-weight:800; font-family:'Helvetica Neue',Arial,sans-serif; color:#0b0b30; margin-top:6px; line-height:1.25;">
+            From empty calendar slot to logged decision — in four steps.
+          </div>
+          <div style="font-size:14px; color:#4b5063; margin-top:8px;">
+            No training day required. <a href="{HOW_IT_WORKS_URL}" style="color:#68517d; font-weight:700; text-decoration:none;">See the full walkthrough →</a>
+          </div>
+          <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top:18px;">
+            {steps_html}
+          </table>
+        </div>
+
         <!-- Videos -->
-        <p style="font-size:14px; line-height:1.6; color:#1a1c2e; margin-top:24px;">
-          Seven short voice-over walkthroughs (each under 90 seconds):
-        </p>
-        <table cellpadding="0" cellspacing="0" border="0" width="100%">
-          {video_rows}
-        </table>
+        <div style="margin-top:28px; padding-top:24px; border-top:1px solid #e6e1ea;">
+          <div style="font-size:11px; font-weight:700; color:#3b6658; letter-spacing:0.1em; text-transform:uppercase;">Watch · 90-second walkthroughs</div>
+          <div style="font-size:22px; font-weight:800; font-family:'Helvetica Neue',Arial,sans-serif; color:#0b0b30; margin-top:6px; line-height:1.25;">
+            Seven short videos. Every feature covered.
+          </div>
+          <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top:14px;">
+            {video_rows}
+          </table>
+        </div>
 
         <!-- CTAs -->
         <table cellpadding="0" cellspacing="0" border="0" style="margin:28px 0;">
@@ -232,22 +321,35 @@ def render_plain_text(
     hospital: str,
     team_name: str,
     contact_first_name: str,
+    contact_full_name: str,
+    contact_title: str,
     sender_name: str,
     sender_email: str,
 ) -> str:
     """Plain-text fallback for email clients without HTML support."""
-    greeting = (
-        f"Dear {contact_first_name}," if contact_first_name and contact_first_name.lower() != "team"
-        else f"Hello {team_name or hospital + ' team'},"
+    if contact_first_name and contact_first_name.lower() != "team":
+        greeting = f"Dear {contact_first_name},"
+    elif contact_full_name:
+        greeting = f"Dear {contact_full_name},"
+    else:
+        greeting = f"Hello {team_name or hospital + ' team'},"
+    role_phrase = (
+        f"As {contact_title} at {hospital},"
+        if contact_title else
+        f"To the team at {hospital},"
     )
     video_list = "\n".join(
         f"  - {v['title']} ({v['duration']}): {MARKETING_URL}{v['file']}"
         for v in VIDEOS
     )
+    steps_list = "\n".join(
+        f"  {s['n']}. {s['title']} — {s['blurb']}"
+        for s in HOW_IT_WORKS_STEPS
+    )
     return f"""{greeting}
 
-I'm reaching out to {team_name or 'the digital transformation team'} at {hospital}
-because I think BioMedMeet may be directly relevant to your work.
+{role_phrase} I think BioMedMeet may be directly relevant to your work on
+{team_name or 'digital transformation'}.
 
 BioMedMeet is a purpose-built workflow tool for hospital multidisciplinary case
 meetings — tumour boards, M&M, case reviews, MDTs. It replaces the WhatsApp
@@ -259,7 +361,12 @@ Highlights:
   - Built-in audit trail and decision log
   - Auto-generated PDF summary after each meeting
 
-Seven short voice-over walkthroughs (each under 90 seconds):
+HOW IT WORKS (4 steps):
+{steps_list}
+
+Full walkthrough: {HOW_IT_WORKS_URL}
+
+VIDEOS — seven short voice-over walkthroughs (each under 90 seconds):
 {video_list}
 
 ▶ Book a 15-min demo:  {DEMO_URL}

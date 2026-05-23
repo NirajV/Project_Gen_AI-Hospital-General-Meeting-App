@@ -21,3 +21,6 @@ frontend/.env.production.local
 *.log
 .vscode
 .idea
+
+# Marketing outreach kit — NEVER ship with Docker images
+marketing_outreach/

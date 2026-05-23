@@ -5,3 +5,6 @@ uploads/*
 !uploads/.gitkeep
 .env
 *.log
+
+# Marketing outreach kit — NEVER ship with backend image
+marketing_outreach/

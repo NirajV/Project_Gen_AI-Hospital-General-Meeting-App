@@ -652,3 +652,8 @@ credentials.json
 # Marketing outreach credentials & per-run logs (never commit)
 scripts/marketing/.env
 scripts/marketing/_runs/
+
+# Marketing outreach is OUT of the Docker build context. Never commit secrets.
+marketing_outreach/.env
+marketing_outreach/_runs/
+marketing_outreach/__pycache__/
