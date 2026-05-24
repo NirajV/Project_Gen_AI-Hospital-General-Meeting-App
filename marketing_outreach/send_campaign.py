@@ -160,7 +160,6 @@ def compose_email(row: dict, country: str, recipient_override: str | None = None
         sender_name=SENDER_NAME,
         sender_email=SENDER_EMAIL,
         sender_postal_address=SENDER_POSTAL_ADDRESS,
-        recipient_email=to_addr,
     )
     plain = render_plain_text(
         hospital=hospital,
@@ -174,15 +173,22 @@ def compose_email(row: dict, country: str, recipient_override: str | None = None
 
     msg = EmailMessage()
     msg["From"] = formataddr((SENDER_NAME, SENDER_EMAIL))
-    msg["To"] = to_addr
-    if SELF_BCC:
-        msg["Bcc"] = SELF_BCC
+    # PRIVACY: recipient email goes in the SMTP envelope only — NEVER in the
+    # To header. The visible To shows "Undisclosed Recipients" so the email
+    # address is invisible even if the message is forwarded.
+    msg["To"] = formataddr(("Undisclosed Recipients", SENDER_EMAIL))
     msg["Subject"] = subject
     msg["Reply-To"] = SENDER_EMAIL
     msg["Message-ID"] = make_msgid(domain=SENDER_EMAIL.split("@")[-1])
     msg["X-Campaign"] = f"biomedmeet-outreach-{country.lower()}"
     msg["List-Unsubscribe"] = f"<mailto:{SENDER_EMAIL}?subject=UNSUBSCRIBE>"
     msg["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click"
+
+    # The actual envelope recipients (used by send_message via to_addrs=).
+    # We stash them on the message object so the sender loop can pick them up.
+    msg._bcc_recipients = [to_addr]  # type: ignore[attr-defined]
+    if SELF_BCC:
+        msg._bcc_recipients.append(SELF_BCC)  # type: ignore[attr-defined]
 
     msg.set_content(plain)
     msg.add_alternative(html, subtype="html")
@@ -311,8 +317,14 @@ def main(argv: list[str] | None = None) -> int:
                 continue
 
             try:
-                server.send_message(msg)
-                print(f"  [{i:4d}] SENT  {hospital[:42]:<42}  → {msg['To']}")
+                # Use envelope-only recipients (BCC pattern). To header stays as
+                # "Undisclosed Recipients" — the contact's email is invisible.
+                server.send_message(
+                    msg,
+                    from_addr=SENDER_EMAIL,
+                    to_addrs=msg._bcc_recipients,  # type: ignore[attr-defined]
+                )
+                print(f"  [{i:4d}] SENT  {hospital[:42]:<42}  → {email} (BCC)")
                 log_writer.writerow(_logrow("sent", hospital, email, country, ""))
                 if coll is not None and "_id" in row:
                     coll.update_one(

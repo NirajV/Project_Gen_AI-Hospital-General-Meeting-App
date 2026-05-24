@@ -147,12 +147,10 @@ def render_html(
     sender_name: str,
     sender_email: str,
     sender_postal_address: str,
-    recipient_email: str,
 ) -> str:
     """Build the full HTML email body."""
     video_rows = "".join(_video_card(v) for v in VIDEOS)
     footer = get_footer(country).format(
-        recipient_email=recipient_email,
         sender_name=sender_name,
         sender_email=sender_email,
         sender_postal_address=sender_postal_address,
