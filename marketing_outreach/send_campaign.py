@@ -195,8 +195,10 @@ def compose_email(row: dict, country: str, recipient_override: str | None = None
 
     # The actual envelope recipients (used by send_message via to_addrs=).
     # We stash them on the message object so the sender loop can pick them up.
-    msg._bcc_recipients = [to_addr]  # type: ignore[attr-defined]
-    if SELF_BCC:
+    # When --override-recipient is set, send ONLY to those addresses (no
+    # SELF_BCC) so test sends don't leak into the operator's other inbox.
+    msg._bcc_recipients = list(to_addrs)  # type: ignore[attr-defined]
+    if SELF_BCC and not raw_override:
         msg._bcc_recipients.append(SELF_BCC)  # type: ignore[attr-defined]
 
     msg.set_content(plain)
