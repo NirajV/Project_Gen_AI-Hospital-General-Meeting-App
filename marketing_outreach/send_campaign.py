@@ -147,7 +147,16 @@ def compose_email(row: dict, country: str, recipient_override: str | None = None
         f"{row.get('first_name','')} {row.get('last_name','')}".strip()
     )
     title = row.get("title") or row.get("digital_team_name") or ""
-    to_addr = recipient_override or row.get("contact_email") or row.get("email", "")
+    # `recipient_override` may be a single email or a comma-separated list.
+    raw_override = (recipient_override or "").strip()
+    if raw_override:
+        to_addrs = [a.strip() for a in raw_override.split(",") if a.strip()]
+    else:
+        single = (row.get("contact_email") or row.get("email", "")).strip()
+        to_addrs = [single] if single else []
+    if not to_addrs:
+        raise ValueError("no recipient email")
+    to_addr = to_addrs[0]   # used only for personalisation context
 
     subject = render_subject(country, hospital)
     html = render_html(
@@ -324,7 +333,8 @@ def main(argv: list[str] | None = None) -> int:
                     from_addr=SENDER_EMAIL,
                     to_addrs=msg._bcc_recipients,  # type: ignore[attr-defined]
                 )
-                print(f"  [{i:4d}] SENT  {hospital[:42]:<42}  → {email} (BCC)")
+                envelope_str = ", ".join(msg._bcc_recipients)  # type: ignore[attr-defined]
+                print(f"  [{i:4d}] SENT  {hospital[:42]:<42}  → {envelope_str} (BCC)")
                 log_writer.writerow(_logrow("sent", hospital, email, country, ""))
                 if coll is not None and "_id" in row:
                     coll.update_one(
