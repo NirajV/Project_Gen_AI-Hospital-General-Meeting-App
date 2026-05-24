@@ -13,6 +13,7 @@ from .legal_footers import get_footer
 
 
 APP_URL = "https://biomedmeet.com/"
+HOME_URL = "https://biomedmeet.com/home/"
 MARKETING_URL = "https://biomedmeet.com/marketing/"
 DEMO_URL = "https://biomedmeet.com/home/contact.html#demo"
 HOW_IT_WORKS_URL = "https://biomedmeet.com/home/how-it-works.html"
@@ -301,7 +302,7 @@ def render_html(
         <p style="font-size:14px; color:#1a1c2e; line-height:1.6;">
           Best regards,<br/>
           <strong>{sender_name}</strong><br/>
-          BioMedMeet · <a href="{APP_URL}" style="color:#68517d; text-decoration:none;">biomedmeet.com</a><br/>
+          BioMedMeet · <a href="{HOME_URL}" style="color:#68517d; text-decoration:none;">biomedmeet.com/home</a><br/>
           <a href="mailto:{sender_email}" style="color:#68517d; text-decoration:none;">{sender_email}</a>
         </p>
       </td></tr>
@@ -370,13 +371,16 @@ VIDEOS — seven short voice-over walkthroughs (each under 90 seconds):
 {video_list}
 
 ▶ Book a 15-min demo:  {DEMO_URL}
-▶ Open the application: {APP_URL}
+▶ Visit our home page: {HOME_URL}
+▶ Try the app live:    Sign in at {APP_URL} to schedule a sample meeting,
+                       invite test participants, and see the full clinical
+                       workflow first-hand.
 
 A 15-minute call is enough to decide if it's worth a deeper look.
 
 Best regards,
 {sender_name}
-BioMedMeet — {APP_URL}
+BioMedMeet — {HOME_URL}
 {sender_email}
 
 ---
