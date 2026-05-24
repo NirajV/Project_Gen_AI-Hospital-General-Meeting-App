@@ -12,11 +12,12 @@ from __future__ import annotations
 from .legal_footers import get_footer
 
 
-APP_URL = "https://biomedmeet.com/"
+APP_URL = "https://biomedmeet.com/home/"
 HOME_URL = "https://biomedmeet.com/home/"
 MARKETING_URL = "https://biomedmeet.com/marketing/"
 DEMO_URL = "https://biomedmeet.com/home/contact.html#demo"
 HOW_IT_WORKS_URL = "https://biomedmeet.com/home/how-it-works.html"
+SIGNIN_URL = "https://biomedmeet.com/"   # used ONLY for the "Sign in & try the app" button
 
 # Step illustrations hosted on biomedmeet.com (extracted slide thumbnails of
 # the same scenes that appear in the marketing videos — keeps brand consistent).
@@ -287,7 +288,25 @@ def render_html(
               <a href="{DEMO_URL}" style="background:#68517d; color:#ffffff; text-decoration:none; padding:14px 24px; border-radius:10px; font-weight:800; font-size:15px; display:inline-block;">Book a 15-min demo →</a>
             </td>
             <td style="padding-left:12px;">
-              <a href="{APP_URL}" style="background:#ffffff; color:#0b0b30; text-decoration:none; padding:14px 24px; border-radius:10px; font-weight:700; font-size:15px; border:1px solid #e6e1ea; display:inline-block;">Open biomedmeet.com</a>
+              <a href="{HOME_URL}" style="background:#ffffff; color:#0b0b30; text-decoration:none; padding:14px 24px; border-radius:10px; font-weight:700; font-size:15px; border:1px solid #e6e1ea; display:inline-block;">Visit biomedmeet.com/home</a>
+            </td>
+          </tr>
+        </table>
+
+        <!-- Try-the-app invitation -->
+        <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:8px 0 4px;">
+          <tr>
+            <td style="background:#f0fdf4; border:1px solid #c8e9d4; border-radius:12px; padding:18px 22px;">
+              <div style="font-size:11px; font-weight:700; color:#3b6658; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:6px;">Want to experience the product first-hand?</div>
+              <div style="font-size:15px; color:#0b0b30; line-height:1.55;">
+                <strong>Sign in at <a href="{SIGNIN_URL}" style="color:#3b6658; text-decoration:underline;">biomedmeet.com</a></strong>
+                to take the application for a spin yourself — schedule a sample
+                meeting, invite test participants, generate a Teams link, and see
+                the full clinical workflow live.
+              </div>
+              <div style="margin-top:14px;">
+                <a href="{SIGNIN_URL}" style="background:#3b6658; color:#ffffff; text-decoration:none; padding:11px 20px; border-radius:8px; font-weight:700; font-size:14px; display:inline-block;">Sign in &amp; try the app →</a>
+              </div>
             </td>
           </tr>
         </table>
@@ -370,7 +389,7 @@ VIDEOS — seven short voice-over walkthroughs (each under 90 seconds):
 
 ▶ Book a 15-min demo:  {DEMO_URL}
 ▶ Visit our home page: {HOME_URL}
-▶ Try the app live:    Sign in at {APP_URL} to schedule a sample meeting,
+▶ Try the app live:    Sign in at {SIGNIN_URL} to schedule a sample meeting,
                        invite test participants, and see the full clinical
                        workflow first-hand.
 
