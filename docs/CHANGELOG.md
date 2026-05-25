@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.0] - 2026-02-25
+
+### Added
+- **Production email sender setup** (`docs/EMAIL_SENDER_SETUP_BIOMEDMEET.md`) — full Google Workspace + Cloudflare DNS playbook for SPF / DKIM / DMARC enabling `demo@biomedmeet.com` as the deliverable sender, plus a warm-up rollout schedule.
+- **Marketing campaign privacy** — `marketing_outreach/send_campaign.py` `--override-recipient` now accepts a comma-separated list of test addresses; `SELF_BCC` is skipped when overriding so test sends don't leak to the operator's other inboxes.
+- **Meeting-invite RSVP via email** — Accept / Decline links in `meeting_invite.html` route to `/meetings/{id}?action=accept|decline`. The new `hooks/useRsvpFromUrl.js` (consumed by `MeetingDetailPage.js`) reads the param, calls `PUT /api/meetings/{id}/respond`, toasts confirmation, and strips the param so refresh is idempotent.
+- **`AUTO_COMPLETE_GRACE_MINUTES` env var** (default **120**) — controls how long after a meeting's scheduled end the scheduler waits before auto-flipping it to `completed`. Documented in `.env.example`.
+
+### Changed
+- **`scheduler.py`** refactored: `_send_one_hour_reminders` (99 → 35 lines) and `_auto_complete_ended_meetings` (70 → 28 lines) split into focused helpers (`_parse_meeting_start`, `_send_reminder_to_participants`, `_mark_meeting_reminded`, `_organizer_timezone`, `_meeting_end_utc`, `_flip_meeting_complete`). Behaviour preserved.
+- **`server.py` meeting CRUD** extracted to `services/meeting_helpers.py`:
+  - `create_meeting`: **192 → 21 lines** (helpers: `validate_meeting_date_or_raise`, `build_meeting_doc`, `attach_teams_meeting`, `insert_organizer_participant`, `insert_participants_and_invite`, `insert_meeting_patients`, `insert_agenda_items`, `calculate_duration_minutes`)
+  - `get_meeting_detail`: **77 → 13 lines** (helpers: `attach_organizer`, `attach_participants`, `attach_patients`, `attach_agenda`, `attach_files`, `attach_decisions`)
+  - `update_meeting`: **114 → 24 lines** (helpers: `assert_can_update`, `build_update_data`, `datetime_changed`, `sync_teams_meeting_datetime`, `send_reschedule_notifications`)
+- **`core/auth.py`** — `random` → `secrets` for password generation. Manual Fisher-Yates shuffle via `secrets.randbelow` (no shuffle helper in `secrets`).
+- **`context/AuthContext.js`** — provider `value` wrapped in `useMemo`; `getAuthHeader` wrapped in `useCallback`. Reduces re-renders for every auth consumer in the tree.
+- **`core/config.py`** — new `FRONTEND_URL` env var (production sets `https://biomedmeet.com`); falls back to `REACT_APP_BACKEND_URL` for dev.
+- **Static marketing site** (`frontend/public/home/`):
+  - "Request a demo" header CTA now renders with white text (`!important` added — the `.bm-nav-links a` selector was winning specificity over `.bm-btn-primary`).
+  - "Videos" link added to shared nav (`assets/layout.js`) so it appears on every sub-page.
+  - Contact email swapped to `Demo@BioMedMeet.com` in `contact.html`, `security.html`, and the layout footer.
+- **`MeetingWizardPage.js`** — agenda-item React key uses `patient_id+mrn+index` instead of bare index (avoids stale-state on row removal).
+- **Meeting-invite email** (`meeting_invite.html`) — Accept / Decline / View Meeting buttons now use inline CSS for `background-color` + `color: #ffffff` so colors render in Gmail (which strips `<style>` blocks).
+
+### Removed (dead code)
+- **`backend/routes/`** — empty stub module (`__init__.py` only); never imported. Deleted.
+- **`docs/PATIENT_CARD_FIX.md`** — historical single-bug doc from months ago, no longer accurate.
+- **`docs/REFACTORING_P1_P2_SUMMARY.md`** — historical refactor summary; superseded by entries in this CHANGELOG.
+- Unused loop variable in `tests/test_profile_regional_settings.py` renamed to `_k`.
+
+### Security
+- Cryptographically secure password generation via `secrets` module (was `random`).
+- Removed dependence on hardcoded `JWT_SECRET` fallback path is still pending (P1 backlog).
+
+---
+
 ## [2.4.0] - 2026-05-13
 
 ### Bug fixes

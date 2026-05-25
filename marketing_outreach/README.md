@@ -3,6 +3,11 @@
 A self-contained, country-aware email-outreach kit for promoting BioMedMeet
 to hospital digital-transformation teams.
 
+> 📬 **Setting up the `demo@biomedmeet.com` sender for the first time?**
+> Follow [`/app/docs/EMAIL_SENDER_SETUP_BIOMEDMEET.md`](../docs/EMAIL_SENDER_SETUP_BIOMEDMEET.md)
+> end-to-end — it covers the Google Workspace mailbox, SPF/DKIM/DMARC DNS
+> records on Cloudflare, app-password generation, and the warm-up schedule.
+
 ## ⚠ Important: this folder is intentionally OUT of the Docker build
 
 `/app/marketing_outreach/` is excluded from:

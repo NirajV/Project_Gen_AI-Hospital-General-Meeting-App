@@ -33,7 +33,7 @@ def test_auth_me_returns_new_fields(session):
     assert "email" in data
     assert "id" in data
     # Even for legacy users, schema returns the keys (Pydantic) — check by list
-    for k in ("first_name", "last_name", "language", "country", "timezone"):
+    for _k in ("first_name", "last_name", "language", "country", "timezone"):
         # they may be missing on legacy doc, OK if it's not there yet — flagged as info
         pass
 
