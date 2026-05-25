@@ -215,6 +215,56 @@ Web-based Hospital General Meeting Scheduler App for healthcare professionals. D
   - New env var `FRONTEND_URL` (read first in `core/config.py`) — production must set `FRONTEND_URL=https://biomedmeet.com` in `backend/.env`. Falls back to `REACT_APP_BACKEND_URL` for dev.
   - `accept_link` / `decline_link` / `view_link` now point to `/meetings/{id}?action=accept|decline` (instead of `/home/`).
   - Inline CSS on Accept/Decline/View Meeting `<a>` tags in `templates/emails/meeting_invite.html` so colors render in Gmail / Outlook (was relying on `<style>` block which Gmail strips).
+  - `MeetingDetailPage.js` reads `?action=accept|decline` query param, calls `PUT /api/meetings/{id}/respond`, toasts confirmation, strips the param from URL (handles refresh idempotency). Logic now lives in `hooks/useRsvpFromUrl.js`.
+  - `CORS_ORIGINS` in `.env.example` extended with `https://biomedmeet.com`.
+
+## Feb 2026 — Code-review cleanup (round 1)
+**Applied:**
+- `core/auth.py` — `random` → `secrets` for password generation (cryptographically secure RNG; Fisher-Yates shuffle implemented manually with `secrets.randbelow`).
+- `context/AuthContext.js` — `value` prop wrapped in `useMemo`, `getAuthHeader` wrapped in `useCallback` — prevents needless re-renders of every auth consumer.
+- `MeetingWizardPage.js` — agenda-item React key now uses `patient_id + mrn + index` instead of bare index.
+
+**Scheduler refactor (`scheduler.py`):**
+- Default `AUTO_COMPLETE_GRACE_MINUTES` raised from 10 → **120** (user request).
+- New env var `AUTO_COMPLETE_GRACE_MINUTES` documented in `.env.example`. Override per deployment.
+- 99-line `_send_one_hour_reminders` split into `_parse_meeting_start`, `_send_reminder_to_participants`, `_mark_meeting_reminded` + a thin loop.
+- 70-line `_auto_complete_ended_meetings` split into `_organizer_timezone`, `_meeting_end_utc`, `_flip_meeting_complete` + a thin loop.
+- Centralised env helpers: `_env_bool`, `_env_int`.
+- Verified at startup: `Scheduler started — reminders=True, auto_complete=True, poll=300s, grace=120min`.
+
+**Meeting CRUD refactor (`server.py` + new `services/meeting_helpers.py`):**
+- `create_meeting` shrank from 192 → 21 lines. Extracted helpers: `validate_meeting_date_or_raise`, `build_meeting_doc`, `attach_teams_meeting`, `insert_organizer_participant`, `insert_participants_and_invite`, `insert_meeting_patients`, `insert_agenda_items`, `calculate_duration_minutes`.
+- `get_meeting_detail` shrank from 77 → 13 lines. Extracted `attach_organizer`, `attach_participants`, `attach_patients`, `attach_agenda`, `attach_files`, `attach_decisions`.
+- `update_meeting` shrank from 114 → 24 lines. Extracted `assert_can_update`, `build_update_data`, `datetime_changed`, `sync_teams_meeting_datetime`, `send_reschedule_notifications`.
+- Removed two now-unused imports from `server.py`.
+- Verified end-to-end via curl: POST /api/meetings → GET → PUT → DELETE all returned 200/expected payloads.
+
+**MeetingDetailPage RSVP extraction (`hooks/useRsvpFromUrl.js`):**
+- The `?action=accept|decline` handler (~40 lines) extracted into a reusable hook.
+- `MeetingDetailPage.js` net delta: -38 lines, +1 hook call.
+
+**Reviewer findings rejected as false positives:**
+- "Hardcoded secrets in tests" — pytest fixtures using throwaway dev passwords (standard practice).
+- "Hardcoded secrets in `ParticipantsPage.js`" — `TempPass123!` is the on-screen default temp password for new participant accounts (intentional UX, not a leak).
+- All "`is` vs `==` comparison" findings — every flagged line is `is None` / `is not None` (PEP 8 recommended) or `enforcement is False` (intentional 3-state logic).
+- `TipsDrawer.js:247` index key — static array, never reorders.
+- React hook-dep warnings on AuthContext/AuthCallback — flagged deps are module constants, React-stable setters, or local try/catch variables.
+- Inline `state` prop on ProtectedRoute redirect — only constructed on the unmounting branch.
+
+**Not yet refactored (deferred — needs dedicated session with testing):**
+- Splitting `MeetingDetailPage.js` (still 1010 lines) into tab-container components.
+- Splitting `PatientDetailPage.js` (650) and `ParticipantsPage.js` (612).
+- `localStorage` → `httpOnly` cookies for auth (major auth re-plumbing; requires Docker/nginx cookie config + careful migration).
+- Google Workspace `demo@biomedmeet.com` set up with SPF / DKIM / DMARC via Cloudflare; DKIM authentication active in Google Admin. Setup doc: `/app/docs/EMAIL_SENDER_SETUP_BIOMEDMEET.md`.
+- Marketing CLI bug fixed: `--override-recipient email1,email2` now sends to ALL listed addresses; `SELF_BCC` skipped when override is used.
+- Static site fixes:
+  - Header CTA "Request a demo" now renders white text (added `!important` to `.bm-btn-primary` color — nav-link selector had been overriding it). File: `frontend/public/home/assets/brand.css`.
+  - "Videos" link added to shared nav (`assets/layout.js`) so it appears on all sub-pages.
+  - Contact email replaced everywhere: `Niraj.k.vishwakarma@gmail.com` → `Demo@BioMedMeet.com` (`contact.html`, `security.html`, `layout.js` footer).
+- Meeting-invite email pipeline:
+  - New env var `FRONTEND_URL` (read first in `core/config.py`) — production must set `FRONTEND_URL=https://biomedmeet.com` in `backend/.env`. Falls back to `REACT_APP_BACKEND_URL` for dev.
+  - `accept_link` / `decline_link` / `view_link` now point to `/meetings/{id}?action=accept|decline` (instead of `/home/`).
+  - Inline CSS on Accept/Decline/View Meeting `<a>` tags in `templates/emails/meeting_invite.html` so colors render in Gmail / Outlook (was relying on `<style>` block which Gmail strips).
   - `MeetingDetailPage.js` reads `?action=accept|decline` query param, calls `PUT /api/meetings/{id}/respond`, toasts confirmation, strips the param from URL (handles refresh idempotency).
   - `CORS_ORIGINS` in `.env.example` extended with `https://biomedmeet.com`.
 

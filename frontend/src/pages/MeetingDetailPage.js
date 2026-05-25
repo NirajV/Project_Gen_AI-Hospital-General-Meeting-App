@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { getMeeting, updateMeeting, deleteMeeting, uploadFile, deleteFile, createDecision, updateAgendaItem, getUsers, addParticipant, removeParticipant, addPatientToMeeting, addAgendaItem, getPatients, removePatientFromMeeting, deleteAgendaItem, deleteDecision, updateTreatmentPlan, approvePatientAddition, respondToInvite } from '@/lib/api';
+import { getMeeting, updateMeeting, deleteMeeting, uploadFile, deleteFile, createDecision, updateAgendaItem, getUsers, addParticipant, removeParticipant, addPatientToMeeting, addAgendaItem, getPatients, removePatientFromMeeting, deleteAgendaItem, deleteDecision, updateTreatmentPlan, approvePatientAddition } from '@/lib/api';
+import { useRsvpFromUrl } from '@/hooks/useRsvpFromUrl';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -31,7 +32,6 @@ import { format, parseISO } from 'date-fns';
 export default function MeetingDetailPage() {
     const { id } = useParams();
     const navigate = useNavigate();
-    const [searchParams, setSearchParams] = useSearchParams();
     const { user } = useAuth();
     const [meeting, setMeeting] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -108,44 +108,10 @@ export default function MeetingDetailPage() {
         loadMeeting();
     }, [id]);
 
-    // Handle RSVP from email invite links: ?action=accept|decline
-    // Fires once meeting + user are loaded; records the response, toasts,
-    // and strips the action param from the URL to prevent re-trigger on refresh.
-    useEffect(() => {
-        const action = searchParams.get('action');
-        if (!action || !meeting || !user) return;
-        const map = { accept: 'accepted', decline: 'declined', tentative: 'tentative' };
-        const responseStatus = map[action];
-        if (!responseStatus) return;
-
-        let cancelled = false;
-        (async () => {
-            try {
-                await respondToInvite(id, { response_status: responseStatus });
-                if (cancelled) return;
-                toast.success(
-                    responseStatus === 'accepted'
-                        ? 'You have accepted this meeting invitation.'
-                        : responseStatus === 'declined'
-                            ? 'You have declined this meeting invitation.'
-                            : 'Your response has been recorded.'
-                );
-                await loadMeeting();
-            } catch (err) {
-                if (cancelled) return;
-                const msg = err?.response?.data?.detail || 'Failed to record your response.';
-                toast.error(msg);
-            } finally {
-                if (!cancelled) {
-                    const next = new URLSearchParams(searchParams);
-                    next.delete('action');
-                    setSearchParams(next, { replace: true });
-                }
-            }
-        })();
-        return () => { cancelled = true; };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [meeting?.id, user?.id, searchParams.get('action')]);
+    // RSVP from meeting-invite email click (?action=accept|decline).
+    // Extracted into a hook so MeetingDetailPage doesn't carry this orthogonal
+    // concern alongside its tab/state management.
+    useRsvpFromUrl(meeting?.id, user?.id, () => loadMeeting());
 
     const loadMeeting = async () => {
         try {

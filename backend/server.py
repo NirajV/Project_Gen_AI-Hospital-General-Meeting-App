@@ -32,7 +32,6 @@ from pydantic import BaseModel
 from utils.email import (
     send_meeting_invite,
     send_response_alert,
-    send_datetime_change_email,
     send_account_setup_email,
     send_password_reset_email,
     send_simple_account_setup_email
@@ -41,10 +40,29 @@ from utils.pdf_generator import generate_meeting_summary_pdf
 from utils.holiday_checker import (
     get_holiday_checker,
     validate_meeting_date,
-    validate_meeting_date_for_user,
     get_default_holidays_for_country,
 )
 from services.teams_service import get_teams_service
+from services.meeting_helpers import (
+    validate_meeting_date_or_raise,
+    build_meeting_doc,
+    attach_teams_meeting,
+    insert_organizer_participant,
+    insert_participants_and_invite,
+    insert_meeting_patients,
+    insert_agenda_items,
+    assert_can_update,
+    build_update_data,
+    datetime_changed,
+    sync_teams_meeting_datetime,
+    send_reschedule_notifications,
+    attach_organizer,
+    attach_participants,
+    attach_patients,
+    attach_agenda,
+    attach_files,
+    attach_decisions,
+)
 
 app = FastAPI(title="Hospital Meeting Scheduler API")
 api_router = APIRouter(prefix="/api")
@@ -532,276 +550,41 @@ async def list_meetings(filter_type: Optional[str] = None, status: Optional[str]
 
 @api_router.post("/meetings")
 async def create_meeting(meeting: MeetingCreate, current_user: dict = Depends(get_current_user)):
+    # Holiday validation per organizer's preferences (raises 400 on conflict).
+    validate_meeting_date_or_raise(meeting.meeting_date, current_user)
+
     meeting_id = str(uuid.uuid4())
-    
-    # Validate meeting date against the organizer's user-managed holiday preferences
-    try:
-        meeting_date_obj = datetime.strptime(meeting.meeting_date, '%Y-%m-%d').date()
-        holiday_validation = validate_meeting_date_for_user(meeting_date_obj, current_user)
-        
-        if not holiday_validation['valid']:
-            holiday_name = holiday_validation['holiday_name']
-            country = holiday_validation.get('country', 'USA')
-            
-            # Format country name for display
-            country_display = {
-                'USA': 'USA Federal',
-                'India': 'Indian National',
-                'UK': 'UK Public'
-            }.get(country, country)
-            
-            error_message = f"{country_display} Holiday - No Meeting Schedule. {holiday_name} falls on this date. Please choose a different date."
-            
-            raise HTTPException(
-                status_code=400, 
-                detail=error_message
-            )
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid meeting date format")
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.warning(f"Holiday validation error (proceeding anyway): {str(e)}")
-    
-    # Calculate duration
-    try:
-        start_parts = meeting.start_time.split(':')
-        end_parts = meeting.end_time.split(':')
-        start_minutes = int(start_parts[0]) * 60 + int(start_parts[1])
-        end_minutes = int(end_parts[0]) * 60 + int(end_parts[1])
-        duration = end_minutes - start_minutes
-    except (ValueError, IndexError):
-        duration = 60
-    
-    meeting_doc = {
-        "id": meeting_id,
-        "title": meeting.title,
-        "description": meeting.description,
-        "meeting_date": meeting.meeting_date,
-        "start_time": meeting.start_time,
-        "end_time": meeting.end_time,
-        "duration_minutes": duration,
-        "meeting_type": meeting.meeting_type,
-        "location": meeting.location,
-        "video_link": meeting.video_link,
-        "recurrence_type": meeting.recurrence_type,
-        "recurrence_end_date": meeting.recurrence_end_date,
-        "recurrence_pattern": meeting.recurrence_pattern,
-        "recurrence_week_of_month": meeting.recurrence_week_of_month,
-        "recurrence_day_of_week": meeting.recurrence_day_of_week,
-        "recurrence_day_of_month": meeting.recurrence_day_of_month,
-        "status": "scheduled",
-        "organizer_id": current_user['id'],
-        "organizer_timezone": current_user.get('timezone') or 'UTC',
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "teams_meeting_id": None,
-        "teams_join_url": None
-    }
-    await db.meetings.insert_one(meeting_doc)
-    
-    # Auto-generate Teams meeting link
-    try:
-        teams_service = get_teams_service()
+    await db.meetings.insert_one(build_meeting_doc(meeting, current_user, meeting_id))
 
-        # Interpret meeting start/end in the ORGANIZER's timezone, not the
-        # server's naive time. Teams stores the aware datetime and each viewer
-        # sees it converted to their own calendar's timezone automatically.
-        organizer_tz_name = current_user.get('timezone') or 'UTC'
-        try:
-            tz = ZoneInfo(organizer_tz_name)
-        except Exception:
-            tz = ZoneInfo('UTC')
-        meeting_datetime = datetime.strptime(
-            f"{meeting.meeting_date} {meeting.start_time}", "%Y-%m-%d %H:%M"
-        ).replace(tzinfo=tz)
-        end_datetime = datetime.strptime(
-            f"{meeting.meeting_date} {meeting.end_time}", "%Y-%m-%d %H:%M"
-        ).replace(tzinfo=tz)
+    # Best-effort Teams meeting creation. Failures don't block scheduling.
+    await attach_teams_meeting(meeting_id, meeting, current_user)
 
-        # Create Teams meeting
-        teams_meeting = await teams_service.create_online_meeting(
-            subject=f"{meeting.title} - Hospital Meeting",
-            start_datetime=meeting_datetime,
-            end_datetime=end_datetime
-        )
-        
-        # Update meeting with Teams info
-        await db.meetings.update_one(
-            {"id": meeting_id},
-            {"$set": {
-                "teams_meeting_id": teams_meeting['id'],
-                "teams_join_url": teams_meeting['joinWebUrl']
-            }}
-        )
-        
-        logger.info(f"Teams meeting created for meeting {meeting_id}")
-        
-    except Exception as e:
-        logger.error(f"Failed to create Teams meeting for {meeting_id}: {str(e)}")
-        # Continue without Teams link - meeting still created successfully
-    
-    # Add organizer as participant
-    await db.meeting_participants.insert_one({
-        "id": str(uuid.uuid4()),
-        "meeting_id": meeting_id,
-        "user_id": current_user['id'],
-        "role": "organizer",
-        "response_status": "accepted",
-        "created_at": datetime.now(timezone.utc).isoformat()
-    })
-    
-    # Add participants
-    # Reload the meeting doc so we get the latest teams_join_url (auto-generated above).
-    fresh_meeting = await db.meetings.find_one({"id": meeting_id}, {"_id": 0})
-    for participant_id in meeting.participant_ids or []:
-        if participant_id != current_user['id']:
-            await db.meeting_participants.insert_one({
-                "id": str(uuid.uuid4()),
-                "meeting_id": meeting_id,
-                "user_id": participant_id,
-                "role": "attendee",
-                "response_status": "pending",
-                "created_at": datetime.now(timezone.utc).isoformat()
-            })
-            
-            # Send email invitation to participant
-            try:
-                participant_user = await db.users.find_one({"id": participant_id}, {"_id": 0})
-                if participant_user and participant_user.get('email'):
-                    meeting_data = {
-                        "id": meeting_id,
-                        "title": meeting.title,
-                        "description": meeting.description,
-                        "meeting_date": meeting.meeting_date,
-                        "start_time": meeting.start_time,
-                        "end_time": meeting.end_time,
-                        # legacy fields kept for backward compat
-                        "date": meeting.meeting_date,
-                        "time": meeting.start_time,
-                        "location": meeting.location or "To be announced",
-                        "organizer_timezone": (fresh_meeting or {}).get("organizer_timezone"),
-                        "teams_join_url": (fresh_meeting or {}).get("teams_join_url"),
-                        "video_link": meeting.video_link,
-                        "recurrence_type": meeting.recurrence_type,
-                    }
-                    send_meeting_invite(
-                        meeting=meeting_data,
-                        participant=participant_user,
-                        organizer=current_user,
-                        frontend_url=FRONTEND_URL
-                    )
-                    logger.info(f"Sent meeting invite to {participant_user.get('email')}")
-            except Exception as e:
-                logger.error(f"Failed to send meeting invite: {str(e)}")
-    
-    # Add patients
-    for patient_id in meeting.patient_ids or []:
-        await db.meeting_patients.insert_one({
-            "id": str(uuid.uuid4()),
-            "meeting_id": meeting_id,
-            "patient_id": patient_id,
-            "status": "new_case",
-            "added_by": current_user['id'],
-            "created_at": datetime.now(timezone.utc).isoformat()
-        })
-    
-    # Add agenda items
-    for idx, item in enumerate(meeting.agenda_items or []):
-        await db.agenda_items.insert_one({
-            "id": str(uuid.uuid4()),
-            "meeting_id": meeting_id,
-            "patient_id": item.get('patient_id'),
-            "mrn": item.get('mrn'),
-            "requested_provider": item.get('requested_provider'),
-            "diagnosis": item.get('diagnosis'),
-            "reason_for_discussion": item.get('reason_for_discussion'),
-            "pathology_required": item.get('pathology_required', False),
-            "radiology_required": item.get('radiology_required', False),
-            "treatment_plan": item.get('treatment_plan', ''),
-            "order_index": idx,
-            "created_at": datetime.now(timezone.utc).isoformat(),
-            "updated_at": datetime.now(timezone.utc).isoformat()
-        })
-    
+    # Organizer is always an "accepted" participant.
+    await insert_organizer_participant(meeting_id, current_user['id'])
+
+    # Invitees + patients + agenda. Each call is independent and idempotent
+    # at the row level (we generate fresh UUIDs).
+    await insert_participants_and_invite(meeting_id, meeting, current_user)
+    await insert_meeting_patients(meeting_id, meeting.patient_ids or [], current_user)
+    await insert_agenda_items(meeting_id, meeting.agenda_items)
+
     return await get_meeting_detail(meeting_id, current_user)
 
 async def get_meeting_detail(meeting_id: str, current_user: dict):
     meeting = await db.meetings.find_one({"id": meeting_id}, {"_id": 0})
     if not meeting:
         raise HTTPException(status_code=404, detail="Meeting not found")
-    
-    # Get organizer (exclude password_hash)
-    organizer = await db.users.find_one({"id": meeting['organizer_id']}, {"_id": 0, "password_hash": 0})
-    meeting['organizer'] = serialize_doc(organizer) if organizer else None
-    
-    # Get participants with user info
-    participants = await db.meeting_participants.find({"meeting_id": meeting_id}, {"_id": 0}).to_list(100)
-    for p in participants:
-        user = await db.users.find_one({"id": p['user_id']}, {"_id": 0, "name": 1, "email": 1, "specialty": 1, "picture": 1})
-        if user:
-            # Preserve response_status and other participant fields
-            response_status = p.get('response_status')
-            responded_at = p.get('responded_at')
-            p.update(user)
-            if response_status:
-                p['response_status'] = response_status
-            if responded_at:
-                p['responded_at'] = responded_at
-    meeting['participants'] = [serialize_doc(p) for p in participants]
-    
-    # Get patients with patient info and approval status
-    meeting_patients = await db.meeting_patients.find({"meeting_id": meeting_id}, {"_id": 0}).to_list(100)
-    for mp in meeting_patients:
-        patient = await db.patients.find_one({"id": mp['patient_id']}, {"_id": 0})
-        if patient:
-            mp.update({
-                "first_name": patient.get('first_name'),
-                "last_name": patient.get('last_name'),
-                "patient_id_number": patient.get('patient_id_number'),
-                "primary_diagnosis": patient.get('primary_diagnosis'),
-                "department_name": patient.get('department_name'),
-                "date_of_birth": patient.get('date_of_birth'),
-                "gender": patient.get('gender')
-            })
-        
-        # Add "added by" user info
-        if mp.get('added_by'):
-            added_by_user = await db.users.find_one({"id": mp['added_by']}, {"_id": 0, "name": 1})
-            if added_by_user:
-                mp['added_by_name'] = added_by_user.get('name')
-        
-        # Add "approved by" user info
-        if mp.get('approved_by'):
-            approved_by_user = await db.users.find_one({"id": mp['approved_by']}, {"_id": 0, "name": 1})
-            if approved_by_user:
-                mp['approved_by_name'] = approved_by_user.get('name')
-    
-    meeting['patients'] = [serialize_doc(mp) for mp in meeting_patients]
-    
-    # Get agenda items
-    agenda = await db.agenda_items.find({"meeting_id": meeting_id}, {"_id": 0}).sort("order_index", 1).to_list(100)
-    for a in agenda:
-        if a.get('assigned_to'):
-            assigned_user = await db.users.find_one({"id": a['assigned_to']}, {"_id": 0, "name": 1})
-            a['assigned_to_name'] = assigned_user.get('name') if assigned_user else None
-        if a.get('patient_id'):
-            patient = await db.patients.find_one({"id": a['patient_id']}, {"_id": 0, "first_name": 1, "last_name": 1})
-            if patient:
-                a['patient_name'] = f"{patient.get('first_name', '')} {patient.get('last_name', '')}".strip()
-    meeting['agenda'] = [serialize_doc(a) for a in agenda]
-    
-    # Get files
-    files = await db.file_attachments.find({"meeting_id": meeting_id}, {"_id": 0}).sort("created_at", -1).to_list(100)
-    for f in files:
-        if f.get('uploaded_by'):
-            uploader = await db.users.find_one({"id": f['uploaded_by']}, {"_id": 0, "name": 1})
-            f['uploader_name'] = uploader.get('name') if uploader else None
-    meeting['files'] = [serialize_doc(f) for f in files]
-    
-    # Get decisions
-    decisions = await db.decision_logs.find({"meeting_id": meeting_id}, {"_id": 0}).sort("created_at", -1).to_list(100)
-    meeting['decisions'] = [serialize_doc(d) for d in decisions]
-    
+
+    # Each `attach_*` helper enriches `meeting` in place with related data
+    # (organizer, participants with user info, patients, agenda items, files,
+    # decisions). The order is independent — kept here only for readability.
+    await attach_organizer(meeting)
+    await attach_participants(meeting)
+    await attach_patients(meeting)
+    await attach_agenda(meeting)
+    await attach_files(meeting)
+    await attach_decisions(meeting)
+
     return serialize_doc(meeting)
 
 @api_router.get("/meetings/{meeting_id}")
@@ -813,116 +596,21 @@ async def update_meeting(meeting_id: str, updates: dict, current_user: dict = De
     meeting = await db.meetings.find_one({"id": meeting_id}, {"_id": 0})
     if not meeting:
         raise HTTPException(status_code=404, detail="Meeting not found")
-    
-    # Permissions: organizer can edit anything. Any meeting participant can
-    # change `status` (Start/Complete Meeting) — per product requirement so the
-    # meeting can proceed even if the organizer isn't present and so any
-    # accepted/pending participant can mark the meeting completed once the
-    # Teams call has ended.
-    is_org = meeting['organizer_id'] == current_user['id']
-    status_only_update = set(updates.keys()) == {"status"}
-    participant_doc = None
-    if not is_org:
-        participant_doc = await db.meeting_participants.find_one(
-            {"meeting_id": meeting_id, "user_id": current_user['id']}, {"_id": 0}
-        )
-    is_meeting_participant = participant_doc is not None
 
-    if not is_org and not (status_only_update and is_meeting_participant):
-        raise HTTPException(
-            status_code=403,
-            detail="Only the organizer (or a meeting participant for Start/Complete) can update this meeting",
-        )
-    
-    allowed_fields = ['title', 'description', 'meeting_date', 'start_time', 'end_time',
-                      'meeting_type', 'location', 'video_link', 'status', 'recurrence_type']
-    update_data = {k: v for k, v in updates.items() if k in allowed_fields}
-    
-    # Check if date/time is being changed
-    datetime_changed = ('meeting_date' in update_data and update_data['meeting_date'] != meeting.get('meeting_date')) or \
-                      ('start_time' in update_data and update_data['start_time'] != meeting.get('start_time'))
-    
-    # If status is being changed to 'completed', set completed_at timestamp
-    if 'status' in update_data and update_data['status'] == 'completed' and meeting.get('status') != 'completed':
-        update_data['completed_at'] = datetime.now(timezone.utc).isoformat()
-    
+    # Permission check (organizer = full edit, participants = status only).
+    await assert_can_update(meeting, updates, current_user)
+
+    update_data = build_update_data(meeting, updates)
+    dt_changed = datetime_changed(meeting, update_data)
+
     if update_data:
         await db.meetings.update_one({"id": meeting_id}, {"$set": update_data})
 
-    # Sync date/time changes to the Teams onlineMeeting so calendar invites
-    # opened later show the new schedule (Bug fix: Teams was holding the
-    # original startDateTime even after we updated MongoDB).
-    if datetime_changed and meeting.get('teams_meeting_id'):
-        try:
-            organizer_user = await db.users.find_one(
-                {"id": meeting['organizer_id']}, {"_id": 0}
-            ) or {}
-            organizer_tz_name = organizer_user.get('timezone') or current_user.get('timezone') or 'UTC'
-            try:
-                tz = ZoneInfo(organizer_tz_name)
-            except Exception:
-                tz = ZoneInfo('UTC')
+    if dt_changed:
+        # Keep Teams calendar entry in sync, then email participants the new schedule.
+        await sync_teams_meeting_datetime(meeting, update_data, current_user)
+        await send_reschedule_notifications(meeting, update_data, current_user)
 
-            new_meeting_date = update_data.get('meeting_date', meeting.get('meeting_date'))
-            new_start_time = update_data.get('start_time', meeting.get('start_time'))
-            new_end_time = update_data.get('end_time', meeting.get('end_time')) or new_start_time
-
-            new_start_dt = datetime.strptime(
-                f"{new_meeting_date} {new_start_time[:5]}", "%Y-%m-%d %H:%M"
-            ).replace(tzinfo=tz)
-            new_end_dt = datetime.strptime(
-                f"{new_meeting_date} {new_end_time[:5]}", "%Y-%m-%d %H:%M"
-            ).replace(tzinfo=tz)
-
-            teams_service = get_teams_service()
-            await teams_service.update_online_meeting(
-                meeting_id=meeting['teams_meeting_id'],
-                start_datetime=new_start_dt,
-                end_datetime=new_end_dt,
-                subject=f"{update_data.get('title', meeting.get('title'))} - Hospital Meeting",
-            )
-            logger.info(
-                f"Teams meeting {meeting['teams_meeting_id']} rescheduled to "
-                f"{new_start_dt.isoformat()} – {new_end_dt.isoformat()}"
-            )
-        except Exception as e:
-            logger.error(f"Failed to update Teams meeting time for {meeting_id}: {str(e)}")
-            # Non-fatal — local DB is already updated.
-    
-    # Send email notification if date/time changed
-    if datetime_changed:
-        try:
-            # Get all participants except those who explicitly declined
-            participants = await db.meeting_participants.find({
-                "meeting_id": meeting_id,
-                "response_status": {"$ne": "declined"}  # Send to everyone except declined
-            }, {"_id": 0}).to_list(100)
-            
-            old_date = meeting.get('meeting_date')
-            old_time = meeting.get('start_time')
-
-            # Build updated meeting dict to pass into the invite-style template.
-            updated_meeting = {**meeting, **update_data}
-
-            for participant_doc in participants:
-                if participant_doc['user_id'] != current_user['id']:  # Don't email organizer
-                    user = await db.users.find_one({"id": participant_doc['user_id']}, {"_id": 0})
-                    if user and user.get('email'):
-                        try:
-                            send_datetime_change_email(
-                                meeting=updated_meeting,
-                                participant=user,
-                                organizer=current_user,
-                                old_date=old_date,
-                                old_time=old_time,
-                                frontend_url=FRONTEND_URL,
-                            )
-                            logger.info(f"Sent datetime change notification to {user.get('email')}")
-                        except Exception as e:
-                            logger.error(f"Failed to send datetime change email: {str(e)}")
-        except Exception as e:
-            logger.error(f"Error sending datetime change notifications: {str(e)}")
-    
     return await get_meeting_detail(meeting_id, current_user)
 
 @api_router.delete("/meetings/{meeting_id}")
