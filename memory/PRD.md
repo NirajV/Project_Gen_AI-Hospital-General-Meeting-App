@@ -203,3 +203,22 @@ Web-based Hospital General Meeting Scheduler App for healthcare professionals. D
 - User on Docker LAN; .env or requirements.txt change ⇒ `sudo docker-compose up -d --build`
 - docker-compose.yml uses explicit `environment:` block — add new env vars there
 - meeting_date/start_time stored as naive local strings — scheduler depends on this
+
+## Feb 2026 — Production email + invite RSVP fixes
+- Google Workspace `demo@biomedmeet.com` set up with SPF / DKIM / DMARC via Cloudflare; DKIM authentication active in Google Admin. Setup doc: `/app/docs/EMAIL_SENDER_SETUP_BIOMEDMEET.md`.
+- Marketing CLI bug fixed: `--override-recipient email1,email2` now sends to ALL listed addresses; `SELF_BCC` skipped when override is used.
+- Static site fixes:
+  - Header CTA "Request a demo" now renders white text (added `!important` to `.bm-btn-primary` color — nav-link selector had been overriding it). File: `frontend/public/home/assets/brand.css`.
+  - "Videos" link added to shared nav (`assets/layout.js`) so it appears on all sub-pages.
+  - Contact email replaced everywhere: `Niraj.k.vishwakarma@gmail.com` → `Demo@BioMedMeet.com` (`contact.html`, `security.html`, `layout.js` footer).
+- Meeting-invite email pipeline:
+  - New env var `FRONTEND_URL` (read first in `core/config.py`) — production must set `FRONTEND_URL=https://biomedmeet.com` in `backend/.env`. Falls back to `REACT_APP_BACKEND_URL` for dev.
+  - `accept_link` / `decline_link` / `view_link` now point to `/meetings/{id}?action=accept|decline` (instead of `/home/`).
+  - Inline CSS on Accept/Decline/View Meeting `<a>` tags in `templates/emails/meeting_invite.html` so colors render in Gmail / Outlook (was relying on `<style>` block which Gmail strips).
+  - `MeetingDetailPage.js` reads `?action=accept|decline` query param, calls `PUT /api/meetings/{id}/respond`, toasts confirmation, strips the param from URL (handles refresh idempotency).
+  - `CORS_ORIGINS` in `.env.example` extended with `https://biomedmeet.com`.
+
+## Open items (Feb 2026)
+- [ ] **Google Calendar RSVP**: clicking "Yes" in Gmail's auto-detected calendar card does NOT propagate to BioMedMeet. Needs inbound ICS-RSVP email parser OR Google Calendar Push notifications subscription. Track separately.
+- [ ] **Meeting not appearing in Google Calendar invite**: verify the `.ics` attachment from `utils/ics_builder.py` carries `METHOD:REQUEST`, valid `UID`, `ORGANIZER`, `ATTENDEE` — fix if missing.
+- [ ] P1 Security Hardening: remove JWT fallback in `config.py`, add `slowapi` rate-limit on `/api/auth/login`, validate upload file ext/size, audit file-download auth scoping.

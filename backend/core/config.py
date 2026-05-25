@@ -21,8 +21,14 @@ DB_NAME = os.environ['DB_NAME']
 UPLOAD_DIR = Path(os.environ.get('UPLOAD_DIR', '/app/uploads'))
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
-# Frontend URL for email links
-FRONTEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'http://localhost:3000').replace(':8001', ':3000')
+# Frontend URL for email links.
+# Priority: explicit FRONTEND_URL env var > REACT_APP_BACKEND_URL fallback > localhost.
+# Production deployments MUST set FRONTEND_URL (e.g. https://biomedmeet.com) in .env
+# so that meeting Accept/Decline/View links in invitation emails resolve correctly.
+FRONTEND_URL = (
+    os.environ.get('FRONTEND_URL')
+    or os.environ.get('REACT_APP_BACKEND_URL', 'http://localhost:3000').replace(':8001', ':3000')
+)
 
 # CORS Configuration
 CORS_ORIGINS = os.environ.get('CORS_ORIGINS', 'http://localhost:3000').split(',')

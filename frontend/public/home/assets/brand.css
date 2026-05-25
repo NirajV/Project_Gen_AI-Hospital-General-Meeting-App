@@ -71,17 +71,20 @@ img { max-width: 100%; display: block; }
 }
 .bm-btn:hover { transform: translateY(-1px); }
 
-.bm-btn-primary { background: var(--bm-navy); color: #fff; box-shadow: var(--bm-shadow); }
+/* `!important` on color: nav-link selectors (.bm-nav-links a) have higher
+   specificity than .bm-btn-primary and were overriding the white text,
+   making the "Request a demo" CTA invisible in the header. */
+.bm-btn-primary { background: var(--bm-navy); color: #fff !important; box-shadow: var(--bm-shadow); }
 .bm-btn-primary:hover { background: var(--bm-navy-700); box-shadow: var(--bm-shadow-lg); }
 
-.bm-btn-green { background: var(--bm-green); color: #fff; box-shadow: var(--bm-shadow); }
+.bm-btn-green { background: var(--bm-green); color: #fff !important; box-shadow: var(--bm-shadow); }
 .bm-btn-green:hover { background: var(--bm-green-700); }
 
-.bm-btn-outline { background: #fff; color: var(--bm-navy); border-color: var(--bm-slate-300); }
+.bm-btn-outline { background: #fff; color: var(--bm-navy) !important; border-color: var(--bm-slate-300); }
 .bm-btn-outline:hover { border-color: var(--bm-navy); }
 
-.bm-btn-ghost { background: transparent; color: var(--bm-slate-700); }
-.bm-btn-ghost:hover { color: var(--bm-navy); background: var(--bm-slate-100); }
+.bm-btn-ghost { background: transparent; color: var(--bm-slate-700) !important; }
+.bm-btn-ghost:hover { color: var(--bm-navy) !important; background: var(--bm-slate-100); }
 
 .bm-btn-lg { padding: 14px 24px; font-size: 15px; }
 
