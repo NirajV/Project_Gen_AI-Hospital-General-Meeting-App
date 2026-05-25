@@ -7,7 +7,7 @@ from datetime import datetime, timezone, timedelta
 import jwt
 import bcrypt
 import string
-import random
+import secrets
 from .config import JWT_SECRET, JWT_ALGORITHM, JWT_EXPIRATION_HOURS
 from .database import db, serialize_doc
 
@@ -80,19 +80,24 @@ def generate_secure_password(length: int = 12) -> str:
     digits = string.digits
     special = "!@#$%&*"
     
-    # Ensure at least one of each type
+    # Ensure at least one of each type. `secrets` is the cryptographically
+    # secure RNG; the standard `random` module is unsuitable for auth tokens
+    # or generated passwords because its output is reproducible.
     password = [
-        random.choice(lowercase),
-        random.choice(uppercase),
-        random.choice(digits),
-        random.choice(special)
+        secrets.choice(lowercase),
+        secrets.choice(uppercase),
+        secrets.choice(digits),
+        secrets.choice(special)
     ]
-    
+
     # Fill the rest with random characters from all sets
     all_chars = lowercase + uppercase + digits + special
-    password += [random.choice(all_chars) for _ in range(length - 4)]
-    
-    # Shuffle to avoid predictable patterns
-    random.shuffle(password)
-    
+    password += [secrets.choice(all_chars) for _ in range(length - 4)]
+
+    # Shuffle to avoid predictable patterns. We do it manually because
+    # `secrets` does not expose a shuffle helper.
+    for i in range(len(password) - 1, 0, -1):
+        j = secrets.randbelow(i + 1)
+        password[i], password[j] = password[j], password[i]
+
     return ''.join(password)

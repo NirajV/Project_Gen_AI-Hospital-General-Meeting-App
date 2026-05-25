@@ -1274,7 +1274,7 @@ export default function MeetingWizardPage() {
                                     const patient = patients.find(p => p.id === item.patient_id);
                                     return (
                                         <div
-                                            key={index}
+                                            key={`${item.patient_id || 'na'}-${item.mrn || 'na'}-${index}`}
                                             className="p-4 rounded-lg border border-slate-200 bg-white space-y-2"
                                             data-testid={`agenda-item-${index}`}
                                         >

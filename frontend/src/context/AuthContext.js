@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
 
 const AuthContext = createContext(null);
@@ -72,23 +72,29 @@ export function AuthProvider({ children }) {
         localStorage.removeItem('auth_token');
     };
 
-    const getAuthHeader = () => {
+    const getAuthHeader = useCallback(() => {
         return token ? { Authorization: `Bearer ${token}` } : {};
-    };
+    }, [token]);
+
+    // Memoise the context value so consumers don't re-render every time the
+    // provider re-renders. login/register/processOAuthSession/logout don't
+    // change shape, so we only refresh the object when the actual auth state
+    // (user, loading, token) changes.
+    const value = useMemo(() => ({
+        user,
+        loading,
+        token,
+        login,
+        register,
+        logout,
+        processOAuthSession,
+        getAuthHeader,
+        checkAuth,
+        isAuthenticated: !!user,
+    }), [user, loading, token, checkAuth, getAuthHeader]);
 
     return (
-        <AuthContext.Provider value={{
-            user,
-            loading,
-            token,
-            login,
-            register,
-            logout,
-            processOAuthSession,
-            getAuthHeader,
-            checkAuth,
-            isAuthenticated: !!user
-        }}>
+        <AuthContext.Provider value={value}>
             {children}
         </AuthContext.Provider>
     );
