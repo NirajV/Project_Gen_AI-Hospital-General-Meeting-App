@@ -42,6 +42,13 @@ services:
       
       # CORS Configuration
       - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000}
+
+      # Public-facing URL used by the backend when building links inside
+      # outbound emails (meeting invites, password resets, account setup, etc).
+      # MUST be the URL your end users hit in the browser — NOT the API URL.
+      # Override per deployment in the project-root .env file:
+      #   FRONTEND_URL=https://biomedmeet.com
+      - FRONTEND_URL=${FRONTEND_URL:-https://biomedmeet.com}
       
       # Email Configuration (Optional)
       - EMAIL_ENABLED=${EMAIL_ENABLED:-true}
@@ -55,6 +62,12 @@ services:
       # Email Reminder Scheduler (1h-before reminders)
       - EMAIL_REMINDERS_ENABLED=${EMAIL_REMINDERS_ENABLED:-true}
       - REMINDER_POLL_SECONDS=${REMINDER_POLL_SECONDS:-300}
+
+      # Auto-complete sweep — flips meetings to `completed` once their scheduled
+      # end + grace window has passed (so stale "scheduled" rows don't linger
+      # when participants forget to click Complete). Override per deployment.
+      - AUTO_COMPLETE_ENABLED=${AUTO_COMPLETE_ENABLED:-true}
+      - AUTO_COMPLETE_GRACE_MINUTES=${AUTO_COMPLETE_GRACE_MINUTES:-120}
 
       # Microsoft Teams / Graph API Configuration (Optional)
       # Obtain these from Azure Entra ID > App Registrations.

@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.1] - 2026-02-25 (commit pending — tag after `git push`)
+
+### Fixed
+- 🐛 **Meeting-invite email links resolved to `http://localhost:3000/...`** instead of `https://biomedmeet.com/...`. Root cause: `docker-compose.yml` was not passing `FRONTEND_URL` to the backend container, so `core/config.py` fell back to the `localhost:3000` development default. Fix: `docker-compose.yml` backend `environment:` block now passes `FRONTEND_URL=${FRONTEND_URL:-https://biomedmeet.com}` so the production default is `biomedmeet.com`, overridable per `.env` file.
+- 🐛 **Account-setup credentials email** "Platform URL" displayed `http://localhost:3000/home/`. Same root cause — fixed by the same `FRONTEND_URL` plumbing. **All outbound emails** (invite, reminder, datetime-change, account setup, account setup + invite, password reset, daily digest) now resolve to `https://biomedmeet.com/...` after rebuild.
+- 🐛 **"Videos" nav link missing on `how-it-works.html`, `security.html`, `contact.html`** despite the container having the new `layout.js`. Root cause: Cloudflare + browsers cache `/home/assets/layout.js` indefinitely without a version string. Fix: added `?v=20260225` cache-busting query to the `<script src="/home/assets/layout.js">` tag in all three sub-pages. Forces a fresh fetch even when CF/browser cache is stale.
+
+### Added (docker-compose env passthrough)
+- `FRONTEND_URL` — public URL used in outbound email links. Default: `https://biomedmeet.com`. Override in project-root `.env` for other domains / dev.
+- `AUTO_COMPLETE_ENABLED` — toggle the auto-completion sweep. Default: `true`.
+- `AUTO_COMPLETE_GRACE_MINUTES` — minutes after scheduled end before auto-flipping a meeting to `completed`. Default: `120`.
+
+### Deployment notes for this release
+After `git pull origin main`:
+1. (Optional) override defaults in `/root/Project_Gen_AI-Hospital-General-Meeting-App/.env`:
+   ```
+   FRONTEND_URL=https://biomedmeet.com
+   AUTO_COMPLETE_GRACE_MINUTES=120
+   ```
+2. `docker compose down && docker compose up -d --build`
+3. Confirm `docker compose logs backend --tail=20 | grep "Scheduler started"` shows `grace=120min`.
+4. **Purge Cloudflare cache** (Caching → Configuration → Purge Everything) so visitors get the new `layout.js?v=20260225`.
+5. Verify outbound emails: trigger a new meeting invite, open it, confirm Accept/Decline buttons link to `https://biomedmeet.com/meetings/...`.
+
+### Git commit tag
+*To be appended to this entry after the next `git push`:*
+```
+git log --oneline -1 -- docs/CHANGELOG.md
+# tag: <hash> by <user> on <date>
+```
+
+---
+
 ## [2.6.0] - 2026-02-25
 
 ### Added
