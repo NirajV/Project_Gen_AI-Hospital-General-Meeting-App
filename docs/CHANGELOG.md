@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.2] - 2026-02-25 (commit pending — tag after `git push`)
+
+### Fixed
+- 🐛 **Accept / Decline click in meeting-invite email never propagated to the app.** Root cause: when a recipient wasn't already signed in, `ProtectedRoute` correctly redirected them to `/login` while preserving the URL in `location.state.from` — but `LoginPage.js` ignored that and hard-coded `navigate('/dashboard')`. The `?action=accept` query param was lost on the bounce. Fix (`frontend/src/pages/LoginPage.js`): introduced `buildRedirectPath()` which reads `location.state.from` and reconstructs `pathname + search + hash`, then uses `navigate(..., { replace: true })` so the back button doesn't trap the user on the login screen. Verified via curl end-to-end: `pending → accepted` after `PUT /api/meetings/{id}/respond`.
+- 🐛 **Marketing contact form ("Request a demo" + "Download the quick reference") + in-app feedback form were emailing `Niraj.K.Vishwakarma@gmail.com` as the default owner.** Fix (`backend/server.py`): changed the hardcoded default in both `submit_marketing_contact` (line ~1525) and `submit_feedback` (line ~1565) to `Demo@BioMedMeet.com`. Operators can still override per-deployment by setting `OWNER_EMAIL` in `backend/.env` (the user's server already has this overridden, so nothing changes for them — this only protects future deployments).
+
+### Deployment notes for this release
+After `git pull origin main`:
+```bash
+docker compose down
+docker compose up -d --build
+```
+No env changes required. RSVP propagation works immediately after rebuild.
+
+### Git commit tag
+*To be appended after the next `git push`:*
+```
+git log --oneline -1 -- docs/CHANGELOG.md
+# tag: <hash> by <user> on <date>
+```
+
+---
+
 ## [2.6.1] - 2026-02-25 (commit pending — tag after `git push`)
 
 ### Fixed

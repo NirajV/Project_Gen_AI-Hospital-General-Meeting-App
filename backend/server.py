@@ -1522,7 +1522,10 @@ async def submit_marketing_contact(payload: dict = Body(...)):
     # Notify the owner. Best-effort: form should still succeed if SMTP is down.
     try:
         from utils.email import send_email
-        owner_email = os.environ.get("OWNER_EMAIL", "Niraj.K.Vishwakarma@gmail.com")
+        # Marketing-lead notifications go to the dedicated demo mailbox by
+        # default. Operators can override per-deployment by setting OWNER_EMAIL
+        # in backend/.env.
+        owner_email = os.environ.get("OWNER_EMAIL", "Demo@BioMedMeet.com")
         subject_prefix = {
             "demo": "[BioMedMeet] Demo request",
             "cheat-sheet": "[BioMedMeet] Cheat-sheet download",
@@ -1558,8 +1561,9 @@ async def submit_feedback(
     Submit feedback to the application owner
     Types: feature_request, bug_report, enhancement
     """
-    # Get owner email from environment
-    owner_email = os.environ.get('OWNER_EMAIL', 'Niraj.K.Vishwakarma@gmail.com')
+    # Owner notification address. Default is the dedicated demo mailbox;
+    # operators can override per-deployment via the OWNER_EMAIL env var.
+    owner_email = os.environ.get('OWNER_EMAIL', 'Demo@BioMedMeet.com')
     
     # Create feedback record in database
     feedback_id = str(uuid.uuid4())

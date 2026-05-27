@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +11,21 @@ import ForcePasswordChangeModal from '@/components/ForcePasswordChangeModal';
 
 export default function LoginPage() {
     const navigate = useNavigate();
+    const location = useLocation();
     const { login, register } = useAuth();
+
+    // If the user was redirected here by ProtectedRoute (e.g. they clicked an
+    // Accept/Decline link in a meeting-invite email but weren't signed in),
+    // ProtectedRoute stored the original location as `state.from`. We send
+    // them back there after login so `?action=accept` actually fires.
+    const buildRedirectPath = (fallback) => {
+        const from = location.state?.from;
+        if (from && from.pathname) {
+            return `${from.pathname}${from.search || ''}${from.hash || ''}`;
+        }
+        return fallback;
+    };
+
     const [isLogin, setIsLogin] = useState(true);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -55,7 +69,7 @@ export default function LoginPage() {
                 if (result.requires_password_change) {
                     setShowPasswordChangeModal(true);
                 } else {
-                    navigate('/dashboard');
+                    navigate(buildRedirectPath('/dashboard'), { replace: true });
                 }
             } else {
                 // Don't send confirm_password to the backend.
@@ -75,7 +89,7 @@ export default function LoginPage() {
 
     const handlePasswordChanged = () => {
         setShowPasswordChangeModal(false);
-        navigate('/dashboard');
+        navigate(buildRedirectPath('/dashboard'), { replace: true });
     };
 
     // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
