@@ -7,7 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [2.6.3] - 2026-02-25 (commit pending — tag after `git push`)
+## [2.6.4] - 2026-02-25 (commit pending — tag after `git push`)
+
+### Added
+- 🧮 **Interactive ROI calculator on the pricing page** (`frontend/public/home/pricing.html` + inline JS at the bottom).
+  - Three sliders: hours saved per team per week (4–40, default 18), blended clinician rate (\$75–\$400/hr, default \$200), number of MDT teams (1–20, default 1).
+  - Three live outputs: annual hours saved, annual savings (\$), payback period in months. Updates on every `input` event.
+  - Each slider has a colour-coded accent (`accent-color`) matching the brand palette (green / olive / purple).
+  - Output cards reuse the existing card aesthetic and the same three accent colours so the calculator visually slots between the static KPI cards and the bar chart.
+  - Numbers clamped at the input level (min/max/step) so prospects can't produce embarrassing values. Payback shows `< 1` below one month and `24+` above two years to keep the screenshot clean for procurement decks.
+  - Licence price (`$25,000`) lives in a single JS const so updating the price card later auto-updates the calculator math.
+  - Verified live: `25 hrs/wk × $300/hr × 3 teams` → `3,900 hrs/yr`, `$1,170,000`, `0.3 months` payback. Math matches expected.
+
+---
+
+## [2.6.3] - 2026-02-25 (commit `4ad3d36`)
 
 ### Added
 - 🎯 **New pricing page** at `https://biomedmeet.com/home/pricing.html` (`frontend/public/home/pricing.html`):
