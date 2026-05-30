@@ -12,21 +12,14 @@
 
 body {
     margin: 0;
-    font-family: var(--app-font, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
 
 h1, h2, h3, h4, h5, h6 {
-    /* Use the theme's font for headings on every theme except the default,
-       which sticks with Manrope to preserve the original BioMedMeet look. */
-    font-family: var(--app-font, 'Manrope', sans-serif);
-}
-
-[data-theme] h1, [data-theme] h2, [data-theme] h3,
-[data-theme] h4, [data-theme] h5, [data-theme] h6 {
-    font-family: var(--app-font);
+    font-family: 'Manrope', sans-serif;
 }
 
 code {
@@ -60,125 +53,6 @@ code {
         --chart-3: 43 74% 66%;
         --chart-4: 4 84% 52%;
         --chart-5: 262 52% 47%;
-        --app-font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    }
-
-    /* =====================================================================
-       USER-SELECTABLE THEMES
-       Applied via [data-theme="..."] attribute on <html>, written by the
-       ThemeContext provider. Each block overrides only the shadcn HSL
-       tokens that visibly change between palettes, so every shadcn-built
-       component (cards, buttons, badges, inputs) re-skins automatically.
-    ===================================================================== */
-
-    /* 🌊 Ocean Breeze — cool blues, Georgia serif */
-    [data-theme="ocean"] {
-        --background: 207 53% 95%;
-        --foreground: 211 65% 18%;
-        --card: 0 0% 100%;
-        --card-foreground: 211 65% 18%;
-        --popover: 0 0% 100%;
-        --popover-foreground: 211 65% 18%;
-        --primary: 207 65% 44%;
-        --primary-foreground: 0 0% 100%;
-        --secondary: 207 40% 80%;
-        --secondary-foreground: 211 65% 18%;
-        --muted: 207 40% 92%;
-        --muted-foreground: 210 25% 45%;
-        --accent: 200 65% 54%;
-        --accent-foreground: 0 0% 100%;
-        --border: 207 35% 82%;
-        --input: 207 35% 82%;
-        --ring: 207 65% 44%;
-        --app-font: 'Georgia', 'Times New Roman', serif;
-    }
-
-    /* ⚡ Carbon — pure black bg, neon yellow accent, monospace */
-    [data-theme="carbon"] {
-        --background: 0 0% 4%;
-        --foreground: 0 0% 95%;
-        --card: 0 0% 7%;
-        --card-foreground: 0 0% 95%;
-        --popover: 0 0% 7%;
-        --popover-foreground: 0 0% 95%;
-        --primary: 70 100% 60%;
-        --primary-foreground: 0 0% 0%;
-        --secondary: 0 0% 11%;
-        --secondary-foreground: 0 0% 95%;
-        --muted: 0 0% 11%;
-        --muted-foreground: 0 0% 60%;
-        --accent: 70 100% 60%;
-        --accent-foreground: 0 0% 0%;
-        --border: 0 0% 14%;
-        --input: 0 0% 14%;
-        --ring: 70 100% 60%;
-        --app-font: 'JetBrains Mono', 'Fira Code', ui-monospace, Menlo, monospace;
-    }
-
-    /* 🌿 Sage Clinic — muted sage green, Palatino serif */
-    [data-theme="sage"] {
-        --background: 95 23% 95%;
-        --foreground: 130 18% 16%;
-        --card: 0 0% 100%;
-        --card-foreground: 130 18% 16%;
-        --popover: 0 0% 100%;
-        --popover-foreground: 130 18% 16%;
-        --primary: 130 22% 43%;
-        --primary-foreground: 0 0% 100%;
-        --secondary: 95 23% 88%;
-        --secondary-foreground: 130 18% 16%;
-        --muted: 95 23% 92%;
-        --muted-foreground: 120 8% 45%;
-        --accent: 73 38% 64%;
-        --accent-foreground: 130 18% 16%;
-        --border: 95 18% 85%;
-        --input: 95 18% 85%;
-        --ring: 130 22% 43%;
-        --app-font: 'Palatino', 'Palatino Linotype', 'Book Antiqua', serif;
-    }
-
-    /* 🌅 Sunrise — warm coral + amber, Gill Sans */
-    [data-theme="sunrise"] {
-        --background: 25 90% 96%;
-        --foreground: 16 65% 13%;
-        --card: 0 0% 100%;
-        --card-foreground: 16 65% 13%;
-        --popover: 0 0% 100%;
-        --popover-foreground: 16 65% 13%;
-        --primary: 14 65% 56%;
-        --primary-foreground: 0 0% 100%;
-        --secondary: 24 65% 88%;
-        --secondary-foreground: 16 65% 13%;
-        --muted: 24 65% 93%;
-        --muted-foreground: 18 28% 40%;
-        --accent: 36 89% 59%;
-        --accent-foreground: 16 65% 13%;
-        --border: 24 50% 85%;
-        --input: 24 50% 85%;
-        --ring: 14 65% 56%;
-        --app-font: 'Gill Sans', 'Trebuchet MS', 'Avenir', sans-serif;
-    }
-
-    /* 💜 Lavender Med — soft purple/lilac, DM Sans */
-    [data-theme="lavender"] {
-        --background: 264 56% 96%;
-        --foreground: 260 44% 20%;
-        --card: 0 0% 100%;
-        --card-foreground: 260 44% 20%;
-        --popover: 0 0% 100%;
-        --popover-foreground: 260 44% 20%;
-        --primary: 260 47% 53%;
-        --primary-foreground: 0 0% 100%;
-        --secondary: 264 56% 90%;
-        --secondary-foreground: 260 44% 20%;
-        --muted: 264 56% 94%;
-        --muted-foreground: 260 16% 48%;
-        --accent: 270 70% 74%;
-        --accent-foreground: 0 0% 100%;
-        --border: 264 45% 87%;
-        --input: 264 45% 87%;
-        --ring: 260 47% 53%;
-        --app-font: 'DM Sans', system-ui, sans-serif;
     }
 }
 

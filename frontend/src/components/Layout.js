@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import TipsDrawer from '@/components/help/TipsDrawer';
 import HolidaySetupPrompt from '@/components/HolidaySetupPrompt';
-import ThemeSwitcher from '@/components/ThemeSwitcher';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -88,7 +87,6 @@ export default function Layout({ children }) {
 
                         {/* User Menu */}
                         <div className="flex items-center gap-2">
-                            <ThemeSwitcher />
                             <TipsDrawer />
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>

@@ -1902,30 +1902,6 @@ async def set_active_country(
     except Exception as e:
         logger.error(f"Error setting active country: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error setting active country: {str(e)}")
-# ============== Theme preference ==============
-
-VALID_THEMES = {"default", "ocean", "carbon", "sage", "sunrise", "lavender"}
-
-
-@api_router.put("/users/me/theme")
-async def update_theme_preference(
-    payload: dict,
-    current_user: dict = Depends(get_current_user),
-):
-    """Persist the user's UI theme so it follows them across devices."""
-    theme = (payload or {}).get("theme_preference")
-    if theme not in VALID_THEMES:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid theme. Allowed: {sorted(VALID_THEMES)}",
-        )
-    await db.users.update_one(
-        {"id": current_user["id"]},
-        {"$set": {"theme_preference": theme}},
-    )
-    return {"theme_preference": theme}
-
-
 # ============== Admin: Inbound RSVP audit log ==============
 
 @api_router.get("/admin/rsvp-log")
