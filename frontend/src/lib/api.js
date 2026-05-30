@@ -52,6 +52,10 @@ export const getDefaultHolidays = (country) => api.get(`/holidays/defaults?count
 // Admin: inbound RSVP audit log (latest N email-RSVP processing outcomes)
 export const getRsvpLog = (limit = 50) => api.get('/admin/rsvp-log', { params: { limit } });
 
+// Persist user-selected UI theme so it follows them across devices.
+export const updateThemePreference = (theme_preference) =>
+    api.put('/users/me/theme', { theme_preference });
+
 // Patients
 export const getPatients = (params) => api.get('/patients', { params });
 export const getPatient = (id) => api.get(`/patients/${id}`);

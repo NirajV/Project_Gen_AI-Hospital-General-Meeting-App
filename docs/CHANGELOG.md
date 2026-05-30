@@ -7,6 +7,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.8] - 2026-02-25 (commit pending — tag after `git push`)
+
+### Added — User-selectable themes across the whole React app
+Five extra palettes ship alongside the BioMedMeet default. Each user picks
+their own; the choice persists across devices.
+
+- **Palettes**: 🟢 Default · 🌊 Ocean Breeze · ⚡ Carbon · 🌿 Sage Clinic · 🌅 Sunrise · 💜 Lavender Med. Each maps to a coherent set of shadcn HSL tokens (`--background`, `--foreground`, `--primary`, `--secondary`, `--accent`, `--border`, `--ring`, etc.) **plus** an `--app-font` (Inter / Georgia / JetBrains Mono / Palatino / Gill Sans / DM Sans).
+- **Mechanism**: a single `<html data-theme="...">` attribute. CSS variables cascade — **every shadcn component re-skins automatically**, no per-component plumbing.
+- **Frontend**:
+  - `frontend/src/context/ThemeContext.js` — provider + `useTheme()` hook. Reads from `localStorage('biomedmeet:theme')` on mount so refreshes don't flash. Exposes `setTheme(id)` and `hydrateFromUser(user)` for post-login sync.
+  - `frontend/src/components/ThemeHydrator.js` — bridges AuthContext → ThemeContext. Mounted once at app root; copies `user.theme_preference` into the context when the user logs in / `checkAuth` rehydrates.
+  - `frontend/src/components/ThemeSwitcher.js` — Palette icon in the header user-menu strip. Six menu items, active state shows a check, optimistic update with rollback on API failure.
+  - `frontend/src/components/Layout.js` — `<ThemeSwitcher />` slotted next to `<TipsDrawer />` so every page surface has one-click theme access.
+  - `frontend/src/App.js` — `<ThemeProvider>` wraps everything; `<ThemeHydrator />` lives just inside the router.
+  - `frontend/src/index.css` — six `[data-theme="..."]` blocks under `@layer base`, plus a fallback `--app-font` on `body` + `h1-h6` so typography swaps too.
+  - `frontend/public/index.html` — loads the additional Google Fonts (JetBrains Mono, DM Sans). Georgia / Palatino / Gill Sans are system-stock.
+- **Backend**:
+  - `PUT /api/users/me/theme` — persists `theme_preference` on the user record. Validates against the allowed set; returns 400 with the valid list on bad input.
+  - `VALID_THEMES` set in `server.py` keeps backend + frontend in lock-step.
+
+### Verified
+- `PUT /api/users/me/theme` → 200, persists.
+- `GET /api/auth/me` → returns `theme_preference`, used for cross-device hydration.
+- Invalid theme → 400 with helpful error.
+- Lint clean across all new/modified files.
+- Playwright walk-through: opens the picker, switches Carbon → Sunrise without errors; `data-theme` attribute flips on `<html>` as expected.
+
+### How users change their theme
+1. Click the **🎨 palette icon** in the top-right of any page (next to the help drawer).
+2. Pick a palette — every card, button, badge, input, and font swaps instantly.
+3. The choice is saved to your user record automatically; opening BioMedMeet on a different device shows the same theme.
+
+### Notes
+- The **marketing site (`/home/*`) is intentionally untouched** — that's brand-defining surface for prospects; the navy + green stays consistent.
+- The standalone preview at `/theme-preview.html` is now redundant for in-app theming (kept for reference / design-team eyeballing).
+- Theme persists across logout / login. Localstorage covers the unauthenticated case (e.g., on the login page itself).
+
+### Git commit tag
+*To be appended after the next `git push`:*
+```
+git log --oneline -1 -- docs/CHANGELOG.md
+# tag: <hash> by <user> on <date>
+```
+
+---
+
 ## [2.6.7] - 2026-02-25 (commit pending — preview only, no app change)
 
 ### Added

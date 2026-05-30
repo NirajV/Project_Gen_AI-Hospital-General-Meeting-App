@@ -17,6 +17,8 @@ import PatientDetailPage from "@/pages/PatientDetailPage";
 import ParticipantsPage from "@/pages/ParticipantsPage";
 import ProfilePage from "@/pages/ProfilePage";
 import AdminRsvpLogPage from "@/pages/AdminRsvpLogPage";
+import { ThemeProvider } from "@/context/ThemeContext";
+import ThemeHydrator from "@/components/ThemeHydrator";
 
 // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
 function AppRouter() {
@@ -72,11 +74,14 @@ function AppRouter() {
 function App() {
     return (
         <div className="App">
-            <AuthProvider>
-                <BrowserRouter>
-                    <AppRouter />
-                </BrowserRouter>
-            </AuthProvider>
+            <ThemeProvider>
+                <AuthProvider>
+                    <BrowserRouter>
+                        <ThemeHydrator />
+                        <AppRouter />
+                    </BrowserRouter>
+                </AuthProvider>
+            </ThemeProvider>
             <Toaster 
                 position="top-right" 
                 expand={false}
