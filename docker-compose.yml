@@ -69,6 +69,17 @@ services:
       - AUTO_COMPLETE_ENABLED=${AUTO_COMPLETE_ENABLED:-true}
       - AUTO_COMPLETE_GRACE_MINUTES=${AUTO_COMPLETE_GRACE_MINUTES:-120}
 
+      # Inbound RSVP polling — translates Gmail/Outlook calendar-card "Yes/No"
+      # clicks back into BioMedMeet. Off by default; enable once IMAP creds
+      # are populated. IMAP_USER/IMAP_PASSWORD fall back to SMTP_USER/SMTP_PASSWORD.
+      - RSVP_POLL_ENABLED=${RSVP_POLL_ENABLED:-false}
+      - RSVP_POLL_SECONDS=${RSVP_POLL_SECONDS:-300}
+      - IMAP_HOST=${IMAP_HOST:-imap.gmail.com}
+      - IMAP_PORT=${IMAP_PORT:-993}
+      - IMAP_USER=${IMAP_USER:-}
+      - IMAP_PASSWORD=${IMAP_PASSWORD:-}
+      - IMAP_MAILBOX=${IMAP_MAILBOX:-INBOX}
+
       # Microsoft Teams / Graph API Configuration (Optional)
       # Obtain these from Azure Entra ID > App Registrations.
       # Required for auto-generating Teams meeting links.

@@ -31,6 +31,11 @@ from typing import Optional
 from zoneinfo import ZoneInfo
 
 from utils.email import send_meeting_reminder
+from services.imap_rsvp_poller import (
+    poll_rsvp_replies,
+    rsvp_poll_enabled,
+    rsvp_poll_seconds,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -282,19 +287,26 @@ async def reminder_loop(db) -> None:
     """Long-running background loop. Started from server.py startup hook."""
     reminders_on = _reminders_enabled()
     auto_complete_on = _auto_complete_enabled()
+    rsvp_on = rsvp_poll_enabled()
 
-    if not reminders_on and not auto_complete_on:
+    if not reminders_on and not auto_complete_on and not rsvp_on:
         logger.info(
-            "Scheduler disabled (EMAIL_REMINDERS_ENABLED=false and AUTO_COMPLETE_ENABLED=false)"
+            "Scheduler disabled (no reminders/auto-complete/RSVP polling enabled)"
         )
         return
 
     interval = _poll_interval()
     grace = _auto_complete_grace_minutes()
+    rsvp_interval = rsvp_poll_seconds()
     logger.info(
-        "Scheduler started — reminders=%s, auto_complete=%s, poll=%ss, grace=%dmin",
-        reminders_on, auto_complete_on, interval, grace,
+        "Scheduler started — reminders=%s, auto_complete=%s, rsvp_poll=%s, "
+        "poll=%ss, grace=%dmin, rsvp_poll=%ss",
+        reminders_on, auto_complete_on, rsvp_on, interval, grace, rsvp_interval,
     )
+
+    # Track when we last ran RSVP polling — it has its own cadence so we don't
+    # hammer Gmail's IMAP server every 5 minutes if the operator set it longer.
+    last_rsvp_poll: Optional[datetime] = None
 
     while True:
         try:
@@ -302,6 +314,14 @@ async def reminder_loop(db) -> None:
                 await _send_one_hour_reminders(db)
             if auto_complete_on:
                 await _auto_complete_ended_meetings(db)
+            if rsvp_on:
+                now = datetime.now(timezone.utc)
+                if (
+                    last_rsvp_poll is None
+                    or (now - last_rsvp_poll).total_seconds() >= rsvp_interval
+                ):
+                    await poll_rsvp_replies(db)
+                    last_rsvp_poll = now
         except asyncio.CancelledError:
             logger.info("Scheduler cancelled")
             raise

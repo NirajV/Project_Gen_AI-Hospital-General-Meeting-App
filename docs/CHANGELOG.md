@@ -7,6 +7,77 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.5] - 2026-02-25 (commit pending — tag after `git push`)
+
+### Added — Gmail/Outlook/Apple "Yes-No-Maybe" calendar RSVP propagation
+
+When a participant clicks **Yes / No / Maybe** in the auto-rendered calendar
+card their mail client shows for our meeting-invite emails, BioMedMeet now
+picks up the response automatically. No need for the participant to log into
+the app — the next time the poller runs (~5 min), their participant pill
+flips colour and the organiser sees their actual response.
+
+- **New parser** `backend/utils/ics_rsvp_parser.py` (~200 lines):
+  - Pure, dependency-free. Parses RFC 5545 + RFC 5546 REPLY bodies.
+  - Handles all three real-world dialects: Gmail (line folding + `X-NUM-GUESTS`), Outlook 365 (quoted-CN, language tags), Apple Calendar (LF-only line endings).
+  - Maps `PARTSTAT` → BioMedMeet `response_status` (`ACCEPTED`→accepted, `DECLINED`→declined, `TENTATIVE` / `DELEGATED`→tentative).
+  - Strips the builder's `@medmeet.hospital` UID suffix back to the meeting id.
+  - Defensive: invalid / non-REPLY / `NEEDS-ACTION` / missing-ATTENDEE → returns `None` instead of raising.
+- **New IMAP poller** `backend/services/imap_rsvp_poller.py` (~230 lines):
+  - Connects to `imap.gmail.com:993` (defaults) using the same Google Workspace credentials as outbound SMTP — falls back to `SMTP_USER` / `SMTP_PASSWORD` when `IMAP_*` not set.
+  - Pulls `UNSEEN` messages, extracts every `text/calendar` part, runs each through the parser.
+  - Idempotency via new `processed_rsvp_emails` Mongo collection keyed on the email `Message-ID`. Same email never actions twice, even across pod restarts.
+  - Matches by meeting `UID` + attendee email → user. Logs a warning + records `no_match` if either lookup fails (e.g., participant replied from a different email than the one on their profile).
+  - Updates `meeting_participants` with `response_status`, `responded_at`, and `responded_via: "email_rsvp"` (new field — distinguishes from in-app clicks).
+- **Scheduler integration** (`backend/scheduler.py`):
+  - New `RSVP_POLL_ENABLED` (default **false**) + `RSVP_POLL_SECONDS` (default 300) env knobs.
+  - Polls on its own cadence so we don't hammer IMAP every reminder cycle.
+  - Startup log now shows `rsvp_poll=True/False` so deployment teams can verify it.
+
+### Tests
+- `backend/tests/test_ics_rsvp_parser.py` — **16 cases, all passing**:
+  - Real-world REPLY fixtures from Gmail, Outlook 365, Apple Mail.
+  - Edge cases: missing METHOD, REQUEST mis-fed as REPLY, NEEDS-ACTION partstat, malformed CN, LF-only line endings.
+  - `extract_ics_from_email` covers multipart MIME envelopes.
+
+### Configuration — `.env.example` + `docker-compose.yml`
+New env vars (all opt-in; safe defaults keep the feature off until configured):
+```env
+RSVP_POLL_ENABLED=true            # set true to turn on
+RSVP_POLL_SECONDS=300             # poll every 5 minutes
+IMAP_HOST=imap.gmail.com
+IMAP_PORT=993
+IMAP_USER=demo@biomedmeet.com     # falls back to SMTP_USER
+IMAP_PASSWORD=<gmail-app-password># falls back to SMTP_PASSWORD
+IMAP_MAILBOX=INBOX
+```
+
+### Deployment notes for this release
+After `git pull origin main`:
+1. Add to your project-root `.env`:
+   ```
+   RSVP_POLL_ENABLED=true
+   ```
+   (IMAP_USER / IMAP_PASSWORD already covered by the existing SMTP creds.)
+2. `docker compose down && docker compose up -d --build`
+3. Confirm in logs: `Scheduler started — ... rsvp_poll=True, ... rsvp_poll=300s`
+4. **Enable IMAP access on the Gmail mailbox** if not already: Gmail Settings → Forwarding and POP/IMAP → Enable IMAP. Required even with an app password.
+5. Test end-to-end: send a meeting invite to a Gmail account → from Gmail, click "Yes" on the calendar card → wait ~5 min → confirm the participant row on BioMedMeet flipped to `Accepted`. Check the `processed_rsvp_emails` Mongo collection to see the audit trail.
+
+### Notes
+- The feature is **opt-in** (default `false`) so existing deployments behave exactly as before unless explicitly enabled. Lets the user roll this out cautiously and turn it off instantly if a parser edge case causes wrong updates.
+- "Responded via" is now tracked: `email_rsvp` for these inbound replies vs. `in_app` for clicks inside BioMedMeet. Useful audit signal.
+- Pre-existing test suite failures (`test_user_permissions.py`, `test_profile_regional_settings.py`) are caused by missing `BACKEND_URL` env in the test environment — they were failing before this change and are unrelated.
+
+### Git commit tag
+*To be appended after the next `git push`:*
+```
+git log --oneline -1 -- docs/CHANGELOG.md
+# tag: <hash> by <user> on <date>
+```
+
+---
+
 ## [2.6.4] - 2026-02-25 (commit pending — tag after `git push`)
 
 ### Added
