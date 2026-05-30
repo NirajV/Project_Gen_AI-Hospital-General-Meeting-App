@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.7] - 2026-02-25 (commit pending — preview only, no app change)
+
+### Added
+- 🎨 **Standalone theme palette preview** at `https://biomedmeet.com/theme-preview.html` (`frontend/public/theme-preview.html`).
+  - Six palettes wired side-by-side: BioMedMeet (current), 🌊 Ocean Breeze (cool blues + Georgia), ⚡ Carbon (pure black + neon yellow + JetBrains Mono), 🌿 Sage Clinic (sage + Palatino), 🌅 Sunrise (coral/amber + Gill Sans), 💜 Lavender Med (soft purple + DM Sans).
+  - Single-attribute palette switcher (`data-palette` on `<body>`) — every surface updates via CSS variable cascade. No DOM rebuild, no flicker.
+  - Showcases: page background, surface cards, sidebar nav (active state), stat cards, tags, progress bars in three accent colours, solid + outline + accent buttons, gradient avatars, syntax-coloured code block (demonstrates mono font + accent), and a live "active tokens" strip at the bottom that prints every hex value + the current font family so you can copy them straight into `brand.css`.
+  - Self-contained — does NOT load `brand.css` or `layout.js`, so the live marketing site is untouched.
+
+### How to use
+1. Open the URL on your deployed app or preview.
+2. Click any palette pill at the top to swap the entire layout.
+3. Screenshot the one you like.
+4. Tell the agent which palette to apply + on which surfaces (whole app · marketing site only · admin pages only · etc.), and they will translate the chosen tokens into `brand.css` / Tailwind config.
+
+### Git commit tag
+*To be appended after the next `git push`:*
+```
+git log --oneline -1 -- docs/CHANGELOG.md
+# tag: <hash> by <user> on <date>
+```
+
+---
+
 ## [2.6.6] - 2026-02-25 (commit pending — tag after `git push`)
 
 ### Added

@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Theme palette preview · BioMedMeet</title>
+    <meta name="description" content="Pick a colour + typography palette and see it applied to a sample dashboard. Standalone preview — does not change the live app." />
+    <!--
+        Standalone theme preview page.
+        Lives at /theme-preview.html (URL: https://biomedmeet.com/theme-preview.html).
+        Has its own nav, fonts, and palette tokens. Does NOT load layout.js or
+        brand.css from the marketing site so palette switches are 100% isolated.
+
+        To pick a palette and "implement" it in the real app:
+          1. Choose a palette below and screenshot the page.
+          2. Tell the agent which palette + which surfaces (e.g. "use Ocean Breeze
+             for the meeting detail page, keep current navy for marketing site").
+          3. Agent will translate the chosen palette's CSS variables into
+             `brand.css` / Tailwind config / app theme tokens.
+    -->
+    <link href="https://fonts.googleapis.com/css2?family=Georgia&family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@500;700&family=DM+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
+    <style>
+        /* ============================================================== */
+        /* Palette tokens — selected palette wins via [data-palette="..."] */
+        /* ============================================================== */
+        :root {
+            /* defaults will be overwritten by the [data-palette] attribute below */
+            --bg:           #f6f7f9;
+            --surface:      #ffffff;
+            --sidebar:      #0b0b30;
+            --sidebar-fg:   #cbd5e1;
+            --text:         #0f172a;
+            --text-muted:   #64748b;
+            --border:       #e2e8f0;
+            --primary:      #0b0b30;
+            --primary-fg:   #ffffff;
+            --secondary:    #1f4e79;
+            --accent:       #28a745;
+            --accent-fg:    #ffffff;
+            --tag:          #eef2ff;
+            --tag-fg:       #4338ca;
+            --font:         "Inter", system-ui, sans-serif;
+            --font-mono:    "IBM Plex Mono", ui-monospace, Menlo, monospace;
+            --radius:       14px;
+            --shadow:       0 4px 12px -2px rgba(0,0,0,0.08);
+        }
+
+        /* 🌊 Ocean Breeze — cool blues, serif */
+        [data-palette="ocean"] {
+            --bg:           #eaf2f8;
+            --surface:      #ffffff;
+            --sidebar:      #1e3a5f;
+            --sidebar-fg:   #c5d6e8;
+            --text:         #0f2f4e;
+            --text-muted:   #5b7898;
+            --border:       #d1dfeb;
+            --primary:      #2778b8;
+            --primary-fg:   #ffffff;
+            --secondary:    #1e3a5f;
+            --accent:       #3aa5d9;
+            --accent-fg:    #ffffff;
+            --tag:           #d8ecf7;
+            --tag-fg:        #1e3a5f;
+            --font:         "Georgia", "Times New Roman", serif;
+        }
+
+        /* ⚡ Carbon — pure black, neon yellow, monospace */
+        [data-palette="carbon"] {
+            --bg:           #050505;
+            --surface:      #0e0e0e;
+            --sidebar:      #000000;
+            --sidebar-fg:   #8a8a8a;
+            --text:         #f1f1f1;
+            --text-muted:   #888888;
+            --border:       #1c1c1c;
+            --primary:      #d6ff35;
+            --primary-fg:   #000000;
+            --secondary:    #181818;
+            --accent:       #d6ff35;
+            --accent-fg:    #000000;
+            --tag:          #1a1a00;
+            --tag-fg:       #d6ff35;
+            --font:         "JetBrains Mono", ui-monospace, monospace;
+            --font-mono:    "JetBrains Mono", ui-monospace, monospace;
+            --radius:       4px;
+            --shadow:       0 0 0 1px rgba(214,255,53,0.18);
+        }
+
+        /* 🌿 Sage Clinic — muted sage green, Palatino serif */
+        [data-palette="sage"] {
+            --bg:           #f1f4ee;
+            --surface:      #ffffff;
+            --sidebar:      #2f4a3a;
+            --sidebar-fg:   #c9d6cb;
+            --text:         #1d2e22;
+            --text-muted:   #6b7e6f;
+            --border:       #d8e0d4;
+            --primary:      #5a8466;
+            --primary-fg:   #ffffff;
+            --secondary:    #2f4a3a;
+            --accent:       #b9c97f;
+            --accent-fg:    #1d2e22;
+            --tag:          #e2eadc;
+            --tag-fg:       #2f4a3a;
+            --font:         "Palatino", "Palatino Linotype", "Book Antiqua", serif;
+        }
+
+        /* 🌅 Sunrise — warm coral + amber, Gill Sans */
+        [data-palette="sunrise"] {
+            --bg:           #fff5ee;
+            --surface:      #ffffff;
+            --sidebar:      #4a1f0d;
+            --sidebar-fg:   #f6dcc8;
+            --text:         #3a160a;
+            --text-muted:   #8a5c47;
+            --border:       #f3dccd;
+            --primary:      #d96846;
+            --primary-fg:   #ffffff;
+            --secondary:    #4a1f0d;
+            --accent:       #f4a93a;
+            --accent-fg:    #3a160a;
+            --tag:          #fde7d4;
+            --tag-fg:       #a8431d;
+            --font:         "Gill Sans", "Trebuchet MS", "Avenir", sans-serif;
+        }
+
+        /* 💜 Lavender Med — soft purple, Playfair Display + DM Sans */
+        [data-palette="lavender"] {
+            --bg:           #f4f0fb;
+            --surface:      #ffffff;
+            --sidebar:      #3a2660;
+            --sidebar-fg:   #d6c9ec;
+            --text:         #2b1d4a;
+            --text-muted:   #756690;
+            --border:       #e1d6f3;
+            --primary:      #6f4ec0;
+            --primary-fg:   #ffffff;
+            --secondary:    #3a2660;
+            --accent:       #b58aee;
+            --accent-fg:    #ffffff;
+            --tag:          #ebdffb;
+            --tag-fg:       #3a2660;
+            --font:         "DM Sans", system-ui, sans-serif;
+        }
+
+        /* 🟢 BioMedMeet (current) — reference */
+        [data-palette="biomedmeet"] {
+            --bg:           #f6f7f9;
+            --surface:      #ffffff;
+            --sidebar:      #0b0b30;
+            --sidebar-fg:   #cbd5e1;
+            --text:         #0f172a;
+            --text-muted:   #64748b;
+            --border:       #e2e8f0;
+            --primary:      #0b0b30;
+            --primary-fg:   #ffffff;
+            --secondary:    #1a1a4a;
+            --accent:       #28a745;
+            --accent-fg:    #ffffff;
+            --tag:          #e8f5ed;
+            --tag-fg:       #1a6f37;
+            --font:         "Inter", system-ui, sans-serif;
+        }
+
+        /* ============================================================== */
+        /* Reset + base                                                   */
+        /* ============================================================== */
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; height: 100%; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            -webkit-font-smoothing: antialiased;
+            transition: background 0.25s, color 0.25s;
+        }
+
+        /* Palette switcher pill bar at the top */
+        .switch-bar {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .switch-bar h1 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+        .switch-bar button {
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 13px;
+            font-weight: 600;
+            padding: 8px 14px;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: transform 0.1s, background 0.2s, color 0.2s, border-color 0.2s;
+        }
+        .switch-bar button:hover { transform: translateY(-1px); }
+        .switch-bar button.is-active {
+            background: var(--primary);
+            color: var(--primary-fg);
+            border-color: var(--primary);
+        }
+
+        /* ============================================================== */
+        /* Layout: sidebar + main                                          */
+        /* ============================================================== */
+        .shell {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            min-height: calc(100vh - 60px);
+        }
+        @media (max-width: 900px) { .shell { grid-template-columns: 1fr; } }
+
+        .sidebar {
+            background: var(--sidebar);
+            color: var(--sidebar-fg);
+            padding: 28px 20px;
+            transition: background 0.25s, color 0.25s;
+        }
+        .sidebar .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 32px;
+            color: #fff;
+            font-weight: 800;
+            font-size: 18px;
+            letter-spacing: -0.01em;
+        }
+        .sidebar .brand-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--accent);
+        }
+        .sidebar .nav-section {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--sidebar-fg);
+            opacity: 0.55;
+            margin: 18px 0 8px;
+        }
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            color: inherit;
+            text-decoration: none;
+            font-size: 14px;
+            margin-bottom: 2px;
+            transition: background 0.15s;
+        }
+        .sidebar a:hover { background: rgba(255,255,255,0.06); }
+        .sidebar a.active {
+            background: var(--primary);
+            color: var(--primary-fg);
+            font-weight: 600;
+        }
+        .sidebar a .dot {
+            width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.5;
+        }
+
+        /* Main canvas */
+        .main {
+            padding: 32px 36px;
+            overflow: hidden;
+        }
+        @media (max-width: 900px) { .main { padding: 24px 20px; } }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .topbar h2 {
+            margin: 0;
+            flex: 1;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+        .palette-name {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        /* ============================================================== */
+        /* Cards / stats / tags / progress / buttons / avatars             */
+        /* ============================================================== */
+        .grid { display: grid; gap: 18px; }
+        .grid-3 { grid-template-columns: repeat(3, 1fr); }
+        .grid-2 { grid-template-columns: repeat(2, 1fr); }
+        @media (max-width: 900px) { .grid-3, .grid-2 { grid-template-columns: 1fr; } }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 22px;
+            box-shadow: var(--shadow);
+            transition: background 0.25s, border-color 0.25s, box-shadow 0.25s;
+        }
+        .card h3 {
+            margin: 0 0 10px;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .card p { margin: 0; color: var(--text-muted); font-size: 14px; line-height: 1.55; }
+
+        /* Stat blocks */
+        .stat-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+        .stat-value {
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--primary);
+            letter-spacing: -0.02em;
+            line-height: 1;
+        }
+        .stat-delta {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            background: var(--tag);
+            color: var(--tag-fg);
+        }
+
+        /* Tags */
+        .tag {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            background: var(--tag);
+            color: var(--tag-fg);
+            margin: 0 6px 6px 0;
+        }
+
+        /* Progress bars */
+        .progress { margin-top: 12px; }
+        .progress .row {
+            display: grid;
+            grid-template-columns: 140px 1fr 50px;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+        .progress .track {
+            background: var(--border);
+            border-radius: 999px;
+            height: 8px;
+            overflow: hidden;
+        }
+        .progress .fill {
+            height: 100%;
+            border-radius: 999px;
+            background: var(--primary);
+        }
+        .progress .fill-accent { background: var(--accent); }
+        .progress .fill-secondary { background: var(--secondary); }
+        .progress .val { text-align: right; font-weight: 700; }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-family: var(--font);
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: transform 0.1s, background 0.2s, color 0.2s, border-color 0.2s;
+        }
+        .btn:hover { transform: translateY(-1px); }
+        .btn-primary {
+            background: var(--primary);
+            color: var(--primary-fg);
+        }
+        .btn-outline {
+            background: transparent;
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+        .btn-accent {
+            background: var(--accent);
+            color: var(--accent-fg);
+        }
+
+        /* Avatars */
+        .avatars { display: flex; align-items: center; gap: -6px; margin-top: 14px; }
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: var(--primary-fg);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 13px;
+            border: 2px solid var(--surface);
+            margin-left: -8px;
+            box-shadow: var(--shadow);
+        }
+        .avatar:first-child { margin-left: 0; }
+
+        /* Token strip at the bottom */
+        .strip {
+            margin-top: 36px;
+            padding: 18px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+        }
+        .strip h4 {
+            margin: 0 0 14px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+        .strip-row {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+        }
+        @media (max-width: 700px) { .strip-row { grid-template-columns: repeat(2, 1fr); } }
+        .swatch {
+            border-radius: 10px;
+            padding: 14px 12px;
+            min-height: 70px;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border: 1px solid var(--border);
+            font-family: var(--font-mono);
+        }
+        .swatch small {
+            display: block;
+            margin-top: 4px;
+            opacity: 0.85;
+            font-size: 10px;
+            font-weight: 500;
+        }
+
+        /* Code samples (showcases mono font + accent) */
+        .code-block {
+            background: var(--secondary);
+            color: #fff;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            border-radius: var(--radius);
+            padding: 18px;
+            line-height: 1.6;
+            overflow-x: auto;
+        }
+        .code-block .kw { color: var(--accent); }
+        .code-block .str { color: var(--tag-fg); }
+    </style>
+</head>
+<body data-palette="biomedmeet">
+    <!-- ============== Palette switcher ============== -->
+    <nav class="switch-bar" data-testid="switch-bar">
+        <h1>Palette</h1>
+        <button data-palette-set="biomedmeet" class="is-active">🟢 BioMedMeet (current)</button>
+        <button data-palette-set="ocean">🌊 Ocean Breeze</button>
+        <button data-palette-set="carbon">⚡ Carbon</button>
+        <button data-palette-set="sage">🌿 Sage Clinic</button>
+        <button data-palette-set="sunrise">🌅 Sunrise</button>
+        <button data-palette-set="lavender">💜 Lavender Med</button>
+    </nav>
+
+    <div class="shell">
+        <!-- ============== Sidebar ============== -->
+        <aside class="sidebar">
+            <div class="brand">
+                <span class="brand-dot"></span>
+                BioMedMeet
+            </div>
+            <div class="nav-section">Workspace</div>
+            <a href="#" class="active"><span class="dot"></span> Dashboard</a>
+            <a href="#"><span class="dot"></span> Meetings</a>
+            <a href="#"><span class="dot"></span> Patients</a>
+            <a href="#"><span class="dot"></span> Participants</a>
+            <div class="nav-section">Admin</div>
+            <a href="#"><span class="dot"></span> RSVP log</a>
+            <a href="#"><span class="dot"></span> Settings</a>
+            <a href="#"><span class="dot"></span> Profile</a>
+        </aside>
+
+        <!-- ============== Main canvas ============== -->
+        <main class="main">
+            <div class="topbar">
+                <div>
+                    <div class="palette-name" data-palette-label>BIOMEDMEET · CURRENT</div>
+                    <h2>Good morning, Dr Wang.</h2>
+                </div>
+                <button class="btn btn-outline">Export</button>
+                <button class="btn btn-primary">+ New meeting</button>
+            </div>
+
+            <!-- Stat cards -->
+            <div class="grid grid-3" style="margin-bottom: 18px;">
+                <div class="card">
+                    <div class="stat-label">Meetings this week</div>
+                    <div class="stat-value">14</div>
+                    <span class="stat-delta">↑ 3 vs last week</span>
+                </div>
+                <div class="card">
+                    <div class="stat-label">Acceptances</div>
+                    <div class="stat-value">82<span style="font-size:16px;color:var(--text-muted);font-weight:600;">%</span></div>
+                    <span class="stat-delta">↑ 6 pts</span>
+                </div>
+                <div class="card">
+                    <div class="stat-label">Hours saved</div>
+                    <div class="stat-value">36<span style="font-size:16px;color:var(--text-muted);font-weight:600;">h</span></div>
+                    <span class="stat-delta">$7,200 value</span>
+                </div>
+            </div>
+
+            <div class="grid grid-2" style="margin-bottom: 18px;">
+                <div class="card">
+                    <h3>Tumour Board · Thursday 9 AM</h3>
+                    <p>Six patient cases on the agenda. Pathology results ready for three.</p>
+                    <div style="margin-top: 14px;">
+                        <span class="tag">Oncology</span>
+                        <span class="tag">Pre-op review</span>
+                        <span class="tag">Pathology</span>
+                        <span class="tag">Radiology</span>
+                    </div>
+                    <div class="avatars">
+                        <div class="avatar">JW</div>
+                        <div class="avatar">DM</div>
+                        <div class="avatar">AP</div>
+                        <div class="avatar">+3</div>
+                    </div>
+                    <div style="display:flex;gap:8px;margin-top:18px;">
+                        <button class="btn btn-primary">Open</button>
+                        <button class="btn btn-outline">Reschedule</button>
+                        <button class="btn btn-accent">Mark done</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Where the week's hours went</h3>
+                    <div class="progress">
+                        <div class="row">
+                            <span>Scheduling</span>
+                            <div class="track"><div class="fill" style="width: 70%;"></div></div>
+                            <span class="val">12h</span>
+                        </div>
+                        <div class="row">
+                            <span>Agenda prep</span>
+                            <div class="track"><div class="fill fill-accent" style="width: 55%;"></div></div>
+                            <span class="val">9h</span>
+                        </div>
+                        <div class="row">
+                            <span>Minute taking</span>
+                            <div class="track"><div class="fill fill-secondary" style="width: 42%;"></div></div>
+                            <span class="val">7h</span>
+                        </div>
+                        <div class="row">
+                            <span>Follow-up</span>
+                            <div class="track"><div class="fill" style="width: 30%;"></div></div>
+                            <span class="val">5h</span>
+                        </div>
+                        <div class="row">
+                            <span>RSVP chase</span>
+                            <div class="track"><div class="fill fill-accent" style="width: 18%;"></div></div>
+                            <span class="val">3h</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Code block — shows the active mono + accent -->
+            <div class="card" style="margin-bottom: 18px;">
+                <h3>Sample API call</h3>
+                <div class="code-block">
+<span class="kw">const</span> rsvp = <span class="kw">await</span> api.put(<span class="str">`/meetings/${id}/respond`</span>, {
+  response_status: <span class="str">"accepted"</span>
+});
+                </div>
+            </div>
+
+            <!-- Token strip -->
+            <div class="strip">
+                <h4>Active palette tokens</h4>
+                <div class="strip-row">
+                    <div class="swatch" style="background: var(--primary);">Primary <small id="tok-primary">#0b0b30</small></div>
+                    <div class="swatch" style="background: var(--secondary);">Secondary <small id="tok-secondary">#1a1a4a</small></div>
+                    <div class="swatch" style="background: var(--accent); color: var(--accent-fg);">Accent <small id="tok-accent">#28a745</small></div>
+                    <div class="swatch" style="background: var(--sidebar);">Sidebar <small id="tok-sidebar">#0b0b30</small></div>
+                    <div class="swatch" style="background: var(--bg); color: var(--text); border: 1px solid var(--border);">Background <small id="tok-bg">#f6f7f9</small></div>
+                    <div class="swatch" style="background: var(--surface); color: var(--text); border: 1px solid var(--border);">Surface <small id="tok-surface">#ffffff</small></div>
+                </div>
+                <div style="margin-top: 14px; font-size: 12px; color: var(--text-muted);">
+                    Font family: <span id="tok-font" style="font-family: var(--font); font-weight: 600; color: var(--text);">Inter, system-ui, sans-serif</span>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        /* ==================================================================
+           Palette switcher — toggles a single attribute on <body> and lets
+           every CSS variable cascade. No DOM rewrites, no flicker.
+        ================================================================== */
+        (function () {
+            var body = document.body;
+            var labelEl = document.querySelector('[data-palette-label]');
+            var paletteNames = {
+                'biomedmeet': 'BIOMEDMEET · CURRENT',
+                'ocean':      '🌊 OCEAN BREEZE',
+                'carbon':     '⚡ CARBON',
+                'sage':       '🌿 SAGE CLINIC',
+                'sunrise':    '🌅 SUNRISE',
+                'lavender':   '💜 LAVENDER MED',
+            };
+
+            // Helper: read a custom property from the current palette.
+            function readVar(name) {
+                return getComputedStyle(body).getPropertyValue(name).trim();
+            }
+
+            // Helper: dump the active palette's tokens into the bottom strip
+            // so the user can copy them straight into brand.css.
+            function refreshTokenStrip() {
+                document.getElementById('tok-primary').textContent   = readVar('--primary');
+                document.getElementById('tok-secondary').textContent = readVar('--secondary');
+                document.getElementById('tok-accent').textContent    = readVar('--accent');
+                document.getElementById('tok-sidebar').textContent   = readVar('--sidebar');
+                document.getElementById('tok-bg').textContent        = readVar('--bg');
+                document.getElementById('tok-surface').textContent   = readVar('--surface');
+                document.getElementById('tok-font').textContent      = readVar('--font');
+            }
+
+            function setPalette(name) {
+                body.setAttribute('data-palette', name);
+                if (labelEl) labelEl.textContent = paletteNames[name] || name.toUpperCase();
+                document.querySelectorAll('[data-palette-set]').forEach(function (btn) {
+                    btn.classList.toggle('is-active', btn.getAttribute('data-palette-set') === name);
+                });
+                // Wait one frame so the new tokens have cascaded before reading.
+                requestAnimationFrame(refreshTokenStrip);
+            }
+
+            document.querySelectorAll('[data-palette-set]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    setPalette(btn.getAttribute('data-palette-set'));
+                });
+            });
+
+            refreshTokenStrip();
+        })();
+    </script>
+</body>
+</html>
