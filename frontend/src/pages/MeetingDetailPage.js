@@ -13,6 +13,7 @@ import DecisionsTab from '@/components/meeting/DecisionsTab';
 import OverviewTab from '@/components/meeting/OverviewTab';
 import PatientsTab from '@/components/meeting/PatientsTab';
 import AgendaTab from '@/components/meeting/AgendaTab';
+import RsvpBanner from '@/components/meeting/RsvpBanner';
 import UploadFileDialog from '@/components/meeting/dialogs/UploadFileDialog';
 import DecisionDialog from '@/components/meeting/dialogs/DecisionDialog';
 import DeleteMeetingDialog from '@/components/meeting/dialogs/DeleteMeetingDialog';
@@ -660,6 +661,14 @@ export default function MeetingDetailPage() {
                 <Button variant="ghost" onClick={() => navigate('/meetings')} className="mb-2" data-testid="back-btn">
                     <ArrowLeft className="w-4 h-4 mr-2" /> Back to Meetings
                 </Button>
+
+                {/* Persistent RSVP banner — visible to non-organizer participants so
+                    they can see their current response and change it in one click. */}
+                <RsvpBanner
+                    meeting={meeting}
+                    currentUserId={user?.id}
+                    onResponded={() => loadMeeting()}
+                />
 
                 {/* Header */}
                 <div className="flex items-start justify-between">

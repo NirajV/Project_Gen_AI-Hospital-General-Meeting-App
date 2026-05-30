@@ -20,6 +20,7 @@
         + '      <li><a href="/home/#features">Features</a></li>'
         + '      <li><a href="/home/how-it-works.html">How it works</a></li>'
         + '      <li><a href="/home/#videos" data-testid="nav-videos">Videos</a></li>'
+        + '      <li><a href="/home/pricing.html" data-testid="nav-pricing">Pricing</a></li>'
         + '      <li><a href="/home/security.html">Security</a></li>'
         + '      <li><a href="/home/#faq">FAQ</a></li>'
         + '      <li><a href="/home/contact.html">Contact</a></li>'

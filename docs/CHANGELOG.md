@@ -7,6 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.3] - 2026-02-25 (commit pending — tag after `git push`)
+
+### Added
+- 🎯 **New pricing page** at `https://biomedmeet.com/home/pricing.html` (`frontend/public/home/pricing.html`):
+  - Dark-navy hero with the one-time **$25,000 + tax** perpetual licence prominently displayed.
+  - 6-bullet inclusion list (on-prem Docker install, unlimited users/meetings/patients, Teams + holiday-aware calendar, decision log + treatment plans + PDF summaries, 7 walkthrough videos, 2-month warranty trial).
+  - ROI section with three KPI cards: **18 hrs/week reclaimed**, **~$187,200/year clinician time saved** (at a $200/hr blended rate), **~1.6-month payback**.
+  - CSS-only horizontal bar chart breaking down where the 18 hours go (scheduling, agenda prep, minute-taking, RSVP chase, follow-up emails).
+  - "No SaaS strings" section: no per-user fees · no monthly recurring · no data leaves your network · no vendor lock-in.
+  - Installation timeline (Week 1 Install · Week 2 Onboard · Months 1-2 Warranty trial).
+  - FAQ block + dual-CTA footer (Request a demo · Email Demo@BioMedMeet.com).
+- 🧭 **"Pricing" nav link** added to `frontend/public/home/assets/layout.js` (sub-pages) and `frontend/public/home/index.html` (homepage hard-coded nav). Cache-buster bumped to `?v=20260225b` on all sub-pages.
+- 💬 **Persistent RSVP banner** on the meeting detail page (`frontend/src/components/meeting/RsvpBanner.js`):
+  - Replaces the disappearing toast with a colour-coded banner (pending = blue, accepted = green, tentative = amber, declined = red) showing the participant's current response.
+  - Three one-click action buttons (Accept · Tentative · Decline) let users change their mind without going back to the email.
+  - Hidden for organizers, non-participants, and `completed`/`cancelled` meetings so the UI stays clean.
+  - Calls `PUT /api/meetings/{id}/respond` and refreshes the meeting via the existing `loadMeeting()` so the participant pill list updates in lockstep.
+
+### Verified
+- Pricing page renders correctly — screenshot confirms hero + nav (with new "Pricing" link) + ROI cards all in place.
+- `RsvpBanner` component: lint clean; Playwright smoke walk-through reached the banner, clicked Accept, then Decline — no JS errors; existing curl-level verification of `PUT /api/meetings/{id}/respond` from [2.6.2] still passes.
+
+### Deployment notes for this release
+```bash
+git pull origin main
+docker compose down
+docker compose up -d --build
+```
+
+After rebuild — **purge Cloudflare cache** so visitors get the new `pricing.html` + the `?v=20260225b` `layout.js` (which carries the new "Pricing" nav link).
+
+### Git commit tag
+*To be appended after the next `git push`:*
+```
+git log --oneline -1 -- docs/CHANGELOG.md
+# tag: <hash> by <user> on <date>
+```
+
+---
+
 ## [2.6.2] - 2026-02-25 (commit pending — tag after `git push`)
 
 ### Fixed
