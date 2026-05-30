@@ -1,7 +1,7 @@
 from fastapi import FastAPI, APIRouter, HTTPException, Depends, UploadFile, File, Form, Request, Response, Body
 from starlette.middleware.cors import CORSMiddleware
 import logging
-from typing import Optional
+from typing import Optional, Dict
 from pathlib import Path
 import uuid
 from datetime import datetime, timezone, timedelta
@@ -1902,6 +1902,68 @@ async def set_active_country(
     except Exception as e:
         logger.error(f"Error setting active country: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error setting active country: {str(e)}")
+
+
+# ============== Admin: Inbound RSVP audit log ==============
+
+@api_router.get("/admin/rsvp-log")
+async def get_rsvp_log(
+    limit: int = 50,
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Last N inbound iCalendar RSVP-REPLY messages processed by the IMAP poller.
+    Organizer/admin only. Read-only — useful when a hospital admin asks
+    "did my Yes click get through?".
+    """
+    if current_user['role'] not in ['organizer', 'admin']:
+        raise HTTPException(
+            status_code=403,
+            detail="Only organizers and admins can view the inbound RSVP log",
+        )
+
+    # Clamp to a sensible range so the table stays fast.
+    limit = max(1, min(int(limit or 50), 500))
+
+    cursor = (
+        db.processed_rsvp_emails.find({}, {"_id": 0})
+        .sort("processed_at", -1)
+        .limit(limit)
+    )
+    rows = await cursor.to_list(limit)
+
+    # Hydrate meeting titles for the rows that matched a meeting — saves the
+    # frontend N extra round-trips for what's usually <50 rows.
+    meeting_ids = list({r["meeting_id"] for r in rows if r.get("meeting_id")})
+    titles: Dict[str, str] = {}
+    if meeting_ids:
+        meetings = await db.meetings.find(
+            {"id": {"$in": meeting_ids}},
+            {"_id": 0, "id": 1, "title": 1, "meeting_date": 1},
+        ).to_list(len(meeting_ids))
+        titles = {m["id"]: m for m in meetings}
+
+    for r in rows:
+        mid = r.get("meeting_id")
+        if mid and mid in titles:
+            r["meeting_title"] = titles[mid].get("title")
+            r["meeting_date"] = titles[mid].get("meeting_date")
+        else:
+            r["meeting_title"] = None
+            r["meeting_date"] = None
+
+    # Aggregate counts so the page header can show outcome stats at a glance.
+    pipeline = [
+        {"$group": {"_id": "$outcome", "n": {"$sum": 1}}},
+    ]
+    agg = await db.processed_rsvp_emails.aggregate(pipeline).to_list(20)
+    counts = {row["_id"]: row["n"] for row in agg if row.get("_id")}
+
+    return {
+        "rows": rows,
+        "counts": counts,
+        "total": await db.processed_rsvp_emails.count_documents({}),
+    }
 
 
 # ============== Health Check ==============

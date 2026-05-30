@@ -49,6 +49,9 @@ export const changePassword = ({ current_password, new_password }) =>
 export const submitFeedback = (data) => api.post('/feedback', data);
 export const getDefaultHolidays = (country) => api.get(`/holidays/defaults?country=${country}`);
 
+// Admin: inbound RSVP audit log (latest N email-RSVP processing outcomes)
+export const getRsvpLog = (limit = 50) => api.get('/admin/rsvp-log', { params: { limit } });
+
 // Patients
 export const getPatients = (params) => api.get('/patients', { params });
 export const getPatient = (id) => api.get(`/patients/${id}`);

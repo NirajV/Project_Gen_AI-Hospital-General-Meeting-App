@@ -7,7 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [2.6.5] - 2026-02-25 (commit pending — tag after `git push`)
+## [2.6.6] - 2026-02-25 (commit pending — tag after `git push`)
+
+### Added
+- 📘 **`marketing_outreach/MONGODB_LOAD_AND_CAMPAIGN_GUIDE.md`** (~250 lines):
+  - One-time venv + `.env` setup.
+  - Three loader modes: `--replace`, `--upsert`, default (insert-only).
+  - Complete `marketing_contacts` schema table.
+  - **How the daily resume works** — the script queries `status: "pending"` and flips each row to `"sent"` on successful delivery, so re-running the same command on Day 2 automatically picks up the next batch. No cursor or pagination to remember.
+  - Worked example showing Day 1 / Day 2 / Day 17 status counts.
+  - Failure recovery (retry failed, mark bounces, mark unsubscribes).
+  - Safety checklist + warm-up schedule.
+  - Common mistakes + how to recover.
+  - Verified against the actual `send_campaign.py` query at line 116.
+- 🔍 **Admin RSVP audit page** at `/admin/rsvp-log`:
+  - Backend: `GET /api/admin/rsvp-log?limit=N` in `server.py`. Returns last N rows from `processed_rsvp_emails`, hydrated with meeting title + date, plus per-outcome counts and total. Organizer/admin only (403 for other roles, verified via curl).
+  - Frontend: `src/pages/AdminRsvpLogPage.js` — sortable-by-time table with colour-coded outcome badges (Applied / No match / Parse failed / No calendar part), a 5-card summary header, refresh button, and a friendly empty state telling the operator how to enable polling.
+  - Route wired in `App.js` under `ProtectedRoute`.
+  - API verified end-to-end with seeded test rows: total / counts / row hydration all correct.
+
+### Git commit tag
+*To be appended after the next `git push`:*
+```
+git log --oneline -1 -- docs/CHANGELOG.md
+# tag: <hash> by <user> on <date>
+```
+
+---
+
+## [2.6.5] - 2026-02-25 (commit `01419e1`)
 
 ### Added — Gmail/Outlook/Apple "Yes-No-Maybe" calendar RSVP propagation
 

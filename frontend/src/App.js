@@ -16,6 +16,7 @@ import PatientFormPage from "@/pages/PatientFormPage";
 import PatientDetailPage from "@/pages/PatientDetailPage";
 import ParticipantsPage from "@/pages/ParticipantsPage";
 import ProfilePage from "@/pages/ProfilePage";
+import AdminRsvpLogPage from "@/pages/AdminRsvpLogPage";
 
 // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
 function AppRouter() {
@@ -60,6 +61,9 @@ function AppRouter() {
             } />
             <Route path="/settings" element={
                 <ProtectedRoute><ProfilePage /></ProtectedRoute>
+            } />
+            <Route path="/admin/rsvp-log" element={
+                <ProtectedRoute><AdminRsvpLogPage /></ProtectedRoute>
             } />
         </Routes>
     );
