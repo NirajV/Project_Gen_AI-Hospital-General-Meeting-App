@@ -1,28 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { getPatient, updatePatient, downloadFile } from '@/lib/api';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { useParams, useNavigate } from 'react-router-dom';
+import { getPatient, updatePatient } from '@/lib/api';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { toast } from '@/components/ui/sonner';
-import {
-    Dialog,
-    DialogContent,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
 import Layout from '@/components/Layout';
-import { 
-    ArrowLeft, User, Calendar, Building, FileText, Phone, Mail, MapPin,
-    Heart, Pill, AlertTriangle, Edit, Save, Loader2, Video, Clock, Download
-} from 'lucide-react';
-import { format, parseISO, differenceInYears } from 'date-fns';
+import { ArrowLeft, Loader2 } from 'lucide-react';
+import { PatientHeader } from '@/components/patient-detail/PatientHeader';
+import { PatientOverviewTab } from '@/components/patient-detail/PatientOverviewTab';
+import { PatientMeetingsTab } from '@/components/patient-detail/PatientMeetingsTab';
+import { PatientFilesTab } from '@/components/patient-detail/PatientFilesTab';
+import { PatientTreatmentPlansTab } from '@/components/patient-detail/PatientTreatmentPlansTab';
+import { PatientEditDialog } from '@/components/patient-detail/PatientEditDialog';
+
+const TAB_STYLES = {
+    overview:        { active: '#694e20', inactive: { bg: '#f5f0e8', fg: '#694e20' } },
+    meetings:        { active: '#3b6658', inactive: { bg: '#e8f5f0', fg: '#3b6658' } },
+    files:           { active: '#68517d', inactive: { bg: '#f3edf5', fg: '#68517d' } },
+    treatment_plans: { active: '#0b0b30', inactive: { bg: '#e8e8f5', fg: '#0b0b30' } },
+};
+
+const tabStyle = (active, key) => {
+    const def = TAB_STYLES[key];
+    return active === key
+        ? { backgroundColor: def.active, color: '#ffffff' }
+        : { backgroundColor: def.inactive.bg, color: def.inactive.fg };
+};
 
 export default function PatientDetailPage() {
     const { id } = useParams();
@@ -36,6 +38,7 @@ export default function PatientDetailPage() {
 
     useEffect(() => {
         loadPatient();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id]);
 
     const loadPatient = async () => {
@@ -64,16 +67,6 @@ export default function PatientDetailPage() {
         }
     };
 
-    const calculateAge = (dob) => {
-        if (!dob) return 'N/A';
-        return differenceInYears(new Date(), parseISO(dob));
-    };
-
-    const getFileIcon = (type) => {
-        const icons = { radiology: '🩻', lab: '🧪', consult_note: '📋', specialist_note: '📝', other: '📄' };
-        return icons[type] || '📄';
-    };
-
     if (loading) {
         return (
             <Layout>
@@ -89,588 +82,75 @@ export default function PatientDetailPage() {
     return (
         <Layout>
             <div className="space-y-6" data-testid="patient-detail">
-                <Button variant="ghost" onClick={() => navigate('/patients')} className="mb-2" data-testid="back-btn">
+                <Button
+                    variant="ghost"
+                    onClick={() => navigate('/patients')}
+                    className="mb-2"
+                    data-testid="back-btn"
+                >
                     <ArrowLeft className="w-4 h-4 mr-2" /> Back to Patients
                 </Button>
 
-                {/* Header */}
-                <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                            <User className="w-8 h-8 text-primary" />
-                        </div>
-                        <div>
-                            <h1 className="text-3xl font-display font-bold text-foreground tracking-tight">
-                                {patient.first_name} {patient.last_name}
-                            </h1>
-                            <div className="flex items-center gap-4 mt-1 text-muted-foreground">
-                                {patient.patient_id_number && <span>MRN: {patient.patient_id_number}</span>}
-                                <span>{calculateAge(patient.date_of_birth)} years old</span>
-                                {patient.gender && <Badge variant="outline" className="capitalize">{patient.gender}</Badge>}
-                            </div>
-                        </div>
-                    </div>
-                    <Button variant="outline" onClick={() => setEditDialog(true)} data-testid="edit-btn">
-                        <Edit className="w-4 h-4 mr-2" /> Edit Profile
-                    </Button>
-                </div>
+                <PatientHeader patient={patient} onEdit={() => setEditDialog(true)} />
 
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
                     <TabsList className="bg-transparent border-0 p-0 gap-2">
-                        <TabsTrigger 
-                            value="overview" 
+                        <TabsTrigger
+                            value="overview"
                             className="data-[state=active]:shadow-md transition-all duration-200 font-semibold"
-                            style={{
-                                backgroundColor: activeTab === 'overview' ? '#694e20' : '#f5f0e8',
-                                color: activeTab === 'overview' ? '#ffffff' : '#694e20',
-                            }}
+                            style={tabStyle(activeTab, 'overview')}
                         >
                             Overview
                         </TabsTrigger>
-                        <TabsTrigger 
-                            value="meetings" 
+                        <TabsTrigger
+                            value="meetings"
                             className="data-[state=active]:shadow-md transition-all duration-200 font-semibold"
-                            style={{
-                                backgroundColor: activeTab === 'meetings' ? '#3b6658' : '#e8f5f0',
-                                color: activeTab === 'meetings' ? '#ffffff' : '#3b6658',
-                            }}
+                            style={tabStyle(activeTab, 'meetings')}
                         >
                             Meetings ({patient.meetings?.length || 0})
                         </TabsTrigger>
-                        <TabsTrigger 
-                            value="files" 
+                        <TabsTrigger
+                            value="files"
                             className="data-[state=active]:shadow-md transition-all duration-200 font-semibold"
-                            style={{
-                                backgroundColor: activeTab === 'files' ? '#68517d' : '#f3edf5',
-                                color: activeTab === 'files' ? '#ffffff' : '#68517d',
-                            }}
+                            style={tabStyle(activeTab, 'files')}
                         >
                             Files ({patient.files?.length || 0})
                         </TabsTrigger>
-                        <TabsTrigger 
-                            value="treatment_plans" 
+                        <TabsTrigger
+                            value="treatment_plans"
                             className="data-[state=active]:shadow-md transition-all duration-200 font-semibold"
-                            style={{
-                                backgroundColor: activeTab === 'treatment_plans' ? '#0b0b30' : '#e8e8f5',
-                                color: activeTab === 'treatment_plans' ? '#ffffff' : '#0b0b30',
-                            }}
+                            style={tabStyle(activeTab, 'treatment_plans')}
                         >
                             Treatment Plans ({patient.treatment_plans?.length || 0})
                         </TabsTrigger>
                     </TabsList>
 
-                    {/* Overview Tab */}
                     <TabsContent value="overview" className="mt-6">
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            {/* Contact Info - Teal */}
-                            <Card className="border-0 shadow-sm hover:shadow-lg transition-all duration-300" style={{ backgroundColor: '#e8f5f0' }}>
-                                <CardHeader>
-                                    <CardTitle className="text-lg" style={{ color: '#3b6658' }}>Contact Information</CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    {patient.phone && (
-                                        <div className="flex items-center gap-3">
-                                            <Phone className="w-4 h-4" style={{ color: '#3b6658' }} />
-                                            <span style={{ color: '#3b6658' }}>{patient.phone}</span>
-                                        </div>
-                                    )}
-                                    {patient.email && (
-                                        <div className="flex items-center gap-3">
-                                            <Mail className="w-4 h-4" style={{ color: '#3b6658' }} />
-                                            <span style={{ color: '#3b6658' }}>{patient.email}</span>
-                                        </div>
-                                    )}
-                                    {patient.address && (
-                                        <div className="flex items-start gap-3">
-                                            <MapPin className="w-4 h-4 mt-1" style={{ color: '#3b6658' }} />
-                                            <span style={{ color: '#3b6658' }}>{patient.address}</span>
-                                        </div>
-                                    )}
-                                    {patient.date_of_birth && (
-                                        <div className="flex items-center gap-3">
-                                            <Calendar className="w-4 h-4" style={{ color: '#3b6658' }} />
-                                            <span style={{ color: '#3b6658' }}>{format(parseISO(patient.date_of_birth), 'MMMM d, yyyy')}</span>
-                                        </div>
-                                    )}
-                                    {!patient.phone && !patient.email && !patient.address && (
-                                        <p className="text-sm" style={{ color: '#3b6658', opacity: 0.7 }}>No contact information</p>
-                                    )}
-                                </CardContent>
-                            </Card>
-
-                            {/* Department Info - Amber */}
-                            <Card className="border-0 shadow-sm hover:shadow-lg transition-all duration-300" style={{ backgroundColor: '#f5f0e8' }}>
-                                <CardHeader>
-                                    <CardTitle className="text-lg" style={{ color: '#694e20' }}>Department</CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    {patient.department_name && (
-                                        <div className="flex items-center gap-3">
-                                            <Building className="w-4 h-4" style={{ color: '#694e20' }} />
-                                            <span style={{ color: '#694e20' }}>{patient.department_name}</span>
-                                        </div>
-                                    )}
-                                    {patient.department_provider_name && (
-                                        <div className="flex items-center gap-3">
-                                            <User className="w-4 h-4" style={{ color: '#694e20' }} />
-                                            <span style={{ color: '#694e20' }}>{patient.department_provider_name}</span>
-                                        </div>
-                                    )}
-                                    {!patient.department_name && !patient.department_provider_name && (
-                                        <p className="text-sm" style={{ color: '#694e20', opacity: 0.7 }}>No department assigned</p>
-                                    )}
-                                </CardContent>
-                            </Card>
-
-                            {/* Quick Stats - Purple */}
-                            <Card className="border-0 shadow-sm hover:shadow-lg transition-all duration-300" style={{ backgroundColor: '#f3edf5' }}>
-                                <CardHeader>
-                                    <CardTitle className="text-lg" style={{ color: '#68517d' }}>Quick Stats</CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div className="flex items-center justify-between p-3 rounded-lg" style={{ backgroundColor: '#68517d20' }}>
-                                        <div className="flex items-center gap-2">
-                                            <Calendar className="w-4 h-4" style={{ color: '#68517d' }} />
-                                            <span className="text-sm font-semibold" style={{ color: '#68517d' }}>Meetings</span>
-                                        </div>
-                                        <span className="text-lg font-bold" style={{ color: '#68517d' }}>{patient.meetings?.length || 0}</span>
-                                    </div>
-                                    <div className="flex items-center justify-between p-3 rounded-lg" style={{ backgroundColor: '#68517d20' }}>
-                                        <div className="flex items-center gap-2">
-                                            <FileText className="w-4 h-4" style={{ color: '#68517d' }} />
-                                            <span className="text-sm font-semibold" style={{ color: '#68517d' }}>Documents</span>
-                                        </div>
-                                        <span className="text-lg font-bold" style={{ color: '#68517d' }}>{patient.files?.length || 0}</span>
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            {/* Medical Info - Full Width - Blue */}
-                            <Card className="border-0 shadow-sm hover:shadow-lg transition-all duration-300 lg:col-span-3" style={{ backgroundColor: '#e8e8f5' }}>
-                                <CardHeader>
-                                    <CardTitle className="text-lg" style={{ color: '#0b0b30' }}>Medical Information</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                        <div>
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <Heart className="w-4 h-4 text-red-500" />
-                                                <Label style={{ color: '#0b0b30', opacity: 0.7 }}>Primary Diagnosis</Label>
-                                            </div>
-                                            <p className="text-sm font-semibold" style={{ color: '#0b0b30' }}>{patient.primary_diagnosis || 'Not specified'}</p>
-                                        </div>
-                                        <div>
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <AlertTriangle className="w-4 h-4 text-orange-500" />
-                                                <Label style={{ color: '#0b0b30', opacity: 0.7 }}>Allergies</Label>
-                                            </div>
-                                            <p className="text-sm font-semibold" style={{ color: '#0b0b30' }}>{patient.allergies || 'None recorded'}</p>
-                                        </div>
-                                        <div>
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <Pill className="w-4 h-4 text-blue-500" />
-                                                <Label style={{ color: '#0b0b30', opacity: 0.7 }}>Current Medications</Label>
-                                            </div>
-                                            <p className="text-sm font-semibold" style={{ color: '#0b0b30' }}>{patient.current_medications || 'None recorded'}</p>
-                                        </div>
-                                    </div>
-                                    {patient.notes && (
-                                        <div className="mt-6 pt-6" style={{ borderTop: '1px solid #0b0b3030' }}>
-                                            <Label style={{ color: '#0b0b30', opacity: 0.7 }}>Additional Notes</Label>
-                                            <p className="text-sm mt-2" style={{ color: '#0b0b30' }}>{patient.notes}</p>
-                                        </div>
-                                    )}
-                                </CardContent>
-                            </Card>
-                        </div>
+                        <PatientOverviewTab patient={patient} />
                     </TabsContent>
 
-                    {/* Meetings Tab */}
                     <TabsContent value="meetings" className="mt-6">
-                        {patient.meetings?.length === 0 ? (
-                            <Card className="border-slate-200">
-                                <CardContent className="py-12 text-center">
-                                    <Calendar className="w-12 h-12 mx-auto mb-3 text-muted-foreground opacity-50" />
-                                    <p className="text-muted-foreground">No meetings found for this patient</p>
-                                </CardContent>
-                            </Card>
-                        ) : (
-                            <div className="space-y-8 p-4 bg-white">
-                                {patient.meetings?.map((meeting, idx) => {
-                                    // Rotating colors for meeting cards
-                                    const cardColors = [
-                                        { light: '#e8f5f0', dark: '#3b6658' }, // Teal
-                                        { light: '#f5f0e8', dark: '#694e20' }, // Amber
-                                        { light: '#f3edf5', dark: '#68517d' }, // Purple
-                                        { light: '#e8e8f5', dark: '#0b0b30' }, // Blue
-                                    ];
-                                    const colors = cardColors[idx % cardColors.length];
-                                    
-                                    return (
-                                        <Link key={meeting.id} to={`/meetings/${meeting.id}`}>
-                                            <div className="flex items-center justify-between p-4 rounded-lg border-0 shadow-sm hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.01] transition-all duration-300 bg-white" style={{ backgroundColor: colors.light }} data-testid={`patient-meeting-${idx}`}>
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: colors.dark }}>
-                                                        {meeting.meeting_type === 'video' ? (
-                                                            <Video className="w-5 h-5 text-white" />
-                                                        ) : (
-                                                            <MapPin className="w-5 h-5 text-white" />
-                                                        )}
-                                                    </div>
-                                                    <div>
-                                                        <h3 className="font-semibold" style={{ color: colors.dark }}>{meeting.title}</h3>
-                                                        <div className="flex items-center gap-3 mt-1 text-sm" style={{ color: colors.dark, opacity: 0.7 }}>
-                                                            <span className="flex items-center gap-1">
-                                                                <Calendar className="w-3.5 h-3.5" />
-                                                                {format(parseISO(meeting.meeting_date), 'MMM d, yyyy')}
-                                                            </span>
-                                                            <span className="flex items-center gap-1">
-                                                                <Clock className="w-3.5 h-3.5" />
-                                                                {meeting.start_time?.slice(0, 5)}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    {meeting.case_status && (
-                                                        <Badge variant="outline" className="capitalize" style={{ borderColor: colors.dark, color: colors.dark }}>{meeting.case_status.replace('_', ' ')}</Badge>
-                                                    )}
-                                                    <Badge className={meeting.status === 'completed' ? 'bg-slate-100 text-slate-600' : 'bg-blue-100 text-blue-700'}>
-                                                        {meeting.status}
-                                                    </Badge>
-                                                </div>
-                                            </div>
-                                        </Link>
-                                    );
-                                })}
-                            </div>
-                        )}
+                        <PatientMeetingsTab meetings={patient.meetings} />
                     </TabsContent>
 
-                    {/* Files Tab */}
                     <TabsContent value="files" className="mt-6">
-                        {patient.files?.length === 0 ? (
-                            <Card className="border-slate-200">
-                                <CardContent className="py-12 text-center">
-                                    <FileText className="w-12 h-12 mx-auto mb-3 text-muted-foreground opacity-50" />
-                                    <p className="text-muted-foreground">No files uploaded for this patient</p>
-                                </CardContent>
-                            </Card>
-                        ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-2">
-                                {patient.files?.map((file, idx) => {
-                                    // Rotating colors for file cards
-                                    const cardColors = [
-                                        { light: '#e8f5f0', dark: '#3b6658' }, // Teal
-                                        { light: '#f5f0e8', dark: '#694e20' }, // Amber
-                                        { light: '#f3edf5', dark: '#68517d' }, // Purple
-                                        { light: '#e8e8f5', dark: '#0b0b30' }, // Blue
-                                    ];
-                                    const colors = cardColors[idx % cardColors.length];
-                                    
-                                    return (
-                                        <Card key={file.id} className="border-0 shadow-sm hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.02] transition-all duration-300 bg-white" style={{ backgroundColor: colors.light }} data-testid={`patient-file-${idx}`}>
-                                            <CardContent className="pt-6">
-                                                <div className="flex items-start justify-between">
-                                                    <div className="flex items-start gap-3">
-                                                        <span className="text-2xl">{getFileIcon(file.file_type)}</span>
-                                                        <div>
-                                                            <p className="font-semibold text-sm truncate max-w-[150px]" style={{ color: colors.dark }}>{file.original_name}</p>
-                                                            <p className="text-xs capitalize" style={{ color: colors.dark, opacity: 0.7 }}>{file.file_type?.replace('_', ' ')}</p>
-                                                            {file.created_at && (
-                                                                <p className="text-xs mt-1" style={{ color: colors.dark, opacity: 0.7 }}>
-                                                                    {format(parseISO(file.created_at), 'MMM d, yyyy')}
-                                                                </p>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        onClick={async () => {
-                                                            try {
-                                                                await downloadFile(file.id, file.original_name);
-                                                            } catch (e) {
-                                                                toast.error(
-                                                                    e?.response?.status === 401
-                                                                        ? 'Please sign in to download files.'
-                                                                        : 'Failed to download file. Please try again.'
-                                                                );
-                                                            }
-                                                        }}
-                                                        aria-label={`Download ${file.original_name}`}
-                                                    >
-                                                        <Download className="w-4 h-4" style={{ color: colors.dark }} />
-                                                    </Button>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    );
-                                })}
-                            </div>
-                        )}
+                        <PatientFilesTab files={patient.files} />
                     </TabsContent>
 
-                    {/* Treatment Plans Tab */}
                     <TabsContent value="treatment_plans" className="mt-6">
-                        {patient.treatment_plans?.length === 0 ? (
-                            <Card className="border-slate-200">
-                                <CardContent className="py-12 text-center">
-                                    <FileText className="w-12 h-12 mx-auto mb-3 text-muted-foreground opacity-50" />
-                                    <p className="text-muted-foreground">No treatment plans found for this patient</p>
-                                </CardContent>
-                            </Card>
-                        ) : (
-                            <div className="space-y-8 p-4 bg-white">
-                                {patient.treatment_plans?.map((plan, idx) => {
-                                    // Rotating colors for treatment plan cards
-                                    const cardColors = [
-                                        { light: '#e8f5f0', dark: '#3b6658' }, // Teal
-                                        { light: '#f5f0e8', dark: '#694e20' }, // Amber
-                                        { light: '#f3edf5', dark: '#68517d' }, // Purple
-                                        { light: '#e8e8f5', dark: '#0b0b30' }, // Blue
-                                    ];
-                                    const colors = cardColors[idx % cardColors.length];
-                                    
-                                    return (
-                                        <Card key={plan.id} className="border-0 shadow-sm hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.01] transition-all duration-300 bg-white overflow-hidden" style={{ backgroundColor: colors.light }}>
-                                            <CardContent className="pt-6 pb-0">
-                                                {/* Header with Meeting Info */}
-                                                <div className="flex items-start justify-between mb-4 pb-4" style={{ borderBottom: `2px solid ${colors.dark}` }}>
-                                                    <div className="flex-1">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: colors.dark }}>
-                                                                <FileText className="w-5 h-5 text-white" />
-                                                            </div>
-                                                            <div>
-                                                                <h3 className="font-semibold text-lg" style={{ color: colors.dark }}>
-                                                                    {plan.meeting_title}
-                                                                </h3>
-                                                                <div className="flex items-center gap-2 mt-1">
-                                                                    <Badge variant="outline" className="text-xs" style={{ borderColor: colors.dark, color: colors.dark }}>
-                                                                        {format(parseISO(plan.meeting_date), 'MMMM d, yyyy')}
-                                                                    </Badge>
-                                                                    <Link to={`/meetings/${plan.meeting_id}`}>
-                                                                        <Button variant="ghost" size="sm" className="h-6 text-xs" style={{ color: colors.dark }}>
-                                                                            View Meeting →
-                                                                        </Button>
-                                                                    </Link>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {/* Medical Details */}
-                                                {(plan.diagnosis || plan.requested_provider) && (
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-4 rounded-lg" style={{ backgroundColor: `${colors.dark}10` }}>
-                                                        {plan.diagnosis && (
-                                                            <div>
-                                                                <p className="text-xs font-medium uppercase mb-1" style={{ color: colors.dark, opacity: 0.7 }}>Diagnosis</p>
-                                                                <p className="text-sm font-semibold" style={{ color: colors.dark }}>{plan.diagnosis}</p>
-                                                            </div>
-                                                        )}
-                                                        {plan.requested_provider && (
-                                                            <div>
-                                                                <p className="text-xs font-medium uppercase mb-1" style={{ color: colors.dark, opacity: 0.7 }}>Requested Provider</p>
-                                                                <p className="text-sm font-semibold" style={{ color: colors.dark }}>{plan.requested_provider}</p>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
-
-                                                {/* Treatment Plan Content */}
-                                                <div className="mb-4">
-                                                    <div className="flex items-center gap-2 mb-3">
-                                                        <Heart className="w-4 h-4" style={{ color: colors.dark }} />
-                                                        <h4 className="font-semibold" style={{ color: colors.dark }}>Treatment Plan</h4>
-                                                    </div>
-                                                    <div className="prose prose-sm max-w-none">
-                                                        <p className="text-sm whitespace-pre-wrap leading-relaxed" style={{ color: colors.dark, opacity: 0.9 }}>
-                                                            {plan.treatment_plan}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </CardContent>
-
-                                            {/* Ribbon Footer */}
-                                            <Link to={`/meetings/${plan.meeting_id}`} className="block">
-                                                <div 
-                                                    className="relative py-3 px-4 text-center font-semibold text-white transition-all duration-300 hover:opacity-90 cursor-pointer"
-                                                    style={{ backgroundColor: colors.dark }}
-                                                >
-                                                    <span className="relative z-10">View Full Meeting Details →</span>
-                                                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black opacity-10"></div>
-                                                </div>
-                                            </Link>
-                                        </Card>
-                                    );
-                                })}
-                            </div>
-                        )}
+                        <PatientTreatmentPlansTab plans={patient.treatment_plans} />
                     </TabsContent>
                 </Tabs>
             </div>
 
-            {/* Edit Dialog */}
-            <Dialog open={editDialog} onOpenChange={setEditDialog}>
-                <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
-                    <DialogHeader>
-                        <DialogTitle>Edit Patient Profile</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                        {/* Basic Information Section */}
-                        <div className="space-y-4">
-                            <h4 className="text-sm font-semibold text-slate-700 border-b pb-2">Basic Information</h4>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label>First Name</Label>
-                                    <Input
-                                        value={editForm.first_name || ''}
-                                        onChange={(e) => setEditForm({ ...editForm, first_name: e.target.value })}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Last Name</Label>
-                                    <Input
-                                        value={editForm.last_name || ''}
-                                        onChange={(e) => setEditForm({ ...editForm, last_name: e.target.value })}
-                                    />
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label>MRN (Medical Record Number)</Label>
-                                    <Input
-                                        value={editForm.patient_id_number || ''}
-                                        onChange={(e) => setEditForm({ ...editForm, patient_id_number: e.target.value })}
-                                        placeholder="e.g., P-12345"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Gender</Label>
-                                    <Select 
-                                        value={editForm.gender || ''} 
-                                        onValueChange={(value) => setEditForm({ ...editForm, gender: value })}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select gender" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="male">Male</SelectItem>
-                                            <SelectItem value="female">Female</SelectItem>
-                                            <SelectItem value="other">Other</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label>Date of Birth</Label>
-                                    <Input
-                                        type="date"
-                                        value={editForm.date_of_birth || ''}
-                                        onChange={(e) => setEditForm({ ...editForm, date_of_birth: e.target.value })}
-                                        max={new Date().toISOString().split('T')[0]}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Phone</Label>
-                                    <Input
-                                        value={editForm.phone || ''}
-                                        onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                                        placeholder="+1 234 567 8900"
-                                    />
-                                </div>
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Email</Label>
-                                <Input
-                                    type="email"
-                                    value={editForm.email || ''}
-                                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                                    placeholder="patient@email.com"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Address</Label>
-                                <Textarea
-                                    value={editForm.address || ''}
-                                    onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
-                                    placeholder="Full address"
-                                    rows={2}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Medical Information Section */}
-                        <div className="space-y-4">
-                            <h4 className="text-sm font-semibold text-slate-700 border-b pb-2">Medical Information</h4>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label>Department</Label>
-                                    <Input
-                                        value={editForm.department_name || ''}
-                                        onChange={(e) => setEditForm({ ...editForm, department_name: e.target.value })}
-                                        placeholder="e.g., Oncology"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Provider Name</Label>
-                                    <Input
-                                        value={editForm.department_provider_name || ''}
-                                        onChange={(e) => setEditForm({ ...editForm, department_provider_name: e.target.value })}
-                                        placeholder="e.g., Dr. Smith"
-                                    />
-                                </div>
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Primary Diagnosis</Label>
-                                <Textarea
-                                    value={editForm.primary_diagnosis || ''}
-                                    onChange={(e) => setEditForm({ ...editForm, primary_diagnosis: e.target.value })}
-                                    placeholder="Enter primary diagnosis"
-                                    rows={2}
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Allergies</Label>
-                                <Textarea
-                                    value={editForm.allergies || ''}
-                                    onChange={(e) => setEditForm({ ...editForm, allergies: e.target.value })}
-                                    placeholder="List any known allergies"
-                                    rows={2}
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Current Medications</Label>
-                                <Textarea
-                                    value={editForm.current_medications || ''}
-                                    onChange={(e) => setEditForm({ ...editForm, current_medications: e.target.value })}
-                                    placeholder="List current medications"
-                                    rows={2}
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Additional Notes</Label>
-                                <Textarea
-                                    value={editForm.notes || ''}
-                                    onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
-                                    placeholder="Any additional notes"
-                                    rows={2}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setEditDialog(false)}>Cancel</Button>
-                        <Button onClick={handleEdit} disabled={saving} data-testid="save-edit-btn">
-                            {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-                            Save Changes
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            <PatientEditDialog
+                open={editDialog}
+                onOpenChange={setEditDialog}
+                form={editForm}
+                onFormChange={setEditForm}
+                onSave={handleEdit}
+                saving={saving}
+            />
         </Layout>
     );
 }

@@ -27,6 +27,23 @@ Web-based Hospital General Meeting Scheduler App for healthcare professionals. D
 - `/app/backend/scheduler.py` — in-process asyncio task in FastAPI lifespan
 - 1h-before reminders only, polled every 5 min, deduped via `reminder_1h_sent` flag
 
+
+## Backend Test Suite Hardened (Feb 2026)
+- `/app/backend/conftest.py` — single pytest bootstrap that:
+  * Adds `/app/backend` to `sys.path` (fixes `ModuleNotFoundError: utils`)
+  * Loads `backend/.env` and `frontend/.env` so tests pick up `REACT_APP_BACKEND_URL`, `MONGO_URL`, `DB_NAME` automatically
+  * Auto-creates the two integration-test organizers (`organizer@hospital.com`, `test_organizer_new@hospital.com`) via `/auth/register` and promotes them to `role=organizer` in Mongo (idempotent)
+- `/app/backend/pytest.ini` — sets `asyncio_mode = auto` + registers the `asyncio` marker
+- `pytest-asyncio` added to runtime deps
+- Result: **98 passed / 2 skipped / 0 failed** for the full backend suite (was 43 passing / 17 failing / 15 erroring)
+
+## Component Splits (Feb 2026)
+- `PatientDetailPage.js`: 677 → 156 lines. Extracted to `/app/frontend/src/components/patient-detail/`:
+  `PatientHeader`, `PatientOverviewTab`, `PatientMeetingsTab`, `PatientFilesTab`, `PatientTreatmentPlansTab`, `PatientEditDialog`, `patientDetailUtils` (palette + age/icon helpers).
+- `ParticipantsPage.js`: 638 → 269 lines. Extracted to `/app/frontend/src/components/participants/`:
+  `ParticipantStatsCards`, `ParticipantSearchFilter`, `ParticipantCard`, `CreateParticipantDialog`, `EditParticipantDialog`, `participantUtils`.
+- Visual regression smoke-tested via Playwright; both pages render identically.
+
 ## Frontend Modular Architecture (Apr 2026)
 - `MeetingDetailPage.js`: 2,449 → 1,802 → **1,004 lines** (-1,445, -59%)
 - New `/app/frontend/src/components/meeting/`:
