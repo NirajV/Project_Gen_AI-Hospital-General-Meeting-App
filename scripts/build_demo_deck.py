@@ -1,7 +1,16 @@
 """
 Generate the BioMedMeet demo-request PowerPoint deck.
 
-Output: /app/docs/BioMedMeet_Demo_Deck.pptx (10 slides, 16:9)
+Output: /app/docs/BioMedMeet_Demo_Deck.pptx (10 slides, 16:9) by default.
+
+Personalisation (recommended):
+    python scripts/build_demo_deck.py \
+        --hospital-name "Ochsner Health" \
+        --month May --year 2026
+
+The hospital name appears on the cover ("Prepared for Ochsner Health · May 2026"),
+the overview hook, the pricing card title, and the closing CTA. The output
+filename auto-derives to `BioMedMeet_Demo_Deck_Ochsner_Health.pptx`.
 
 Design system mirrors the marketing site:
   navy  #0b0b30  – primary text + dark CTAs
@@ -11,6 +20,9 @@ Design system mirrors the marketing site:
   ivory #f9f5ee  – warm slide background
   white #ffffff
 """
+import argparse
+import re
+from datetime import datetime
 from pathlib import Path
 
 from pptx import Presentation
@@ -162,7 +174,7 @@ def add_footer(slide, page_num, total):
 # Slide builders
 # ----------------------------------------------------------------------------- 
 
-def make_cover(prs):
+def make_cover(prs, *, hospital_name=None, prepared_for_line=None):
     slide = prs.slides.add_slide(prs.slide_layouts[6])  # blank
 
     # Deep-navy background
@@ -191,8 +203,22 @@ def make_cover(prs):
     # Logo (light variant) at the top-left
     draw_logo(slide, Inches(0.6), Inches(0.5), height=Inches(0.55), light=True)
 
+    # "Prepared for" badge — only when a hospital name is provided.
+    # Sits between the logo and the eyebrow so it's the first thing the
+    # reader's eye lands on after the brand.
+    eyebrow_y = Inches(2.4)
+    if hospital_name and prepared_for_line:
+        badge_w = Inches(8.0)
+        badge_h = Inches(0.55)
+        badge = add_rounded(slide, Inches(0.6), Inches(1.6), badge_w, badge_h, GREEN)
+        badge.adjustments[0] = 0.5
+        add_text(slide, Inches(0.6), Inches(1.6), badge_w, badge_h,
+                 prepared_for_line.upper(),
+                 size=13, color=WHITE, bold=True,
+                 align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
+
     # Eyebrow
-    add_text(slide, Inches(0.6), Inches(2.4), Inches(8), Inches(0.5),
+    add_text(slide, Inches(0.6), eyebrow_y, Inches(8), Inches(0.5),
              "HOSPITAL CASE-MEETING PLATFORM",
              size=14, color=GREEN, bold=True)
 
@@ -201,12 +227,22 @@ def make_cover(prs):
              "Stop scheduling.\nStart deciding.",
              size=60, color=WHITE, bold=True)
 
-    # Subhead
+    # Subhead — softly mentions the hospital if provided
+    if hospital_name:
+        subhead = (
+            f"A walkthrough for {hospital_name} — how BioMedMeet turns weekly "
+            "multidisciplinary case meetings into structured, audit-ready "
+            "decisions without the calendaring, minute-taking and follow-up "
+            "overhead."
+        )
+    else:
+        subhead = (
+            "BioMedMeet turns weekly multidisciplinary case meetings into "
+            "structured, audit-ready decisions — without the calendaring, "
+            "minute-taking and follow-up overhead."
+        )
     add_text(slide, Inches(0.6), Inches(5.0), Inches(9), Inches(1.2),
-             "BioMedMeet turns weekly multidisciplinary case meetings into "
-             "structured, audit-ready decisions — without the calendaring, "
-             "minute-taking and follow-up overhead.",
-             size=18, color=LIGHT)
+             subhead, size=18, color=LIGHT)
 
     # CTA pill
     cta = add_rounded(slide, Inches(0.6), Inches(6.3), Inches(3.3), Inches(0.6),
@@ -217,13 +253,18 @@ def make_cover(prs):
              size=14, color=WHITE, bold=True,
              align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
 
-    # Footer ribbon
+    # Footer ribbon (mentions the hospital when set)
+    footer_left = (
+        f"Demo deck  ·  Prepared for {hospital_name}"
+        if hospital_name
+        else "Demo deck  ·  Prepared for hospital leadership"
+    )
     add_text(slide, Inches(0.6), Inches(7.05), Inches(12), Inches(0.3),
-             "Demo deck  ·  Prepared for hospital leadership  ·  Demo@BioMedMeet.com  ·  biomedmeet.com",
+             f"{footer_left}  ·  Demo@BioMedMeet.com  ·  biomedmeet.com",
              size=10, color=LIGHT)
 
 
-def make_overview(prs):
+def make_overview(prs, *, hospital_name=None):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     add_rect(slide, 0, 0, prs.slide_width, prs.slide_height, CREAM)
 
@@ -232,8 +273,12 @@ def make_overview(prs):
     draw_logo(slide, Inches(0.5), Inches(0.4), height=Inches(0.5))
 
     # Section eyebrow + title
-    add_text(slide, Inches(0.6), Inches(1.2), Inches(8), Inches(0.4),
-             "WHAT IS BIOMEDMEET?", size=12, color=GREEN, bold=True)
+    eyebrow = (
+        f"WHAT BIOMEDMEET MEANS FOR {hospital_name.upper()}"
+        if hospital_name else "WHAT IS BIOMEDMEET?"
+    )
+    add_text(slide, Inches(0.6), Inches(1.2), Inches(12), Inches(0.4),
+             eyebrow, size=12, color=GREEN, bold=True)
     add_text(slide, Inches(0.6), Inches(1.55), Inches(11), Inches(1.0),
              "The case-meeting platform built for hospital teams.",
              size=34, color=NAVY, bold=True)
@@ -502,14 +547,17 @@ def make_security_compliance(prs):
     add_footer(slide, 6, 10)
 
 
-def make_pricing(prs):
+def make_pricing(prs, *, hospital_name=None):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     add_rect(slide, 0, 0, prs.slide_width, prs.slide_height, CREAM)
     add_rect(slide, 0, 0, prs.slide_width, Inches(0.18), NAVY)
     draw_logo(slide, Inches(0.5), Inches(0.4), height=Inches(0.5))
 
-    add_text(slide, Inches(0.6), Inches(1.2), Inches(8), Inches(0.4),
-             "PRICING", size=12, color=GREEN, bold=True)
+    eyebrow = (
+        f"PRICING FOR {hospital_name.upper()}" if hospital_name else "PRICING"
+    )
+    add_text(slide, Inches(0.6), Inches(1.2), Inches(12), Inches(0.4),
+             eyebrow, size=12, color=GREEN, bold=True)
     add_text(slide, Inches(0.6), Inches(1.55), Inches(12), Inches(1.0),
              "Own it. Don't rent it.",
              size=34, color=NAVY, bold=True)
@@ -524,8 +572,12 @@ def make_pricing(prs):
     add_text(slide, Inches(0.95), Inches(3.30), Inches(5.5), Inches(0.4),
              "PERPETUAL LICENCE  ·  SELF-HOSTED",
              size=10, color=GREEN, bold=True)
+    pricing_title = (
+        f"BioMedMeet for {hospital_name}" if hospital_name
+        else "BioMedMeet for hospitals"
+    )
     add_text(slide, Inches(0.95), Inches(3.65), Inches(5.5), Inches(0.6),
-             "BioMedMeet for hospitals",
+             pricing_title,
              size=16, color=SLATE, bold=True)
     add_text(slide, Inches(0.95), Inches(4.15), Inches(5.5), Inches(1.4),
              "$25,000",
@@ -704,7 +756,7 @@ def make_revenue_business(prs):
     add_footer(slide, 9, 10)
 
 
-def make_cta(prs):
+def make_cta(prs, *, hospital_name=None):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     add_rect(slide, 0, 0, prs.slide_width, prs.slide_height, NAVY)
 
@@ -722,14 +774,26 @@ def make_cta(prs):
 
     add_text(slide, Inches(0.6), Inches(2.0), Inches(11), Inches(0.5),
              "READY TO SEE IT LIVE?", size=14, color=GREEN, bold=True)
+    cta_title = (
+        f"Let's book a 15-minute walkthrough\nfor {hospital_name}."
+        if hospital_name
+        else "Let's book a 15-minute walkthrough."
+    )
     add_text(slide, Inches(0.6), Inches(2.55), Inches(11), Inches(2.0),
-             "Let's book a 15-minute walkthrough.",
-             size=48, color=WHITE, bold=True)
+             cta_title, size=44 if hospital_name else 48,
+             color=WHITE, bold=True)
+    cta_sub = (
+        f"We'll bring a working sandbox so {hospital_name}'s team can click "
+        "around — schedule a recurring tumor board, run a sample case, "
+        "generate the PDF — all in real time."
+        if hospital_name
+        else
+        "We'll bring a working sandbox so your team can click around — "
+        "schedule a recurring tumor board, run a sample case, generate "
+        "the PDF — all in real time."
+    )
     add_text(slide, Inches(0.6), Inches(4.20), Inches(11), Inches(1.2),
-             "We'll bring a working sandbox so your team can click around — "
-             "schedule a recurring tumor board, run a sample case, generate "
-             "the PDF — all in real time.",
-             size=16, color=LIGHT)
+             cta_sub, size=16, color=LIGHT)
 
     # CTA buttons row
     cta1 = add_rounded(slide, Inches(0.6), Inches(6.0),
@@ -757,7 +821,49 @@ def make_cta(prs):
 # Main
 # ----------------------------------------------------------------------------- 
 
+def _slug(name: str) -> str:
+    """Turn 'Ochsner Health' → 'Ochsner_Health' for filenames."""
+    s = re.sub(r"[^A-Za-z0-9]+", "_", name).strip("_")
+    return s or "Hospital"
+
+
+def parse_args():
+    p = argparse.ArgumentParser(
+        description="Generate the BioMedMeet demo PowerPoint deck.")
+    p.add_argument("--hospital-name", default=None,
+                   help="Personalises the cover, overview, pricing & CTA "
+                        "(e.g. \"Ochsner Health\").")
+    p.add_argument("--month", default=None,
+                   help="Month name shown on the 'Prepared for' badge "
+                        "(default: current month).")
+    p.add_argument("--year", type=int, default=None,
+                   help="Year shown on the 'Prepared for' badge "
+                        "(default: current year).")
+    p.add_argument("--output", default=None,
+                   help="Output .pptx path. Defaults to "
+                        "/app/docs/BioMedMeet_Demo_Deck[_<Hospital>].pptx")
+    return p.parse_args()
+
+
 def main():
+    args = parse_args()
+    now = datetime.now()
+    month = args.month or now.strftime("%B")
+    year = args.year or now.year
+    hospital = args.hospital_name.strip() if args.hospital_name else None
+    prepared_for = (
+        f"Prepared for {hospital}  ·  {month} {year}" if hospital else None
+    )
+
+    if args.output:
+        out_path = Path(args.output)
+    elif hospital:
+        out_path = OUT_PATH.with_name(
+            f"BioMedMeet_Demo_Deck_{_slug(hospital)}.pptx"
+        )
+    else:
+        out_path = OUT_PATH
+
     prs = Presentation()
     prs.slide_width = Inches(13.333)   # 16:9
     prs.slide_height = Inches(7.5)
@@ -765,20 +871,23 @@ def main():
     step_thumb_dir = Path("/app/frontend/public/marketing/thumbs")
     step_thumbs = [step_thumb_dir / f"step{i}.jpg" for i in range(1, 5)]
 
-    make_cover(prs)                            # 1
-    make_overview(prs)                         # 2
-    make_problem_solution(prs)                 # 3
-    make_feature_grid(prs)                     # 4
-    make_feature_deep_workflow(prs, step_thumbs)  # 5
-    make_security_compliance(prs)              # 6
-    make_pricing(prs)                          # 7
-    make_roi(prs)                              # 8
-    make_revenue_business(prs)                 # 9
-    make_cta(prs)                              # 10
+    make_cover(prs, hospital_name=hospital,
+               prepared_for_line=prepared_for)             # 1
+    make_overview(prs, hospital_name=hospital)             # 2
+    make_problem_solution(prs)                             # 3
+    make_feature_grid(prs)                                 # 4
+    make_feature_deep_workflow(prs, step_thumbs)           # 5
+    make_security_compliance(prs)                          # 6
+    make_pricing(prs, hospital_name=hospital)              # 7
+    make_roi(prs)                                          # 8
+    make_revenue_business(prs)                             # 9
+    make_cta(prs, hospital_name=hospital)                  # 10
 
-    OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    prs.save(OUT_PATH)
-    print(f"Saved: {OUT_PATH}  ({len(prs.slides)} slides)")
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    prs.save(out_path)
+    print(f"Saved: {out_path}  ({len(prs.slides)} slides)")
+    if hospital:
+        print(f"Personalised for: {hospital}  ·  {month} {year}")
 
 
 if __name__ == "__main__":
