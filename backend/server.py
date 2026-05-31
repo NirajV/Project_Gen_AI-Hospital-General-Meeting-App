@@ -71,6 +71,34 @@ api_router = APIRouter(prefix="/api")
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+
+# ============== Demo Meeting Auto-Attach ==============
+# When a new user signs up, attach them as a participant to every seeded demo
+# meeting (rows tagged `_seed="demo_v1"`). Idempotent: skips meetings the user
+# is already attached to. Failures are logged but never block signup.
+
+async def _attach_user_to_demo_meetings(user_id: str) -> None:
+    try:
+        cursor = db.meetings.find({"_seed": "demo_v1"}, {"_id": 0, "id": 1})
+        async for meeting in cursor:
+            mid = meeting["id"]
+            already = await db.meeting_participants.find_one(
+                {"meeting_id": mid, "user_id": user_id}, {"_id": 0, "id": 1}
+            )
+            if already:
+                continue
+            await db.meeting_participants.insert_one({
+                "id": str(uuid.uuid4()),
+                "meeting_id": mid,
+                "user_id": user_id,
+                "role": "attendee",
+                "response_status": "pending",
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "_seed": "demo_v1_auto",
+            })
+    except Exception as e:
+        logger.error(f"Failed to attach user {user_id} to demo meetings: {e}")
+
 # ============== Auth Routes ==============
 
 @api_router.post("/auth/register", response_model=TokenResponse)
@@ -99,6 +127,9 @@ async def register(user: UserCreate):
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.users.insert_one(user_doc)
+    
+    # Auto-attach new signups to all seeded demo meetings so they're visible immediately.
+    await _attach_user_to_demo_meetings(user_id)
     
     user_data = await db.users.find_one({"id": user_id}, {"_id": 0})
     token = create_jwt_token(user_id, user.email)
@@ -270,6 +301,8 @@ async def process_session(request: Request, response: Response):
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         await db.users.insert_one(user_doc)
+        # Auto-attach new OAuth signups to all seeded demo meetings.
+        await _attach_user_to_demo_meetings(user_id)
         user = await db.users.find_one({"id": user_id}, {"_id": 0})
     else:
         # Update picture if changed

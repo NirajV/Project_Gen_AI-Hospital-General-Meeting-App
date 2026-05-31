@@ -345,7 +345,13 @@ def insert_meeting(db, *, organizer_id, organizer_tz, title, description,
 
 
 def attach_participants(db, meeting_id: str, user_ids: list[str]) -> None:
+    """Idempotently attach the given user ids to a meeting as 'attendee'."""
     for uid in user_ids:
+        existing = db.meeting_participants.find_one(
+            {"meeting_id": meeting_id, "user_id": uid}, {"_id": 0, "id": 1}
+        )
+        if existing:
+            continue
         db.meeting_participants.insert_one({
             "id": str(uuid.uuid4()),
             "meeting_id": meeting_id,
@@ -395,9 +401,9 @@ def purge_seed(db) -> None:
         "users", "patients", "meetings",
         "meeting_participants", "meeting_patients", "agenda_items",
     ]
-    print("Purging previously seeded rows (_seed='%s')..." % SEED_TAG)
+    print("Purging previously seeded rows (_seed in {'%s', 'demo_v1_auto'})..." % SEED_TAG)
     for name in collections:
-        result = db[name].delete_many({"_seed": SEED_TAG})
+        result = db[name].delete_many({"_seed": {"$in": [SEED_TAG, "demo_v1_auto"]}})
         print(f"  {name}: removed {result.deleted_count}")
 
 
@@ -571,15 +577,27 @@ def main() -> None:
         )
         created_meeting_ids.append(mid)
 
-        # Attach 6-9 participants (excluding organizer who's already attached)
-        chosen = random.sample(participant_ids, k=random.randint(6, 9))
-        attach_participants(db, mid, chosen)
-
-        # Attach 4-7 patients
+        # Attach 4-7 patients per meeting
         chosen_patients = random.sample(patient_records, k=random.randint(4, 7))
         attach_patients_to_meeting(db, mid, [p["id"] for p in chosen_patients], organizer_id)
 
     print(f"Meetings created: {len(created_meeting_ids)}")
+
+    # ----- Make every existing user a participant of every seed meeting -----
+    # This is what makes the demo data visible to anyone who logs in.
+    all_user_ids = [u["id"] for u in db.users.find(
+        {"is_active": True}, {"_id": 0, "id": 1}
+    )]
+    backfill_count = 0
+    for mid in created_meeting_ids:
+        before = db.meeting_participants.count_documents({"meeting_id": mid})
+        attach_participants(
+            db, mid, [uid for uid in all_user_ids if uid != organizer_id]
+        )
+        after = db.meeting_participants.count_documents({"meeting_id": mid})
+        backfill_count += (after - before)
+    print(f"Participants attached across all seed meetings: {len(all_user_ids)} users "
+          f"× {len(created_meeting_ids)} meetings (added {backfill_count} new rows)")
 
     # ----- 50 Agenda Items (2 per patient, distributed across meetings) -----
     # Spread 50 items so each meeting gets ~4 items and each patient appears twice.
