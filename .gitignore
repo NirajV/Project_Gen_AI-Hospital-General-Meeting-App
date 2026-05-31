@@ -657,3 +657,4 @@ scripts/marketing/_runs/
 marketing_outreach/.env
 marketing_outreach/_runs/
 marketing_outreach/__pycache__/
+frontend/node_modules/.cache/default-development/7.pack

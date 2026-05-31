@@ -48,14 +48,28 @@ from pymongo import MongoClient
 # Config loading (reads /app/backend/.env without depending on python-dotenv)
 # ---------------------------------------------------------------------------
 
-BACKEND_ENV_PATH = Path("/app/backend/.env")
+# Try a few locations so the script works both inside the Emergent container
+# (where the repo lives at /app) and on a developer's local machine where the
+# repo can be cloned anywhere.
+def _find_backend_env() -> Path | None:
+    here = Path(__file__).resolve().parent
+    candidates = [
+        Path("/app/backend/.env"),
+        here.parent / "backend" / ".env",          # <repo>/scripts/.. -> <repo>/backend/.env
+        Path.cwd() / "backend" / ".env",
+    ]
+    for c in candidates:
+        if c.exists():
+            return c
+    return None
 
 
 def _load_backend_env() -> None:
     """Lightweight .env loader so the script works without dotenv installed."""
-    if not BACKEND_ENV_PATH.exists():
+    env_path = _find_backend_env()
+    if env_path is None:
         return
-    for line in BACKEND_ENV_PATH.read_text().splitlines():
+    for line in env_path.read_text().splitlines():
         line = line.strip()
         if not line or line.startswith("#") or "=" not in line:
             continue
