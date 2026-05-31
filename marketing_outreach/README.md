@@ -55,6 +55,30 @@ MARKETING_DB_NAME=biomedmeet_marketing
 
 ## 🚀 End-to-end workflow
 
+> **Heads-up — Python invocation on a typical Linux server**
+>
+> Most distros don't alias `python`/`pip` to `python3`/`pip3`, and Ubuntu
+> 23.04+ blocks system-wide `pip install` (PEP 668). Run the whole pipeline
+> through a project venv:
+>
+> ```bash
+> # one-time
+> sudo apt install -y python3-venv python3-full
+> python3 -m venv .venv
+> .venv/bin/pip install --upgrade pip
+> .venv/bin/pip install python-dotenv pymongo openpyxl bcrypt requests
+>
+> # optional convenience alias (lets you type `pyhmm` instead of the long path)
+> alias pyhmm='/full/path/to/Project_Gen_AI-Hospital-General-Meeting-App/.venv/bin/python'
+> ```
+>
+> Throughout the rest of this README, every example uses `python3` — on a
+> server with the alias above, just swap `python3` for `pyhmm`. They are
+> interchangeable. **All commands must be run from the repo root** (the
+> folder that *contains* `marketing_outreach/`), not from inside the
+> `marketing_outreach/` directory — otherwise `python -m marketing_outreach…`
+> can't find the package.
+
 ### 0. One-time setup
 
 ```bash
@@ -64,14 +88,40 @@ cp .env.example .env
 $EDITOR .env     # fill in SMTP_*, SENDER_*, MARKETING_DB_*
 ```
 
+> **If your MongoDB requires authentication** (e.g. our default Docker
+> Compose stack ships with `admin / changeme123`), `MARKETING_DB_URL` must
+> include the credentials and an `authSource`:
+>
+> ```
+> MARKETING_DB_URL=mongodb://admin:changeme123@localhost:27017/?authSource=admin
+> MARKETING_DB_NAME=biomedmeet_marketing
+> ```
+>
+> Inside Docker the hostname is `mongodb`; from the host machine it's
+> `localhost` (or whatever port you mapped).
+
 ### 1. Load Apollo / ZoomInfo / Hunter export into MongoDB
 
 ```bash
-# Place the export under data/
+# Place the export under data/, then from the repo root:
 python3 -m marketing_outreach.load_to_mongo \
-    --input data/Hospital_Contact_Detail_V2.xlsx \
+    --input marketing_outreach/data/Hospital_Contact_Detail_V2.xlsx \
     --email-status Verified \
     --replace
+```
+
+Tip: verify the load succeeded before sending — should print non-zero counts:
+
+```bash
+python3 -c "
+import os
+from dotenv import load_dotenv
+load_dotenv('marketing_outreach/.env')
+from pymongo import MongoClient
+db = MongoClient(os.environ['MARKETING_DB_URL'])[os.environ['MARKETING_DB_NAME']]
+print('US contacts total  :', db.marketing_contacts.count_documents({'country':'US'}))
+print('US contacts pending:', db.marketing_contacts.count_documents({'country':'US','status':{'\$in':['pending', None]}}))
+"
 ```
 
 Output:
@@ -116,6 +166,26 @@ links and the 4 step thumbnails load, and the Book-a-demo button works.
 python3 -m marketing_outreach.send_campaign --country US \
     --send --daily-cap 100
 ```
+
+> **If you see this error:**
+> `command find requires authentication … code 13 Unauthorized`
+> → `MARKETING_DB_URL` in `marketing_outreach/.env` is missing credentials.
+>   Update it to:
+>   `mongodb://admin:changeme123@localhost:27017/?authSource=admin`
+>
+> **If you see:**
+> `ModuleNotFoundError: No module named 'marketing_outreach'`
+> → You ran the command from inside `marketing_outreach/`. Go back to the
+>   repo root (`cd ..`) and re-run, or invoke the file directly:
+>   `python3 path/to/marketing_outreach/send_campaign.py --country US …`
+>
+> **If you see:**
+> `smtplib.SMTPAuthenticationError: (535, ...) Username and Password not accepted`
+> → `SMTP_USER` / `SMTP_PASSWORD` in `marketing_outreach/.env` don't match a
+>   real Gmail/Workspace mailbox + App Password. Copy the working values
+>   from `backend/.env`, or generate a fresh App Password at
+>   https://myaccount.google.com/apppasswords (2-Step Verification must be
+>   enabled first).
 
 The script:
 - Queries Mongo for contacts where `country=US` AND `status=pending`
