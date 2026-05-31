@@ -51,14 +51,20 @@ from pymongo import MongoClient
 # Try a few locations so the script works both inside the Emergent container
 # (where the repo lives at /app) and on a developer's local machine where the
 # repo can be cloned anywhere.
-def _find_backend_env() -> Path | None:
+ENV_CANDIDATES_CHECKED: list[Path] = []
+
+
+def _find_backend_env():
     here = Path(__file__).resolve().parent
     candidates = [
         Path("/app/backend/.env"),
-        here.parent / "backend" / ".env",          # <repo>/scripts/.. -> <repo>/backend/.env
+        here.parent / "backend" / ".env",   # <repo>/scripts/.. -> <repo>/backend/.env
+        here.parent / ".env",               # <repo>/.env
         Path.cwd() / "backend" / ".env",
+        Path.cwd() / ".env",
     ]
     for c in candidates:
+        ENV_CANDIDATES_CHECKED.append(c)
         if c.exists():
             return c
     return None
@@ -403,10 +409,34 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Seed BioMedMeet demo data.")
     parser.add_argument("--purge", action="store_true",
                         help="Delete previously seeded rows before re-inserting.")
+    parser.add_argument("--mongo-url", default=None,
+                        help="Override MONGO_URL (e.g. mongodb://localhost:27017).")
+    parser.add_argument("--db-name", default=None,
+                        help="Override DB_NAME (e.g. hospital_meeting_scheduler).")
     args = parser.parse_args()
 
-    client = MongoClient(MONGO_URL)
-    db = client[DB_NAME]
+    mongo_url = args.mongo_url or MONGO_URL
+    db_name = args.db_name or DB_NAME
+    if not mongo_url or not db_name:
+        print("ERROR: MONGO_URL / DB_NAME not found.")
+        print("  Checked these .env locations:")
+        for c in ENV_CANDIDATES_CHECKED:
+            print(f"    - {c}  {'(found)' if c.exists() else '(missing)'}")
+        print("\nFix options (pick one):")
+        print("  1) Pass them on the command line:")
+        print("       python scripts/seed_demo_data.py \\")
+        print("         --mongo-url mongodb://localhost:27017 \\")
+        print("         --db-name hospital_meeting_scheduler")
+        print("  2) Export them as env vars:")
+        print("       export MONGO_URL=mongodb://localhost:27017")
+        print("       export DB_NAME=hospital_meeting_scheduler")
+        print("       python scripts/seed_demo_data.py")
+        print("  3) Create a backend/.env with MONGO_URL=... and DB_NAME=...")
+        sys.exit(1)
+
+    client = MongoClient(mongo_url)
+    db = client[db_name]
+    print(f"Connected to MongoDB: {mongo_url} / {db_name}")
 
     if args.purge:
         purge_seed(db)
